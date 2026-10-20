@@ -1,12 +1,19 @@
 'use strict';
 // Порядок глав, сохранения, финал, главный цикл и запуск
 
-const CHAPTERS = { ch1: startAul, ch5: startField };
+const CHAPTERS = { ch1: startAul, ch2: startDon, ch5: startField };
 
 async function endChapter1(){
+  saveGame('ch2');
+  const lines = memory.log.map(l=>'· '+escapeHtml(l)).join('<br>');
+  await showCard('Конец главы 1', 'Что запомнили', `<span style="text-align:left;display:inline-block">${lines}</span><br><br><span class="small">В полной игре здесь будет доля игроков, сделавших тот же выбор. Игра сохранена.</span>`, 'Июль 1942 →');
+  startDon();
+}
+
+async function endChapter2(){
   saveGame('ch5');
   const lines = memory.log.map(l=>'· '+escapeHtml(l)).join('<br>');
-  await showCard('Конец главы 1', 'Что запомнили', `<span style="text-align:left;display:inline-block">${lines}</span><br><br><span class="small">В полной игре здесь будет доля игроков, сделавших тот же выбор. Игра сохранена.</span>`, 'Июль 1943 →');
+  await showCard('Конец главы 2', 'Что запомнили', `<span style="text-align:left;display:inline-block">${lines}</span><br><br><span class="small">Главы 3–4 ещё в работе. Игра сохранена.</span>`, 'Июль 1943 →');
   startField();
 }
 
@@ -33,6 +40,7 @@ function loop(now){
 requestAnimationFrame(loop);
 
 async function startAul(){ saveGame('ch1'); active=sceneAul(); await active.begin(); }
+async function startDon(){ $('fade').style.opacity=1; active=sceneDon(); await active.begin(); }
 async function startField(){ $('fade').style.opacity=1; camera.position.set(0,.32,0); active=sceneField(); await active.begin(); }
 
 // на телефоне — полный экран и горизонтальная ориентация, если браузер позволяет

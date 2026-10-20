@@ -4,6 +4,7 @@
 // СЦЕНА 1. АУЛ — вид сверху, камера с масштабом
 // ======================================================================
 function sceneAul(){
+  resetCamera();
   const DAT = DATA.ch1, CH = 'Глава 1 · '+DAT.title;
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xa9a291);
@@ -124,6 +125,22 @@ function sceneAul(){
     // снега на вершинах нет: в марте он лежит пятнами, а шапки в дымке читаются как висящие в воздухе
   });
 
+  // --- второй план-«наблюдатель»: изнутри юрты через дверной проём ---
+  const YURT_SHOT = { pos:new THREE.Vector3(-13.25,1.3,-3.05), look:new THREE.Vector3(-1.5,.9,-2.2), fov:42 };
+  const doorway = new THREE.Group(); doorway.visible=false; scene.add(doorway);
+  const feltDark = new THREE.MeshBasicMaterial({color:0x1c140e, side:THREE.DoubleSide});
+  const lw=new THREE.Mesh(new THREE.PlaneGeometry(3,4),feltDark); lw.position.set(-12.75,1.6,-5.12); lw.rotation.y=Math.PI/2;
+  const rw=lw.clone(); rw.position.z=-0.98;
+  const top=new THREE.Mesh(new THREE.PlaneGeometry(2,1.6),feltDark); top.position.set(-12.75,2.75,-3.05); top.rotation.y=Math.PI/2;
+  const sill=new THREE.Mesh(new THREE.BoxGeometry(.25,.12,1.2),M(0x3a2a1c)); sill.position.set(-12.75,.06,-3.05);
+  const jambM=M(0x5a3e26); const j1=new THREE.Mesh(new THREE.BoxGeometry(.12,1.9,.12),jambM); j1.position.set(-12.72,.95,-3.62); const j2=j1.clone(); j2.position.z=-2.48;
+  const lint=new THREE.Mesh(new THREE.BoxGeometry(.14,.14,1.3),jambM); lint.position.set(-12.72,1.92,-3.05);
+  // полог: войлок, наполовину скатанный, край колышется
+  const flapGeo=new THREE.PlaneGeometry(.42,1.5,4,10); const flapBase=flapGeo.attributes.position.array.slice();
+  const flap=new THREE.Mesh(flapGeo, new THREE.MeshLambertMaterial({color:0x8a7a62, side:THREE.DoubleSide})); flap.position.set(-12.68,1.15,-2.62); flap.rotation.y=Math.PI/2+.35;
+  const rolled=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,1.25,10),M(0x7a6a52)); rolled.rotation.x=Math.PI/2; rolled.position.set(-12.62,1.86,-3.05);
+  doorway.add(lw,rw,top,sill,j1,j2,lint,flap,rolled);
+
   // люди
   const asan = makePerson({coat:0x6e5a42, hat:'borik'}); asan.position.set(-2,0,1); scene.add(asan);
   const father = makePerson({coat:0x4a3a2a, hat:'tymak', beard:true}); father.position.set(3.2,0,6.3); father.rotation.y = Math.PI; scene.add(father);
@@ -156,7 +173,6 @@ function sceneAul(){
   // масштаб колесом и щипком
   canvas.addEventListener('wheel', e=>{ S.zoom = clamp(S.zoom + Math.sign(e.deltaY)*.1, .45, 1.7); }, {passive:true});
   const toggleCam=()=>{ S.cam = S.cam==='obs' ? 'top' : 'obs'; fg.visible = S.cam==='obs'; toast(S.cam==='obs' ? 'Ракурс: из травы' : 'Ракурс: сверху'); };
-  $('camBtn').style.display='block'; $('camBtn').onclick=e=>{ e.stopPropagation(); toggleCam(); };
   let pinch=null;
   canvas.addEventListener('touchmove', e=>{ if(e.touches.length===2){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); if(pinch) S.zoom=clamp(S.zoom*(pinch/d),.45,1.7); pinch=d; } }, {passive:true});
   canvas.addEventListener('touchend', ()=>pinch=null);
@@ -260,21 +276,6 @@ function sceneAul(){
     camera.lookAt(lerp(from.x,to.x,e), lerp(from.y,to.y,e), lerp(from.z,to.z,e));
     fg.scale.x = clamp(camera.aspect/1.78,.3,1);
   }
-  // взлёт: тряска, хлопки крыльев, подъём над степью, затем возврат
-  function startBird(){
-    S.birdDone=true; S.busy=true; S.target=null; S.bird={t:0, from:camera.position.clone(), dir:new THREE.Vector3(-.75,0,-.65).normalize()};
-    cine(true); sfx.caw(); sfx.caw(.45); for(let i=0;i<14;i++) sfx.flap(.5+i*.3);
-    setTimeout(()=>{ $('wings').style.display='block'; }, 450);
-  }
-  function birdFly(dt,t){
-    const B=S.bird; B.t+=dt; const k=B.t;
-    if(k<.5){ camera.position.copy(B.from).add(tmp.set(rand(-.15,.15),rand(-.1,.1),rand(-.15,.15))); camera.lookAt(asan.position); return; }
-    const f=k-.5;
-    camera.position.set(B.from.x + B.dir.x*f*9, B.from.y + f*3.2 + Math.sin(f*10)*.25, B.from.z + B.dir.z*f*9);
-    tmp.set(camera.position.x + B.dir.x*30, Math.max(0, camera.position.y - 6 - f*2), camera.position.z + B.dir.z*30);
-    camera.lookAt(tmp); camera.rotateZ(Math.sin(f*1.7)*.18);
-    if(k>4.6 && !B.ending){ B.ending=true; (async()=>{ await fadeTo(1,500); $('wings').style.display='none'; S.bird=null; cine(false); camera.position.set(asan.position.x,15.5,asan.position.z+12); camera.lookAt(asan.position); await fadeTo(0,700); S.busy=false; })(); }
-  }
 
   // столкновения: дом и юрта — препятствия, загон — нельзя войти
   function collide(p){
@@ -329,9 +330,21 @@ function sceneAul(){
       const focus = S.camFocus || asan;
       const z = S.zoom;
       // приём «глаза птицы» — только для сцен, целиком снятых сверху; в этой главе его нет
+      // режиссёрский план: пока Асан у штабеля жердей — смотрим на него из проёма юрты
+      const want = (!S.intro && !S.tele && S.step===2 && asan.position.x<1.2 && asan.position.z<1.5) ? 'yurt' : 'obs';
+      if(want!==S.shot){ S.shot=want; S.cut=true; }
+      doorway.visible = S.shot==='yurt'; yurt.visible = S.shot!=='yurt'; // камера внутри юрты: снаружи её стенки не нужны fg.visible = S.shot!=='yurt' && !S.tele;
       if(S.intro){ introShot(dt); }
-      else if(S.bird){ birdFly(dt,t); }
+      else if(S.shot==='yurt'){
+        camera.position.copy(YURT_SHOT.pos); camera.position.y += Math.sin(t*.4)*.02;
+        camera.fov=YURT_SHOT.fov; camera.updateProjectionMatrix();
+        tmp.set(lerp(YURT_SHOT.look.x, asan.position.x, .35), .9, lerp(YURT_SHOT.look.z, asan.position.z, .5));
+        if(S.cut){ S.yLook=tmp.clone(); S.cut=false; } else S.yLook.lerp(tmp, 1-Math.pow(.1,dt));
+        camera.lookAt(S.yLook);
+        const fp=flapGeo.attributes.position; for(let i=0;i<fp.count;i++){ const by=flapBase[i*3+1], k=(.75-by)/1.5; fp.setZ(i, Math.sin(t*2.1+by*3)*.07*k + Math.sin(t*3.3+flapBase[i*3]*4)*.03*k); } fp.needsUpdate=true; flapGeo.computeVertexNormals();
+      }
       else if(S.cam==='obs' || S.tele){
+        if(S.cut){ S.cut=false; camera.position.copy(OBS.pos); }
         // подглядываем из травы: широкий план двора, камера чуть дышит и ведёт героя
         const portrait = camera.aspect<1 ? 1.75 : 1;
         const fov = (S.tele ? 16 : 26 + z*12) * portrait;
@@ -342,7 +355,6 @@ function sceneAul(){
         const lx = lerp(OBS.look.x, focus.position.x, S.tele?.85:.45), lz = lerp(OBS.look.z, focus.position.z, S.tele?.85:.45);
         S.lookAt = S.lookAt || new THREE.Vector3(lx,1,lz); S.lookAt.lerp(tmp.set(lx,1.0,lz), 1-Math.pow(.08,dt));
         camera.lookAt(S.lookAt);
-        fg.visible = !S.tele;
       } else {
         camera.fov = lerp(camera.fov, 45, 1-Math.pow(.05,dt)); camera.updateProjectionMatrix();
         tmp.set(focus.position.x, 14*z+1.5, focus.position.z + 11*z + 1);
@@ -362,7 +374,7 @@ function sceneAul(){
       else { pr.style.display='none'; S.near=null; }
     },
     S,
-    onKey(code, down){ if(down && code==='KeyC') { $('camBtn').click(); return; } if(down && code==='KeyE' && S.near && !S.busy && !dlgOpen) S.near.act(); },
+    onKey(code, down){ if(down && code==='KeyE' && S.near && !S.busy && !dlgOpen) S.near.act(); },
     act(){ if(S.near && !S.busy && !dlgOpen) S.near.act(); },
     async begin(){
       setObj(CH,'');

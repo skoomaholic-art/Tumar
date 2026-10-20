@@ -36,6 +36,9 @@ function makePerson({coat=0x6b5440, hat='borik', scale=1, scarf=null, beard=fals
     const h=new THREE.Mesh(new THREE.CylinderGeometry(.19,.22,.16,10), M(0x3c3026)); h.position.y=1.98; g.add(h);
   } else if(hat==='scarf'){
     const h=new THREE.Mesh(new THREE.SphereGeometry(.22,10,8,0,Math.PI*2,0,Math.PI/1.8), M(scarf||0xb8a888)); h.position.y=1.86; g.add(h);
+  } else if(hat==='helmet'){ // немецкая каска
+    const h=new THREE.Mesh(new THREE.SphereGeometry(.25,10,6,0,Math.PI*2,0,Math.PI/2), M(0x4a4e44)); h.position.y=1.9; h.scale.set(1,1,1.08);
+    const rim=new THREE.Mesh(new THREE.CylinderGeometry(.28,.3,.05,10), M(0x40443a)); rim.position.y=1.9; g.add(h,rim);
   } else if(hat==='pilotka'){
     const h=new THREE.Mesh(new THREE.BoxGeometry(.32,.1,.18), M(0x6a6640)); h.position.y=2.0; g.add(h);
   }
@@ -57,4 +60,12 @@ function animWalk(p, speed, dt){
   const s = speed>0.05 ? Math.sin(u.phase)*.5 : 0;
   u.legL.rotation.x = s; u.legR.rotation.x = -s;
   if(!u.carry){ u.armL.rotation.x = -s*.6; u.armR.rotation.x = s*.6; }
+}
+
+// Перед каждой сценой: снять с камеры всё, что к ней прикрепила прошлая сцена (трава переднего плана),
+// и вернуть обычный объектив
+function resetCamera(){
+  while(camera.children.length) camera.remove(camera.children[0]);
+  camera.fov=45; camera.rotation.order='XYZ'; camera.updateProjectionMatrix();
+  cine(false); $('vig').style.background=''; canvas.style.cursor='';
 }

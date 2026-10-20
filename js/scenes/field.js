@@ -4,6 +4,7 @@
 // СЦЕНА 2. ПОДСОЛНУХИ — от первого лица, раненый на поле
 // ======================================================================
 function sceneField(){
+  resetCamera();
   const DAT = DATA.ch5, CH = 'Глава 5 · '+DAT.title;
   scene = new THREE.Scene();
   const skyCol = new THREE.Color(0xd9c9a4);
@@ -135,7 +136,7 @@ function sceneField(){
     holdStart(){ F.holding=true; }, holdEnd(){ F.holding=false; },
     crawl(on){ F.touchCrawl=on; },
     async begin(){
-      $('bars').style.display='block'; $('camBtn').style.display='none';
+      $('bars').style.display='block';
       setHelp(isTouch ? 'Тяни пальцем — осмотреться' : 'W — ползти · A/D или мышь — повернуться · Пробел/E — действие');
       setObj(CH,'');
       await showCard(DAT.card.small, DAT.card.big, DAT.card.text, 'Дальше');

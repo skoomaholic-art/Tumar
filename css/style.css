@@ -95,3 +95,14 @@ body.cine #camBtn{opacity:0}
 #rotate .ph{width:46px;height:78px;border:2px solid var(--ink2);border-radius:8px;animation:turn 2.4s ease-in-out infinite}
 @keyframes turn{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
 @media (orientation:portrait) and (pointer:coarse){ #rotate{display:flex} }
+
+#bark{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:6;max-width:min(640px,90vw);padding:7px 14px;background:var(--panel);border:1px solid var(--line);font-size:16px;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center}
+#bark.on{opacity:1}
+#bark .bw{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-right:6px}
+#bark .noise{color:#8a7d66;letter-spacing:.06em}
+#bark .known{text-decoration:underline dotted #8a7d66}
+#hit{position:fixed;inset:0;pointer-events:none;z-index:4;background:radial-gradient(ellipse at center,transparent 35%,rgba(120,10,6,.75) 100%);opacity:0;transition:opacity .25s}
+#ammo{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:5;font-size:14px;color:var(--ink2);text-align:right;display:none;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px #000}
+#ammo b{font-size:22px;color:var(--ink);font-weight:normal}
+#aim{position:fixed;width:26px;height:26px;margin:-13px 0 0 -13px;border:1px solid rgba(233,223,201,.8);border-radius:50%;pointer-events:none;z-index:5;display:none}
+#aim::after{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px;background:#e9dfc9;border-radius:50%}

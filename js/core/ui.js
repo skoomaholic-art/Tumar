@@ -7,7 +7,7 @@ let toastT=null;
 function toast(text){ const t=$('toast'); t.textContent=text; t.classList.add('on'); sfx.memory(); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),3400); }
 function fadeTo(v, ms=1200){ const f=$('fade'); f.style.transitionDuration=ms+'ms'; f.style.opacity=v; return wait(ms); }
 function setHelp(t){ $('help').textContent=t; }
-setHelp(isTouch ? 'Касание — идти · щипок — масштаб' : 'Клик или WASD — идти · E — действие · C — ракурс · колесо — масштаб');
+setHelp(isTouch ? 'Касание — идти · щипок — масштаб' : 'Клик или WASD — идти · E — действие · колесо — масштаб');
 
 // Язык: незнакомые русские слова превращаются в шум, известные — читаются
 function scramble(word){ return word.replace(/[а-яёa-zäöüß]/gi, ch => '▒░▓'[Math.random()*3|0]).replace(/[▒░▓]{2,}/g, m => m.slice(0, Math.max(2, m.length))); }
@@ -27,6 +27,9 @@ const PORTRAITS = {
   'Отец':  {bg:'#2f2a22', hat:'<path d="M20 26 L38 6 L56 26 Z" fill="#5a4430"/><rect x="18" y="22" width="40" height="8" fill="#4a3826"/><circle cx="38" cy="6" r="3" fill="#7a2a22"/>', face:'#8f6a4c', beard:true},
   'Күләш': {bg:'#33291f', hat:'<path d="M18 30 Q38 4 58 30 L58 40 L18 40 Z" fill="#b8a888"/>', face:'#a7805e'},
   'Всадник':{bg:'#262620', hat:'<rect x="22" y="14" width="32" height="9" rx="2" fill="#4e4a30"/><circle cx="38" cy="18" r="2.5" fill="#8e1f1a"/>', face:'#9a7a5c'},
+  'Жумабай':{bg:'#35301f', hat:'<rect x="22" y="15" width="32" height="8" rx="2" fill="#5e5a38"/>', face:'#a07a56'},
+  'Колесников':{bg:'#2b2a22', hat:'<rect x="22" y="14" width="32" height="9" rx="2" fill="#4e4a30"/><circle cx="38" cy="18" r="2.5" fill="#8e1f1a"/>', face:'#b08a6a'},
+  'Политрук':{bg:'#262420', hat:'<path d="M18 22 Q38 8 58 22 L58 26 L18 26 Z" fill="#3e3c2c"/><rect x="16" y="24" width="44" height="4" fill="#222"/><circle cx="38" cy="18" r="2.5" fill="#8e1f1a"/>', face:'#b39072'},
   'Голос': {bg:'#1a1612', hat:'', face:'#2a231b'},
 };
 function portrait(who){
@@ -114,4 +117,11 @@ function showCard(small, big, text, btn='Дальше'){
     $('card').style.display='flex';
     $('cardBtn').onclick=()=>{ $('card').style.display='none'; res(); };
   });
+}
+
+// Короткие реплики в бою: не останавливают игру, висят пару секунд
+let barkT=null;
+function bark(who, text, lang='kz'){
+  const b=$('bark'); b.innerHTML=`<span class="bw">${escapeHtml(who)}</span> ${renderLang(text, lang)}`; b.classList.add('on');
+  clearTimeout(barkT); barkT=setTimeout(()=>b.classList.remove('on'), 2600);
 }
