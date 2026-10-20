@@ -2,6 +2,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:#0d0b09;color:var(--ink);font-family:"PT Serif",Georgia,"Times New Roman",serif;overflow:hidden;user-select:none}
 #c{position:fixed;inset:0;width:100%;height:100%;display:block;filter:sepia(.28) contrast(1.06) saturate(.85)}
+#wipe{position:fixed;inset:0;display:none;pointer-events:none;background-size:100% 100%;filter:sepia(.28) contrast(1.06) saturate(.85)}
 #grain{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;opacity:.13;mix-blend-mode:overlay}
 #vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.75) 100%);transition:background .3s}
 #eyelid{position:fixed;inset:0;pointer-events:none;background:#000;opacity:0}
@@ -72,7 +73,6 @@ body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s
 #nbBtn{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:5;font:inherit;font-size:14px;padding:8px 14px;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer;display:none}
 #nbBtn:focus-visible,#camBtn:focus-visible{outline:1px solid var(--ink)}
 #camBtn{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));top:calc(14px + env(safe-area-inset-top,0px));z-index:5;font:inherit;font-size:13px;padding:6px 12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer;display:none}
-body.cine #camBtn{opacity:0}
 #wings{position:fixed;inset:0;pointer-events:none;z-index:7;display:none}
 #wings i{position:absolute;top:-10%;bottom:-10%;width:42vw;background:radial-gradient(ellipse at var(--o) 50%,rgba(14,12,10,.97) 0 38%,rgba(14,12,10,.6) 52%,transparent 70%);animation:flap .32s ease-in-out infinite alternate}
 #wings .wl{left:-14vw;--o:0%;transform-origin:left center}

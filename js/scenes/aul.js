@@ -125,30 +125,103 @@ function sceneAul(){
     // снега на вершинах нет: в марте он лежит пятнами, а шапки в дымке читаются как висящие в воздухе
   });
 
-  // --- второй план-«наблюдатель»: изнутри юрты через дверной проём ---
-  const YURT_SHOT = { pos:new THREE.Vector3(-13.25,1.3,-3.05), look:new THREE.Vector3(-1.5,.9,-2.2), fov:42 };
-  const doorway = new THREE.Group(); doorway.visible=false; scene.add(doorway);
-  const feltDark = new THREE.MeshBasicMaterial({color:0x1c140e, side:THREE.DoubleSide});
-  const lw=new THREE.Mesh(new THREE.PlaneGeometry(3,4),feltDark); lw.position.set(-12.75,1.6,-5.12); lw.rotation.y=Math.PI/2;
-  const rw=lw.clone(); rw.position.z=-0.98;
-  const top=new THREE.Mesh(new THREE.PlaneGeometry(2,1.6),feltDark); top.position.set(-12.75,2.75,-3.05); top.rotation.y=Math.PI/2;
-  const sill=new THREE.Mesh(new THREE.BoxGeometry(.25,.12,1.2),M(0x3a2a1c)); sill.position.set(-12.75,.06,-3.05);
-  const jambM=M(0x5a3e26); const j1=new THREE.Mesh(new THREE.BoxGeometry(.12,1.9,.12),jambM); j1.position.set(-12.72,.95,-3.62); const j2=j1.clone(); j2.position.z=-2.48;
-  const lint=new THREE.Mesh(new THREE.BoxGeometry(.14,.14,1.3),jambM); lint.position.set(-12.72,1.92,-3.05);
-  // полог: войлок, наполовину скатанный, край колышется
-  const flapGeo=new THREE.PlaneGeometry(.42,1.5,4,10); const flapBase=flapGeo.attributes.position.array.slice();
-  const flap=new THREE.Mesh(flapGeo, new THREE.MeshLambertMaterial({color:0x8a7a62, side:THREE.DoubleSide})); flap.position.set(-12.68,1.15,-2.62); flap.rotation.y=Math.PI/2+.35;
-  const rolled=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,1.25,10),M(0x7a6a52)); rolled.rotation.x=Math.PI/2; rolled.position.set(-12.62,1.86,-3.05);
-  doorway.add(lw,rw,top,sill,j1,j2,lint,flap,rolled);
+  // --- второй план-«наблюдатель»: изнутри юрты, через открытую дверь ---
+  // Юрта стоит дверью на восток, во двор. Внутри: решётка-кереге, красные уыки, жүк на сундуке,
+  // домбра на решётке, очаг. В проёме — тканевый полог: им закрывают дверь, и он ходит на ветру.
+  const YC = new THREE.Vector3(-15,0,-3), YR = 2.4, DOOR_W = .95, DOOR_H = 1.5, DX = YC.x + YR + .03;
+  const YURT_SHOT = { pos:new THREE.Vector3(-14.9,1.05,-3.12), look:new THREE.Vector3(-1.5,.9,-2.4), fov:50 };
+  const canvasTex = (w,h,draw,rx=1,ry=1)=>{ const cv=document.createElement('canvas'); cv.width=w; cv.height=h; draw(cv.getContext('2d'),w,h); const t=new THREE.CanvasTexture(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rx,ry); return t; };
+  // кереге: тёмный войлок за светлыми перекрещенными планками, в узлах — ремешки
+  const keregeTex = canvasTex(128,128,(x,w,h)=>{ x.fillStyle='#241a12'; x.fillRect(0,0,w,h);
+    x.strokeStyle='#8f6c42'; x.lineWidth=9; for(let i=-2;i<3;i++){ x.beginPath(); x.moveTo(i*64,0); x.lineTo(i*64+128,128); x.stroke(); x.beginPath(); x.moveTo(i*64+128,0); x.lineTo(i*64,128); x.stroke(); }
+    x.fillStyle='#4a2c18'; for(const [u,v] of [[0,0],[64,64],[128,0],[0,128],[128,128]]){ x.beginPath(); x.arc(u,v,9,0,7); x.fill(); } }, 56, 6);
+  // уыки: красные жерди купола по закопчённому войлоку
+  const uykTex = canvasTex(64,64,(x,w,h)=>{ x.fillStyle='#1c1511'; x.fillRect(0,0,w,h); x.fillStyle='#93412a'; x.fillRect(26,0,12,h); x.fillStyle='rgba(0,0,0,.25)'; x.fillRect(34,0,3,h); }, 64, 1);
+  // текемет на полу: валяный ковёр с «бараньими рогами»
+  const rugTex = canvasTex(256,256,(x,w,h)=>{ x.fillStyle='#6a2a1c'; x.fillRect(0,0,w,h); x.strokeStyle='#c9a46a'; x.lineWidth=10; x.strokeRect(14,14,w-28,h-28);
+    x.lineWidth=7; for(let i=0;i<3;i++) for(let j=0;j<3;j++){ const cx=58+i*70, cy=58+j*70; x.beginPath(); x.arc(cx-12,cy,12,Math.PI*.1,Math.PI*1.6); x.stroke(); x.beginPath(); x.arc(cx+12,cy,12,Math.PI*1.4,Math.PI*.9,true); x.stroke(); } });
+  // полог в двери: выгоревший ситец с мелким цветком
+  const clothTex = canvasTex(128,256,(x,w,h)=>{ x.fillStyle='#8b4a33'; x.fillRect(0,0,w,h); x.fillStyle='#c79d6a'; for(let i=0;i<70;i++){ const u=(i*37)%w, v=(i*53)%h; x.beginPath(); x.arc(u,v,3,0,7); x.fill(); }
+    x.fillStyle='rgba(40,20,10,.35)'; x.fillRect(0,0,8,h); x.fillRect(w-8,0,8,h); x.fillRect(0,h-14,w,14); });
+  // снаружи: тёмный проём, косяки, порог (видны из двора)
+  const yurtDoor = new THREE.Group(); scene.add(yurtDoor);
+  const doorDark = new THREE.Mesh(new THREE.PlaneGeometry(DOOR_W, DOOR_H), new THREE.MeshBasicMaterial({color:0x140d08})); doorDark.rotation.y=Math.PI/2; doorDark.position.set(DX,DOOR_H/2,YC.z);
+  const jambM = M(0x6a3a22);
+  const j1 = new THREE.Mesh(new THREE.BoxGeometry(.1,DOOR_H+.08,.1), jambM); j1.position.set(DX,DOOR_H/2,YC.z-DOOR_W/2-.05); const j2=j1.clone(); j2.position.z=YC.z+DOOR_W/2+.05;
+  const lint = new THREE.Mesh(new THREE.BoxGeometry(.12,.12,DOOR_W+.2), jambM); lint.position.set(DX,DOOR_H+.04,YC.z);
+  const sill = new THREE.Mesh(new THREE.BoxGeometry(.14,.1,DOOR_W+.2), jambM); sill.position.set(DX,.05,YC.z);
+  yurtDoor.add(doorDark, j1, j2, lint, sill);
+  // полог: висит с левого косяка, свободный край ветер гоняет поперёк проёма
+  const CL_W=.42, CL_H=1.38;
+  const clothGeo = new THREE.PlaneGeometry(CL_W, CL_H, 10, 14); const clothBase = clothGeo.attributes.position.array.slice();
+  const cloth = new THREE.Mesh(clothGeo, new THREE.MeshLambertMaterial({map:clothTex, side:THREE.DoubleSide, emissive:0x2a140a}));
+  cloth.rotation.y = Math.PI/2; cloth.position.set(DX+.02, DOOR_H-CL_H/2-.02, YC.z-DOOR_W/2+CL_W/2); yurtDoor.add(cloth);
+  function clothWind(t){
+    const gust = .5+.5*Math.sin(t*.63)*Math.sin(t*.21+1.3), cp = clothGeo.attributes.position;
+    for(let i=0;i<cp.count;i++){
+      const x0=clothBase[i*3], y0=clothBase[i*3+1], f=(CL_W/2 - x0)/CL_W, h=(CL_H/2 - y0)/CL_H; // f: 0 у косяка → 1 у свободного края; h: 0 сверху → 1 внизу
+      const free = f*f*.8 + h*.2;
+      cp.setZ(i, (Math.sin(t*2.3+y0*2.6+x0*3)*.07 + Math.sin(t*4.1+y0*5)*.025 + gust*.16) * free * (.35+.65*h));
+      cp.setX(i, x0 - (gust*.2 + Math.sin(t*1.7+y0*1.5)*.06) * f*f * (.3+.7*h));
+      cp.setY(i, y0 + gust*.08*f*h*h);
+    }
+    cp.needsUpdate=true; clothGeo.computeVertexNormals();
+  }
+  // внутри: показываем только в этом кадре
+  const yurtIn = new THREE.Group(); yurtIn.visible=false; scene.add(yurtIn);
+  const gap = DOOR_W/YR;
+  const wallIn = new THREE.Mesh(new THREE.CylinderGeometry(YR-.05,YR-.05,1.7,48,1,true,Math.PI/2+gap/2,Math.PI*2-gap), new THREE.MeshLambertMaterial({map:keregeTex, side:THREE.BackSide, color:0x8a8a8a}));
+  wallIn.position.set(YC.x,.85,YC.z);
+  const roofIn = new THREE.Mesh(new THREE.ConeGeometry(YR+.12,1.25,44,1,true), new THREE.MeshLambertMaterial({map:uykTex, side:THREE.BackSide, color:0x909090})); roofIn.position.set(YC.x,1.7+.62,YC.z);
+  const shanyrak = new THREE.Mesh(new THREE.TorusGeometry(.32,.05,6,18), M(0x7a3a20)); shanyrak.rotation.x=Math.PI/2; shanyrak.position.set(YC.x,2.86,YC.z);
+  const overDoor = new THREE.Mesh(new THREE.BoxGeometry(.06,.2,DOOR_W+.1), M(0x6a3a22)); overDoor.position.set(DX-.1,DOOR_H+.12,YC.z);
+  const rug = new THREE.Mesh(new THREE.CircleGeometry(YR-.1,40), new THREE.MeshLambertMaterial({map:rugTex})); rug.rotation.x=-Math.PI/2; rug.position.set(YC.x,.02,YC.z);
+  // створки двери-сықырлауық распахнуты внутрь
+  const leafTex = canvasTex(64,128,(x,w,h)=>{ x.fillStyle='#8a3a22'; x.fillRect(0,0,w,h); x.strokeStyle='#d0a868'; x.lineWidth=4; x.strokeRect(8,8,w-16,h-16); x.beginPath(); x.arc(w/2,h/2,12,0,7); x.stroke(); });
+  const leafM = new THREE.MeshLambertMaterial({map:leafTex});
+  // створки распахнуты внутрь и прижаты к решётке; β — насколько отведены от оси двери
+  const LB=.95, leafL = new THREE.Mesh(new THREE.BoxGeometry(.46,DOOR_H-.04,.04), leafM), leafR = leafL.clone();
+  leafL.position.set(DX-.06-Math.cos(LB)*.23, DOOR_H/2, YC.z-DOOR_W/2-.04-Math.sin(LB)*.23); leafL.rotation.y=Math.PI-LB;
+  leafR.position.set(DX-.06-Math.cos(LB)*.23, DOOR_H/2, YC.z+DOOR_W/2+.04+Math.sin(LB)*.23); leafR.rotation.y=Math.PI+LB;
+  // свет из двери на ковре
+  const spill = new THREE.Mesh(new THREE.PlaneGeometry(1.3,DOOR_W), new THREE.MeshBasicMaterial({color:0xfff0d0, transparent:true, opacity:.16, depthWrite:false})); spill.rotation.x=-Math.PI/2; spill.position.set(DX-.75,.03,YC.z);
+  // жүк: сундук и стопка одеял у левой стены
+  const onWall = (ang, r) => new THREE.Vector3(YC.x+Math.sin(ang)*r, 0, YC.z+Math.cos(ang)*r);
+  const juk = new THREE.Group(); const pJ = onWall(Math.PI/2+.85, YR-.42); juk.position.copy(pJ); juk.rotation.y = Math.PI/2+.85;
+  const chest = new THREE.Mesh(new THREE.BoxGeometry(1.1,.5,.5), M(0x7a3a1e)); chest.position.y=.25; juk.add(chest);
+  [0xb03a2a,0x2a4a6a,0xc9a46a,0x6a8a4a,0x9a2a3a].forEach((c,i)=>{ const q=new THREE.Mesh(new THREE.BoxGeometry(1.05-i*.03,.12,.48), M(c)); q.position.y=.56+i*.12; juk.add(q); });
+  // домбра висит на кереге справа
+  const dombra = new THREE.Group(); const pD = onWall(Math.PI/2-.62, YR-.12); dombra.position.set(pD.x,1.05,pD.z); dombra.rotation.y = Math.PI/2-.62+Math.PI;
+  const dBody = new THREE.Mesh(new THREE.SphereGeometry(.12,10,8), M(0x9a6a36)); dBody.scale.set(1,1.45,.45);
+  const dNeck = new THREE.Mesh(new THREE.BoxGeometry(.045,.6,.025), M(0x5a3a1e)); dNeck.position.y=.45;
+  dombra.add(dBody,dNeck); dombra.rotation.z=.22;
+  // вышитая сумка у двери слева
+  const bag = new THREE.Mesh(new THREE.BoxGeometry(.24,.3,.04), M(0x8a2e22)); const pB=onWall(Math.PI/2+.42, YR-.1); bag.position.set(pB.x,1.15,pB.z); bag.rotation.y=Math.PI/2+.42;
+  // очаг в центре: свет углей дрожит на решётке
+  const stones = new THREE.Group(); for(let i=0;i<7;i++){ const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.09),M(0x3a3632)); st.position.set(Math.cos(i*.9)*.3,.06,Math.sin(i*.9)*.3); stones.add(st); }
+  const embers = new THREE.Mesh(new THREE.SphereGeometry(.16,8,4,0,Math.PI*2,0,Math.PI/2), new THREE.MeshBasicMaterial({color:0xd8602a})); embers.scale.y=.3; stones.add(embers); stones.position.set(YC.x,0,YC.z);
+  yurtIn.add(wallIn, roofIn, shanyrak, overDoor, rug, leafL, leafR, spill, juk, dombra, bag, stones);
+  const hearth = new THREE.PointLight(0xff8a44, 0, 4.5, 2); hearth.position.set(YC.x,.5,YC.z); scene.add(hearth);
 
   // люди
   const asan = makePerson({coat:0x6e5a42, hat:'borik'}); asan.position.set(-2,0,1); scene.add(asan);
   const father = makePerson({coat:0x4a3a2a, hat:'tymak', beard:true}); father.position.set(3.2,0,6.3); father.rotation.y = Math.PI; scene.add(father);
-  const kulash = makePerson({coat:0x7a6a50, hat:'scarf', scale:.68}); kulash.position.set(-3.5,0,-3); scene.add(kulash); kulash.visible=false;
+  // Күләш всё утро играет в асыки у юрты и видит всё со стороны
+  const kulash = makePerson({coat:0x7a6a50, hat:'scarf', scale:.68}); kulash.position.set(-11.3,-.32,.4); kulash.rotation.y=Math.PI/2+.3; scene.add(kulash);
+  const asyks=[]; for(let i=0;i<5;i++){ const a=new THREE.Mesh(new THREE.BoxGeometry(.06,.04,.045),M(0xe2d6bc)); a.position.set(-10.7+rand(-.15,.25),.02,.55+rand(-.25,.25)); a.rotation.y=rand(0,3); scene.add(a); asyks.push(a); }
   const rider = new THREE.Group(); // всадник на коне
   const horse = makeHorse();
   const rman = makePerson({coat:0x5c5a3a, hat:'pilotka', scale:.9}); rman.position.y=1.1; rman.userData.legL.rotation.x=-1.2; rman.userData.legR.rotation.x=-1.2;
+  // планшет на ремне слева и кобура справа: когда он потянется к поясу, непонятно, за чем
+  const mapCase=new THREE.Mesh(new THREE.BoxGeometry(.06,.34,.28),M(0x5a3a22)); mapCase.position.set(-.33,.82,.04); rman.add(mapCase);
+  const holster=new THREE.Mesh(new THREE.BoxGeometry(.07,.22,.12),M(0x2a1e14)); holster.position.set(.33,.9,-.06); rman.add(holster);
+  rman.userData.carry=true;
   rider.add(horse, rman); scene.add(rider);
+  // повестка: лист в руке нарочного, потом — у Асана
+  const paperM=new THREE.Mesh(new THREE.PlaneGeometry(.21,.3),new THREE.MeshLambertMaterial({color:0xece4d0,side:THREE.DoubleSide,emissive:0x2a2620}));
+  // пыль из-под копыт
+  const dustM=[]; for(let i=0;i<26;i++){ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:smokeTex,color:0xb59a74,transparent:true,depthWrite:false,opacity:0})); sp.userData.life=0; scene.add(sp); dustM.push(sp); }
+  let dustI=0, dustT=0;
   const RIDER_PATH = [frameAt(115,48), frameAt(80,34), frameAt(50,22)];
   rider.position.copy(RIDER_PATH[0]);
 
@@ -181,8 +254,12 @@ function sceneAul(){
   const run = makeRunner({
     paper(){ sfx.paper(); },
     showDoc,
-    async kulashRuns(){ kulash.visible=true; kulash.position.set(-4,0,-2); S.kulashGo=true; await wait(1400); S.kulashGo=false; faceEach(kulash,asan); },
-    riderLeaves(){ rider.visible=false; faceEach(father,asan); }
+    async kulashRuns(){ setShot('kulashRun'); S.look.asan=kulash; S.look.father=kulash; S.kulashGo=true; await until(()=>!S.kulashGo); S.look.kulash=asan; setShot('three'); },
+    cut(name){ setShot(name); },
+    async reachBag(){ await reachBag(); },
+    sign(){ sfx.paper(); asan.userData.armR.rotation.x=-.9; setTimeout(()=>{ asan.userData.armR.rotation.x=-.5; },900); },
+    async riderLeaves(){ await riderLeaves(); },
+    async readPaper(){ setShot('paper'); S.look.father=asan; asan.userData.armR.rotation.x=-.95; asan.userData.armL.rotation.x=-.95; await gwait(1.8); }
   });
 
   function interactables(){
@@ -208,12 +285,11 @@ function sceneAul(){
   }
   async function placePole(){
     asan.remove(S.carry); S.carry=null; asan.userData.carry=false; asan.userData.armL.rotation.x=asan.userData.armR.rotation.x=0;
-    const sl = slots[S.placed]; sl.material = railM; shadowAll(sl); sfx.wood(); setTimeout(sfx.wood,180);
+    const sl = slots[S.placed]; if(S.placed<2){ sl.material = railM; shadowAll(sl); } else sl.visible=false; /* последнюю ставят вдвоём — и не успевают */ sfx.wood(); setTimeout(sfx.wood,180);
     S.placed++;
     setObj(CH, fillObj(DAT.objectives.bring,{n:S.placed}));
     if(S.placed===1){ S.busy=true; faceEach(asan,father); await run(DAT.scripts.pole_1); closeDlg(); S.busy=false; }
     if(S.placed===2){ await fatherStory(); }
-    if(S.placed===3){ /* последняя жердь — приезжает всадник, работа остаётся недоделанной */ }
     if(S.placed===2){ setObj(CH, DAT.objectives.last); }
     if(S.placed===3) await riderArrives();
   }
@@ -222,16 +298,167 @@ function sceneAul(){
     await run(DAT.scripts.father_story);
     closeDlg(); S.busy=false;
   }
+  // ================= РЕЖИССЁР: приезд нарочного =================
+  // Монтаж по Куросаве: в сцену входим шторкой, внутри сцены — жёсткие склейки, планы держим долго.
+  const gwait = sec => { const t0=S.clock; return until(()=>S.clock-t0>=sec); };
+  const until = (f, max=120000) => new Promise(r=>{ const t0=performance.now(); const h=setInterval(()=>{ if(f()||performance.now()-t0>max){ clearInterval(h); r(); } },50); });
+  const wrapA = a => Math.atan2(Math.sin(a), Math.cos(a));
+  function turnTo(o, x, z, dt, rate=2.5){ const want=Math.atan2(x-o.position.x, z-o.position.z); o.rotation.y += wrapA(want-o.rotation.y)*Math.min(1,dt*rate); }
+  const DIR = { shot:null, t:0, fresh:false }; S.dir = DIR;
+  function setShot(name){ DIR.shot=name; DIR.t=0; DIR.fresh=true; }
+  const RS = { path:[], v:0, vT:0 };              // всадник: точки пути, скорость, нужная скорость
+  const H = new THREE.Vector3(6,0,5.75);           // где отец и сын ставят последнюю жердь
+  const W1 = new THREE.Vector3(-.4,0,-2.3), W2 = new THREE.Vector3(-.6,0,6.6), STOP = new THREE.Vector3(2.9,0,7.7);
+  let beam=null;
+  function stageWork(){
+    // последняя жердь: отец и сын держат её вдвоём у ближней стороны загона, спиной к нам
+    asan.position.set(H.x-.8,0,H.z); father.position.set(H.x+.8,0,H.z); asan.rotation.y=father.rotation.y=Math.PI;
+    for(const p of [asan,father]){ p.userData.carry=true; p.userData.armL.rotation.x=p.userData.armR.rotation.x=-1.25; p.userData.legL.rotation.x=p.userData.legR.rotation.x=0; }
+    beam = new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,2,6), railM); beam.rotation.z=Math.PI/2; beam.position.set(H.x,1.18,H.z-.45); scene.add(shadowAll(beam));
+    rider.position.set(6.5,0,-74); rider.rotation.y=Math.PI*0; RS.path=[W1,W2,STOP]; RS.v=RS.vT=2.3;
+    S.look={ asan:null, father:null, kulash:null }; S.beamDown=0;
+  }
+  function hoofLoop(){ const h=setInterval(()=>{ if(!S.seq){ clearInterval(h); return; } if(RS.v>.6) sfx.hooves(); }, 1450); }
   async function riderArrives(){
-    S.busy=true; S.target=null; sfx.hooves(); setTimeout(sfx.hooves,1500); setTimeout(sfx.hooves,3000);
-    // долгий план: всадник рысью идёт к аулу, камера снимает его длинным объективом
-    S.riderGo=true; S.camFocus=rider; S.tele=1; cine(true);
-    const t0=performance.now();
-    while(S.riderGo && performance.now()-t0<11000){ await wait(200); if(rider.position.distanceTo(tmp.set(asan.position.x+4,0,asan.position.z+3))<1.2) break; }
-    S.riderGo=false; S.camFocus=null; S.tele=0; cine(false); faceEach(asan,rider);
+    S.busy=true; S.target=null; S.seq=true; $('prompt').style.display='none';
+    const w = wipe(1400);              // шторка: из игры — в сцену
+    stageWork(); setShot('backs'); cine(true);
+    await w; hoofLoop();
+    await gwait(3.4); S.asanNotice=true;          // сначала замечает сын
+    await gwait(1.7); S.fatherNotice=true;        // потом отец
+    await gwait(4.6);
+    setShot('behind'); RS.vT=4.2; gwait(2.2).then(()=>{ RS.vT=7.2; });
+    await until(()=>rider.position.distanceTo(W1)<17 || RS.path[0]!==W1 || DIR.t>10);
+    setShot('wide'); S.kulashUp=true; S.look.asan=rider; S.look.father=rider; S.look.kulash=rider;
+    await until(()=>!RS.path.length && RS.v<.25); await gwait(.9);
+    setShot('fence'); await dismount();
     await run(DAT.scripts.rider);
-    closeDlg(); S.step=4; setObj(CH, DAT.objectives.evening); S.busy=false;
-    S.evening=0.001;
+    closeDlg();
+    // вечер наступает шторкой: время прошло
+    const w2 = wipe(1600, 'left');
+    S.seq=false; DIR.shot=null; S.cut=true; cine(false); S.lookAt=null;
+    asan.userData.carry=false; father.userData.carry=false; father.userData.armL.rotation.x=father.userData.armR.rotation.x=0;
+    asan.remove(paperM); kulash.position.set(asan.position.x-.9,0,asan.position.z+.7);
+    S.evening=.55; S.step=4; setObj(CH, DAT.objectives.evening);
+    await w2; S.busy=false;
+  }
+  async function dismount(){
+    const left = new THREE.Vector3(Math.cos(rider.rotation.y),0,-Math.sin(rider.rotation.y)); // левый бок коня
+    const from = new THREE.Vector3(); rman.getWorldPosition(from); scene.attach(rman);
+    const to = rider.position.clone().addScaledVector(left,.9);
+    const T=1.3, t0=S.clock;
+    await until(()=>{ const k=Math.min(1,(S.clock-t0)/T), e=k*k*(3-2*k);
+      rman.position.set(lerp(from.x,to.x,e), lerp(from.y,0,e)+Math.sin(e*Math.PI)*.18, lerp(from.z,to.z,e));
+      if(k>.55){ rman.userData.legL.rotation.x=rman.userData.legR.rotation.x=lerp(-1.2,0,(k-.55)/.45); }
+      return k>=1; });
+    sfx.step(); S.rmanWalk = new THREE.Vector3().copy(asan.position).lerp(father.position,.25).add(new THREE.Vector3(-1.1,0,1.25));
+    await until(()=>!S.rmanWalk); turnToNow(rman, asan);
+    S.look.asan=rman; S.look.father=rman; await gwait(.7);
+  }
+  function turnToNow(o, b){ o.rotation.y=Math.atan2(b.position.x-o.position.x, b.position.z-o.position.z); }
+  async function reachBag(){
+    // рука идёт к поясу — к кобуре или к сумке? Отец делает полшага вперёд, заслоняя сына
+    setShot('hand'); S.fatherGuard=true;
+    const u=rman.userData; const t0=S.clock;
+    await until(()=>{ const k=Math.min(1,(S.clock-t0)/1.5); u.armR.rotation.x=lerp(0,-.25,k); u.armR.rotation.z=lerp(0,.55,k); return k>=1; });
+    await gwait(.5); sfx.paper(); paperM.position.set(0,-.42,.12); paperM.rotation.set(-.3,0,0); u.armR.add(paperM);
+    const t1=S.clock;
+    await until(()=>{ const k=Math.min(1,(S.clock-t1)/.7); u.armR.rotation.x=lerp(-.25,-1.25,k); u.armR.rotation.z=lerp(.55,0,k); return k>=1; });
+    S.fatherGuard=false; setShot('ots');
+  }
+  async function riderLeaves(){
+    // лист уходит Асану, нарочный садится и уезжает; долгий план вдогонку
+    asan.userData.armR.add(paperM); paperM.position.set(0,-.42,.12); rman.userData.armR.rotation.x=0;
+    S.rmanWalk = rider.position.clone().add(new THREE.Vector3(Math.cos(rider.rotation.y),0,-Math.sin(rider.rotation.y)).multiplyScalar(.9));
+    setShot('leave'); await until(()=>!S.rmanWalk);
+    const from=rman.position.clone(), t0=S.clock;
+    await until(()=>{ const k=Math.min(1,(S.clock-t0)/.9); rman.position.set(lerp(from.x,rider.position.x,k), lerp(0,1.1,k), lerp(from.z,rider.position.z,k)); rman.userData.legL.rotation.x=rman.userData.legR.rotation.x=-1.2*k; return k>=1; });
+    rider.attach(rman); rman.position.set(0,1.1,0); rman.rotation.set(0,0,0);
+    RS.path=[new THREE.Vector3(-2.5,0,9.8), new THREE.Vector3(-22,0,14), new THREE.Vector3(-95,0,30)]; RS.vT=3; gwait(1.2).then(()=>{ RS.vT=7; });
+    S.look.asan=rider; S.look.father=rider; S.look.kulash=rider;
+    await gwait(7); RS.path=[]; RS.v=RS.vT=0; rider.visible=false;
+  }
+  // планы сцены: каждый ставит камеру сам, dt — время кадра, k — время плана
+  const wp = o => o.getWorldPosition(new THREE.Vector3());
+  const flat = v => v.setY(0).normalize(), sideOf = d => new THREE.Vector3(d.z,0,-d.x);
+  const SHOTS = {
+    // спины отца и сына, медленный наезд; вдали между ними — маленький всадник
+    backs(k){ const e=Math.min(1,k/14); camera.fov=26; camera.position.set(H.x+Math.sin(k*.2)*.04, 1.55-e*.06, lerp(H.z+4.7, H.z+2.25, e*e*(3-2*e)));
+      return tmp.set(lerp(H.x, rider.position.x, .35), 1.25, H.z-30); },
+    // за всадником полубоком: впереди юрта, дом, загон и люди — растут с каждым шагом
+    behind(k){ const f=new THREE.Vector3(Math.sin(rider.rotation.y),0,Math.cos(rider.rotation.y)), sd=sideOf(f);
+      camera.fov=34; tmp.copy(rider.position).addScaledVector(f,-6.5).addScaledVector(sd,-2.6); tmp.y=2.5+Math.sin(k*6)*.03;
+      if(DIR.fresh) camera.position.copy(tmp); else camera.position.lerp(tmp, .12); return rider.position.clone().addScaledVector(f,16).setY(1); },
+    // общий план из травы: он подлетает к самому загону
+    wide(k){ camera.fov=34; camera.position.set(-5.5,1.0,16.5); return rider.position.clone().lerp(H,.45).setY(1.1); },
+    // сквозь жерди загона: нарочный слезает с коня
+    fence(k){ camera.fov=40; camera.position.set(8.5,1.3,3.7); return wp(rman).lerp(H,.35).setY(1.25); },
+    // рука к поясу — крупнее, с того же места
+    hand(k){ const p=wp(rman), d=flat(asan.position.clone().sub(p)), sd=sideOf(d);
+      camera.fov=32; camera.position.copy(p).addScaledVector(d,.8).addScaledVector(sd,2.6).setY(1.15); return p.setY(1.05); },
+    // через плечо Асана — на нарочного
+    ots(k){ const p=wp(rman), d=flat(asan.position.clone().sub(p)), sd=sideOf(d);
+      camera.fov=30; camera.position.copy(asan.position).addScaledVector(d,2.4).addScaledVector(sd,.9).setY(2.0); return p.setY(1.6); },
+    // обратная: через плечо нарочного — на отца и сына
+    rev(k){ const p=wp(rman), mid=asan.position.clone().lerp(father.position,.4), d=flat(p.clone().sub(mid)), sd=sideOf(d);
+      camera.fov=30; camera.position.copy(p).addScaledVector(d,1.6).addScaledVector(sd,-.7).setY(1.9); return mid.setY(1.5); },
+    // глазами Күләш: от юрты, из-за её плеча, длинным объективом
+    kulash(k){ const mid=asan.position.clone().lerp(wp(rman),.5), d=flat(mid.clone().sub(kulash.position)), sd=sideOf(d);
+      camera.fov=24; camera.position.copy(kulash.position).addScaledVector(d,-.9).addScaledVector(sd,-.4).setY(1.15+Math.sin(k*.9)*.01); return mid.setY(1.1); },
+    // подпись: сбоку, двое над листом
+    sign(k){ const p=wp(rman), mid=p.clone().lerp(asan.position,.5), sd=sideOf(flat(p.clone().sub(asan.position)));
+      camera.fov=28; camera.position.copy(mid).addScaledVector(sd,4.6).setY(1.55); return mid.setY(1.25); },
+    // уезжает: низко за спинами, длинный объектив, фигура тает в степи
+    leave(k){ camera.fov = lerp(30,20,Math.min(1,k/6)); camera.position.set(H.x+3.2,1.45,H.z+1.6); return rider.position.clone().lerp(H,Math.max(0,.4-k*.06)).setY(1.2); },
+    // Асан смотрит в лист и не может прочесть
+    paper(k){ const d=new THREE.Vector3(Math.sin(asan.rotation.y),0,Math.cos(asan.rotation.y));
+      camera.fov=34; camera.position.copy(asan.position).addScaledVector(d,-1.7).addScaledVector(sideOf(d),-.75).setY(2.55); return asan.position.clone().addScaledVector(d,.55).setY(1.0); },
+    // Күләш бежит от юрты: из-за спин отца и сына
+    kulashRun(k){ const mid=asan.position.clone().lerp(father.position,.5), d=flat(mid.clone().sub(kulash.position));
+      camera.fov=30; camera.position.copy(mid).addScaledVector(d,4.2).addScaledVector(sideOf(d),1.2).setY(2.1); return kulash.position.clone().setY(.9); },
+    // трое вместе
+    three(k){ const c=asan.position.clone().add(father.position).add(kulash.position).multiplyScalar(1/3);
+      camera.fov=32; camera.position.set(c.x+1.6, 1.45, c.z+5.2); return c.setY(1.05); }
+  };
+  function directCamera(dt, t){
+    const k = DIR.t; const look = SHOTS[DIR.shot](k, dt);
+    camera.updateProjectionMatrix();
+    if(DIR.fresh || !S.dirLook){ S.dirLook = look.clone(); DIR.fresh=false; } else S.dirLook.lerp(look, 1-Math.pow(.15,dt));
+    camera.lookAt(S.dirLook);
+    fg.visible = DIR.shot==='wide' || DIR.shot==='leave' || DIR.shot==='kulash';
+    DIR.t += dt;
+  }
+  function seqUpdate(dt, t){
+    // всадник по точкам: разгон, на последней — плавная остановка
+    RS.v += clamp(RS.vT-RS.v, -dt*3, dt*2.2);
+    if(RS.path.length){ const tg=RS.path[0], dx=tg.x-rider.position.x, dz=tg.z-rider.position.z, dd=Math.hypot(dx,dz);
+      const last = RS.path.length===1 && S.seq && DIR.shot!=='leave' && !S.leaving;
+      const v = last ? Math.min(RS.v, dd*1.3+.15) : RS.v;
+      if(dd < (last?.08:1.2)){ RS.path.shift(); if(!RS.path.length){ RS.v=RS.vT=0; } }
+      else { const st=Math.min(dd, v*dt); rider.position.x+=dx/dd*st; rider.position.z+=dz/dd*st; rider.rotation.y += wrapA(Math.atan2(dx,dz)-rider.rotation.y)*Math.min(1,dt*3); }
+      S.rv = v; } else S.rv = 0;
+    const fq = 3+S.rv*1.15, amp = Math.min(.7,.2+S.rv*.08);
+    if(S.rv>.1) horse.userData.legs.forEach((l,i)=>l.rotation.x=Math.sin(t*fq+(i%2?Math.PI:0)+(i>1?1:0))*amp); else horse.userData.legs.forEach(l=>l.rotation.x*=.9);
+    rider.position.y = S.rv>3.5 ? Math.abs(Math.sin(t*fq))*.1 : 0;
+    // пыль из-под копыт на рыси
+    dustT += dt; if(S.rv>2.8 && dustT>.07){ dustT=0; const d=dustM[dustI++%dustM.length]; d.userData.life=1; d.position.set(rider.position.x+rand(-.4,.4), .3, rider.position.z+rand(-.4,.4)); }
+    dustM.forEach(d=>{ if(d.userData.life>0){ d.userData.life-=dt*.7; const k=1-d.userData.life; d.position.y+=dt*.5; d.position.x+=dt*1.2; d.scale.setScalar(.6+k*2.6); d.material.opacity=Math.max(0,d.userData.life)*.5; } });
+    // отец и сын бьются с жердью, потом замечают всадника и откладывают её
+    if(beam){
+      if(!S.asanNotice){ beam.position.y = 1.18+Math.sin(t*1.4)*.035; beam.position.z = H.z-.45+Math.sin(t*.9)*.05; beam.rotation.y = Math.sin(t*1.1)*.04; }
+      else { S.beamDown=Math.min(1,S.beamDown+dt*(S.fatherNotice?.7:.25)); const b=S.beamDown;
+        beam.rotation.y = (S.fatherNotice? 0 : .05); beam.rotation.x = 0; beam.rotation.z = Math.PI/2 + (S.fatherNotice?0:b*.35);
+        beam.position.y = S.fatherNotice ? lerp(1.0, .08, Math.max(0,(b-.35)/.65)) : 1.18-b*.25;
+        const ua=asan.userData; ua.armL.rotation.x=ua.armR.rotation.x=lerp(ua.armR.rotation.x, paperM.parent===ua.armR?ua.armR.rotation.x:0, dt*2); }
+      if(S.fatherNotice){ const fa=father.userData; fa.armL.rotation.x=fa.armR.rotation.x=lerp(fa.armR.rotation.x, S.beamDown>.9?0:-.6, dt*2); }
+    }
+    for(const [who,o] of [['asan',asan],['father',father],['kulash',kulash]]){ const tg=S.look && S.look[who]; if(tg){ const p=new THREE.Vector3(); tg.getWorldPosition(p); turnTo(o,p.x,p.z,dt,2); } }
+    if(S.fatherGuard){ tmp.copy(asan.position).lerp(rman.position,.32); tmp.x+=.35; father.position.lerp(tmp, dt*1.2); }
+    // нарочный идёт пешком
+    if(S.rmanWalk){ const dx=S.rmanWalk.x-rman.position.x, dz=S.rmanWalk.z-rman.position.z, dd=Math.hypot(dx,dz);
+      if(dd<.08){ S.rmanWalk=null; animWalk(rman,0,dt); } else { const st=Math.min(dd,1.3*dt); rman.position.x+=dx/dd*st; rman.position.z+=dz/dd*st; rman.rotation.y=Math.atan2(dx,dz); rman.userData.carry=false; animWalk(rman,1,dt); rman.userData.carry=true; } }
+    // Күләш встаёт и замирает
+    if(S.kulashUp && kulash.position.y<0) kulash.position.y=Math.min(0,kulash.position.y+dt*.6);
   }
   function showDoc(known){
     return new Promise(res=>{
@@ -288,6 +515,7 @@ function sceneAul(){
   const tmp = new THREE.Vector3();
   const sc = {
     update(dt, t){
+      S.clock=(S.clock||0)+dt;
       // движение
       let mx=0, mz=0;
       if(!S.busy && !dlgOpen){
@@ -303,16 +531,20 @@ function sceneAul(){
       animWalk(asan, len>0?1:0, dt);
       // отец работает у загона, если свободен
       if(!S.busy && S.step>=1 && S.step<4){ father.lookAt(5,0,5); }
-      // всадник подъезжает по дороге
-      // всадник: пока работа идёт — шагом к очередной точке, на последней жерди — рысью к Асану
-      { const tgt = S.riderGo ? tmp.set(asan.position.x+4,0,asan.position.z+3) : RIDER_PATH[Math.min(S.placed,2)];
-        const dx=tgt.x-rider.position.x, dz=tgt.z-rider.position.z, dd=Math.hypot(dx,dz), v=S.riderGo?5.5:1.4;
-        if(dd>.3 && (S.riderGo || S.step>=1)){ const st=Math.min(dd, v*dt); rider.position.x+=dx/dd*st; rider.position.z+=dz/dd*st; rider.rotation.y=Math.atan2(dx,dz);
-          horse.userData.legs.forEach((l,i)=>l.rotation.x=Math.sin(t*(S.riderGo?9:5)+(i%2?Math.PI:0)+(i>1?1:0))*(S.riderGo?.7:.35)); rider.position.y=S.riderGo?Math.abs(Math.sin(t*9))*.12:0; }
+      // всадник: пока идёт работа — шагом к очередной точке вдали; в сцене приезда им правит режиссёр
+      if(S.seq) seqUpdate(dt,t);
+      else if(rider.visible){ const tgt = RIDER_PATH[Math.min(S.placed,2)];
+        const dx=tgt.x-rider.position.x, dz=tgt.z-rider.position.z, dd=Math.hypot(dx,dz);
+        if(dd>.3 && S.step>=1){ const st=Math.min(dd, 1.4*dt); rider.position.x+=dx/dd*st; rider.position.z+=dz/dd*st; rider.rotation.y=Math.atan2(dx,dz);
+          horse.userData.legs.forEach((l,i)=>l.rotation.x=Math.sin(t*5+(i%2?Math.PI:0)+(i>1?1:0))*.35); }
         else horse.userData.legs.forEach(l=>l.rotation.x*=.9); }
-      if(S.kulashGo){ tmp.set(asan.position.x-1,0,asan.position.z-1); kulash.position.lerp(tmp, dt*2.2); animWalk(kulash,1,dt); kulash.lookAt(asan.position.x,0,asan.position.z); }
+      if(S.kulashGo){ tmp.set(asan.position.x-.9,0,asan.position.z+.7); const dx=tmp.x-kulash.position.x, dz=tmp.z-kulash.position.z, dd=Math.hypot(dx,dz);
+        if(dd<.15){ S.kulashGo=false; animWalk(kulash,0,dt); } else { const st=Math.min(dd,3.6*dt); kulash.position.x+=dx/dd*st; kulash.position.z+=dz/dd*st; kulash.position.y=0; kulash.rotation.y=Math.atan2(dx,dz); animWalk(kulash,1.4,dt); } }
+      else if(!S.kulashUp){ const k=kulash.userData; k.armR.rotation.x = -.5 - Math.max(0,Math.sin(t*1.6))*1.0; k.armL.rotation.x=-.4; k.legL.rotation.x=k.legR.rotation.x=-1.3; }
+      else if(!S.kulashGo && kulash.userData.legL.rotation.x<0){ const k=kulash.userData; k.legL.rotation.x=k.legR.rotation.x=Math.min(0,k.legL.rotation.x+dt*2); k.armR.rotation.x*=.9; k.armL.rotation.x*=.9; }
       // ягнята бродят
-      lambs.forEach((l,i)=>{ l.position.x=clamp(l.position.x+Math.sin(t*.4+i*2)*dt*.3,-3.4,3.4); l.position.z=clamp(l.position.z+Math.cos(t*.3+i)*dt*.3,-2.4,2.4); l.rotation.y=Math.sin(t*.4+i*2)>0?0:Math.PI; });
+      if(S.seq){ lambs[0].position.set(.6,0,2.6); lambs[1].position.set(2.6,0,2.7); }
+      lambs.forEach((l,i)=>{ if(S.seq && i<2){ l.rotation.y=-Math.PI/2+i*.5; l.children[1].position.y=.5+Math.sin(t*2+i)*.06; return; } l.position.x=clamp(l.position.x+Math.sin(t*.4+i*2)*dt*.3,-3.4,3.4); l.position.z=clamp(l.position.z+Math.cos(t*.3+i)*dt*.3,-2.4,2.4); l.rotation.y=Math.sin(t*.4+i*2)>0?0:Math.PI; });
       // пустые места мигают, пока их не закрыли
       slots.forEach((s,i)=>{ if(i>=S.placed && s.material.transparent) s.material.opacity = .18+.18*Math.sin(t*3); });
       // ветер гонит крупу слева направо, как в степи в марте
@@ -330,18 +562,22 @@ function sceneAul(){
       const focus = S.camFocus || asan;
       const z = S.zoom;
       // приём «глаза птицы» — только для сцен, целиком снятых сверху; в этой главе его нет
-      // режиссёрский план: пока Асан у штабеля жердей — смотрим на него из проёма юрты
-      const want = (!S.intro && !S.tele && S.step===2 && asan.position.x<1.2 && asan.position.z<1.5) ? 'yurt' : 'obs';
-      if(want!==S.shot){ S.shot=want; S.cut=true; }
-      doorway.visible = S.shot==='yurt'; yurt.visible = S.shot!=='yurt'; // камера внутри юрты: снаружи её стенки не нужны fg.visible = S.shot!=='yurt' && !S.tele;
+      // режиссёрский план: пока Асан у штабеля жердей — смотрим на него изнутри юрты, через дверь.
+      // Склейка с задержкой, чтобы кадр не дёргался на границе
+      const inYurtZone = !S.intro && !S.seq && S.step===2 && asan.position.x<1.2 && asan.position.z<1.5;
+      S.zoneT = (inYurtZone === (S.shot==='yurt')) ? 0 : (S.zoneT||0)+dt;
+      if(S.zoneT > (inYurtZone ? .35 : .6) || !S.shot){ S.shot = inYurtZone ? 'yurt' : 'obs'; S.cut=true; S.zoneT=0; }
+      yurtIn.visible = S.shot==='yurt' && !S.seq; hearth.intensity = yurtIn.visible ? 1.1+Math.sin(t*9)*.12+Math.sin(t*23)*.06 : 0;
+      clothWind(t);
+      if(!S.seq || !DIR.shot) fg.visible = S.shot!=='yurt';
       if(S.intro){ introShot(dt); }
+      else if(S.seq && DIR.shot){ directCamera(dt,t); }
       else if(S.shot==='yurt'){
-        camera.position.copy(YURT_SHOT.pos); camera.position.y += Math.sin(t*.4)*.02;
+        camera.position.copy(YURT_SHOT.pos); camera.position.y += Math.sin(t*.4)*.015;
         camera.fov=YURT_SHOT.fov; camera.updateProjectionMatrix();
-        tmp.set(lerp(YURT_SHOT.look.x, asan.position.x, .35), .9, lerp(YURT_SHOT.look.z, asan.position.z, .5));
+        tmp.set(lerp(YURT_SHOT.look.x, asan.position.x, .3), .95, lerp(YURT_SHOT.look.z, asan.position.z, .45));
         if(S.cut){ S.yLook=tmp.clone(); S.cut=false; } else S.yLook.lerp(tmp, 1-Math.pow(.1,dt));
         camera.lookAt(S.yLook);
-        const fp=flapGeo.attributes.position; for(let i=0;i<fp.count;i++){ const by=flapBase[i*3+1], k=(.75-by)/1.5; fp.setZ(i, Math.sin(t*2.1+by*3)*.07*k + Math.sin(t*3.3+flapBase[i*3]*4)*.03*k); } fp.needsUpdate=true; flapGeo.computeVertexNormals();
       }
       else if(S.cam==='obs' || S.tele){
         if(S.cut){ S.cut=false; camera.position.copy(OBS.pos); }

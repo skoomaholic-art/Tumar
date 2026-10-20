@@ -5,6 +5,16 @@ function cine(on){ document.body.classList.toggle('cine', on); }
 function setObj(chap, text){ $('chap').textContent = chap; $('obj').textContent = text; }
 let toastT=null;
 function toast(text){ const t=$('toast'); t.textContent=text; t.classList.add('on'); sfx.memory(); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),3400); }
+// Шторка, как у Куросавы: прошлый кадр уходит за жёсткую вертикальную линию и открывает новый.
+// Вызов снимает текущий кадр сразу; новый план ставится сразу после вызова, до следующей отрисовки.
+function wipe(ms=1100, dir='right'){
+  if(scene) renderer.render(scene,camera);
+  const w=$('wipe'); w.style.backgroundImage=`url(${canvas.toDataURL('image/jpeg',.88)})`;
+  w.style.transition='none'; w.style.clipPath='inset(0 0 0 0)'; w.style.display='block';
+  return new Promise(res=>{ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    w.style.transition=`clip-path ${ms}ms linear`; w.style.clipPath = dir==='right' ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)';
+    setTimeout(()=>{ w.style.display='none'; res(); }, ms+40); })); });
+}
 function fadeTo(v, ms=1200){ const f=$('fade'); f.style.transitionDuration=ms+'ms'; f.style.opacity=v; return wait(ms); }
 function setHelp(t){ $('help').textContent=t; }
 setHelp(isTouch ? 'Касание — идти · щипок — масштаб' : 'Клик или WASD — идти · E — действие · колесо — масштаб');

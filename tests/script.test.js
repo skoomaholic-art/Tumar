@@ -13,7 +13,7 @@ function mockApi(picks){
     close: ()=>{}, wait: async ()=>{},
     remember: t=>out.log.push(t), diary: t=>out.diary.push(t), later: t=>out.later.push(t), toast: t=>out.log.push('toast:'+t),
     word: (ru)=>out.words.push(ru), testify: (topic,value)=>out.testimony.push([topic,value]),
-    hooks: { paper(){ out.calls.push('paper'); }, showDoc(k){ out.calls.push('showDoc:'+k); }, kulashRuns(){ out.calls.push('kulash'); }, riderLeaves(){ out.calls.push('leave'); }, dogs(){ out.calls.push('dogs'); } }
+    hooks: { paper(){ out.calls.push('paper'); }, showDoc(k){ out.calls.push('showDoc:'+k); }, kulashRuns(){ out.calls.push('kulash'); }, riderLeaves(){ out.calls.push('leave'); }, cut(n){ out.calls.push('cut:'+n); }, reachBag(){ out.calls.push('reachBag'); }, sign(){ out.calls.push('sign'); }, readPaper(){ out.calls.push('read'); }, dogs(){ out.calls.push('dogs'); } }
   };
   return out;
 }
@@ -48,7 +48,9 @@ test('глава 1: повестка и Күләш — слова в блокн�
   await createRunner(m.api)(ch1.scripts.rider);
   assert.deepStrictEqual(m.words, ['явиться','завтра','военкомат','повестка']);
   assert.ok(m.diary.some(d=>d.includes('Про сестру')));
-  assert.deepStrictEqual(m.calls, ['paper','showDoc:false','kulash','showDoc:true','leave']);
+  // порядок сцены: рука к поясу → лист → подпись → уезжает → Асан не может прочесть → бежит Күләш
+  assert.deepStrictEqual(m.calls.filter(c=>!c.startsWith('cut:')), ['reachBag','paper','sign','leave','read','showDoc:false','kulash','showDoc:true']);
+  assert.ok(m.calls.includes('cut:kulash'), 'есть план глазами Күләш');
   assert.deepStrictEqual(m.testimony[0], ['name','Нурбеков Асан Нурбекович']);
 });
 
