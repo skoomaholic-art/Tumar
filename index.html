@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Тумар</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="c"></canvas>
+<canvas id="grain"></canvas>
+<div id="vig"></div>
+<div id="eyelid"></div>
+<div class="hud" id="hud"><div class="chap" id="chap"></div><div class="obj" id="obj"></div></div>
+<div id="bars"><div>Кровь</div><div class="bar blood"><i id="bBlood"></i></div><div>Жажда</div><div class="bar"><i id="bThirst"></i></div><div>Сознание</div><div class="bar"><i id="bMind"></i></div></div>
+<div id="prompt"></div>
+<div id="toast"></div>
+<div id="hold"><div id="holdLabel">Держи, чтобы затянуть</div><div class="bar"><i id="bHold" style="width:0"></i></div></div>
+<div id="dlg"><div class="por" id="por"></div><div class="who" id="who"></div><div class="txt" id="txt"></div><div id="choices"></div><div class="more" id="more">▸</div></div>
+<div id="doc"><div class="paper" id="paper"></div></div>
+<div id="panels"><div class="page" id="page"></div><div class="next" id="pnNext">Нажми, чтобы открыть следующий кадр</div><div class="note">Рисованные вставки будут здесь. Пока это кадры из движка.</div></div>
+<div id="touch"><button id="tAct">Действие</button><button id="tCrawl">Ползти</button></div>
+<div id="help"></div>
+<div id="compass"></div>
+<div id="wings"><i class="wl"></i><i class="wr"></i></div>
+<div class="lb" id="lbT"></div><div class="lb" id="lbB"></div>
+<button id="nbBtn" type="button">Блокнот Асана</button>
+<button id="camBtn" type="button">Ракурс</button>
+<div id="nb"><div class="sheet" id="nbSheet"></div></div>
+<div class="screen" id="title" style="display:flex">
+  <h1>ТУМАР</h1>
+  <p class="small">прототип · глава 1 «Аул» и фрагмент главы 5 «Подсолнухи»</p>
+  <p>Эта история — художественный вымысел. Асан Нурбеков и люди вокруг него никогда не жили. Но всё, что с ними происходит, случилось с кем-то на самом деле.</p>
+  <p class="small">Игра содержит сцены жестокости, смерти и голода. 18+. Звук рекомендуется.</p>
+  <button class="btn" id="continue" hidden>Продолжить</button>
+  <button class="btn" id="start">Начать</button>
+  <p class="small" id="bootErr"></p>
+</div>
+<div class="screen" id="card"><p class="small" id="cardSmall"></p><h1 id="cardBig" style="font-size:clamp(26px,5vw,44px)"></h1><p id="cardText"></p><button class="btn" id="cardBtn">Дальше</button></div>
+<div id="fade"></div>
+<div id="rotate"><div class="ph"></div>Поверните телефон горизонтально.<br><span class="small">Игра идёт только в горизонтальном положении.</span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/core/util.js"></script>
+<script src="js/core/script.js"></script>
+<script src="js/core/testimony.js"></script>
+<script src="js/core/save.js"></script>
+<script src="js/core/memory.js"></script>
+<script src="js/core/grain.js"></script>
+<script src="js/core/audio.js"></script>
+<script src="js/core/engine.js"></script>
+<script src="js/core/ui.js"></script>
+<script src="js/core/input.js"></script>
+<script src="js/scenes/dream.js"></script>
+<script src="js/scenes/aul.js"></script>
+<script src="js/scenes/field.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

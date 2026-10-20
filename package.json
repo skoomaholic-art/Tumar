@@ -1,0 +1,6 @@
+{
+  "name": "tumar",
+  "private": true,
+  "description": "Тумар — сюжетная игра о Второй мировой (three.js, без сборки)",
+  "scripts": { "test": "node --test tests/*.test.js" }
+}
