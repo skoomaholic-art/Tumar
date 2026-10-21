@@ -86,14 +86,14 @@ function sceneCamp(){
     line(k){ camera.fov=26; camera.position.set(-12.5,1.9,3.6); return tmp.set(lerp(3,0,Math.min(1,k/8)),1.35,.2); },
     // лица: Асан на плече у старика
     // руки на груди — крупно
-    hands(k){ camera.fov=30; camera.position.set(-1.7,1.45,1.7); return tmp.set(0,1.3,0); },
+    hands(k){ camera.fov=34; camera.position.set(-.05,1.5,2.5); return tmp.set(-.15,1.3,0); },
     faces(k){ camera.fov=28; camera.position.set(.9,1.62,3.4-Math.min(.5,k*.04)); return tmp.set(-.1,1.55,0); },
     // старик кричит
     tatar(k){ camera.fov=26; camera.position.set(-2.2,1.5,2.6); return tmp.set(-.3,1.6,0); },
     // палатка сверху: медленный наезд на Асана, конёк проходит над кадром
     tentTop(k){ camera.fov=40; const e=Math.min(1,k/16); camera.position.set(lerp(TX-1,asanT.position.x+.6,e), lerp(10,6.2,e), lerp(5,2.6,e)); return tmp.set(lerp(TX,asanT.position.x,e),0,lerp(0,.4,e)); },
     // снизу, глазами лежащего: лица над ним
-    lowPOV(k){ camera.fov=55; const a=asanT.position; camera.position.set(a.x-.35,.3,a.z-2.05); const f=DIR.look||nb; const p=wp(f); return p.setY(1.45); },
+    lowPOV(k){ camera.fov=55; const a=asanT.position; camera.position.set(a.x-.55,.3,a.z+.95); const f=DIR.look||nb; const p=wp(f); return p.setY(1.45); },
     // обыск: сверху и сбоку, охранник идёт по ряду
     search(k){ camera.fov=34; camera.position.set(asanT.position.x+4.2,3.4,4.6); return tmp.set(guardT.position.x*.5+asanT.position.x*.5,.6,.3); }
   };
@@ -125,9 +125,11 @@ function sceneCamp(){
     // панели: сапоги, палец, винтовки — без тел, только сапоги, руки и лица
     feld.position.set(1.4,0,1.5); feld.rotation.y=-Math.PI/2; const f1=shot(new THREE.Vector3(3.2,.28,2.9), new THREE.Vector3(1.2,.35,1.4), 900, 700);
     feld.position.set(.45,0,1.25); feld.lookAt(asan.position.x,0,asan.position.z); feld.userData.armR.rotation.x=-1.45; feld.userData.carry=true;
-    const f2=shot(new THREE.Vector3(1.55,1.5,2.9), new THREE.Vector3(.25,1.35,.45), 900, 900);
+    const f2=shot(new THREE.Vector3(.68,1.88,-.6), new THREE.Vector3(.45,1.5,1.25), 900, 900);
     guards.forEach((g,i)=>{ g.position.set(1.1+i*1.1,0,2.7+i*.2); g.lookAt(asan.position.x,0,asan.position.z); g.userData.rifle.rotation.x=1.3; g.userData.rifle.position.set(.2,1.35,.45); });
     const f3=shot(new THREE.Vector3(.2,1.55,.25), new THREE.Vector3(1.4,1.35,3.2), 900, 700);
+    // фельдфебель отступает на шаг, всё ещё показывая пальцем: не заслоняет лица в следующих планах
+    feld.position.set(2.3,0,1.7); feld.lookAt(asan.position.x,0,asan.position.z);
     await fadeTo(1,500);
     await panels([f1,f2,f3], caps(DAT.panels.point));
     setShot('tatar'); await fadeTo(0,250);

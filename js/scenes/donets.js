@@ -69,7 +69,7 @@ function sceneDonets(){
   { const d=new THREE.Object3D(); let i=0;
     while(i<NSF){ let x=rand(FIELD.x0,FIELD.x1), z=rand(FIELD.z0,FIELD.z1);
       if(i<1200){ const a=rand(0,Math.PI*2), r=rand(2.6,15); x=LIE.x+Math.cos(a)*r; z=LIE.z+Math.sin(a)*r; if(x<FIELD.x0-1.5||z<FIELD.z0) continue; }
-      if(Math.hypot(x-LIE.x,z-LIE.z)<2.6 || Math.hypot(x-NIGHT_CAM.x,z-NIGHT_CAM.z)<3) continue;            // примятое место, где он ляжет
+      if(Math.hypot(x-LIE.x,z-LIE.z)<2.6 || Math.hypot(x-NIGHT_CAM.x,z-NIGHT_CAM.z)<3 || (z<6.5 && x<13)) continue;   // у окопа поле начинается дальше            // примятое место, где он ляжет
       d.position.set(x,0,z); d.rotation.set(rand(-.08,.08), Math.PI+rand(-.5,.5), rand(-.08,.08)); d.scale.setScalar(rand(.85,1.15)); d.updateMatrix();
       stems.setMatrixAt(i,d.matrix); heads.setMatrixAt(i,d.matrix); discs.setMatrixAt(i,d.matrix); i++; } }
   scene.add(stems,heads,discs);
@@ -224,7 +224,7 @@ function sceneDonets(){
   // бой сверху: за расчётом, видно реку и переправу
   const shotBattle = () => { const z=S.zoom; tmp2.set(S.aim.x*.12, 15*z, 15*z); if(S.fresh) camera.position.copy(tmp2); else camera.position.lerp(tmp2,.06); camera.fov=55; camera.lookAt(S.aim.x*.2,0,-28); };
   // танк над головой: из окопа вверх
-  const shotIron = k => { camera.fov=66; camera.position.set(S.crushX-1.35,.18,.75); camera.lookAt(S.crushX+.5,1.7,-.9); };
+  const shotIron = k => { camera.fov=66; camera.position.set(S.crushX-1.35,.18,.75); camera.lookAt(S.crushX+.5,2.5,-.5); };
   // окружение сверху: за Асаном, лежащим в подсолнухах
   const shotEnc = () => { const z=S.zoom; tmp2.set(LIE.x+(S.aim.x-LIE.x)*.08, 16*z, LIE.z+9*z); if(S.fresh) camera.position.copy(tmp2); else camera.position.lerp(tmp2,.06); camera.fov=50; camera.lookAt(LIE.x+(S.aim.x-LIE.x)*.2, 0, LIE.z-9); };
   // ранен: у самой земли, сквозь стебли
@@ -472,9 +472,9 @@ function sceneDonets(){
       balloon.position.y=62+Math.sin(t*.3)*.6; balloon.rotation.y=.4+Math.sin(t*.13)*.08;
       if(S.fires && Math.random()<dt*6){ const f=pick(S.fires); puff(tmp.copy(f).add(tmp2.set(rand(-.6,.6),0,rand(-.6,.6))),fireTex,rand(1.8,3),.6,2.4,1,true); puff(tmp.copy(f).setY(4),smokeTex,rand(4,6.5),5,1.8,2.2,false,1.2); }
       if(S.barrage){ const bk=scene.background; S.glow=Math.max(0,(S.glow||0)-dt*3);
-        if(Math.random()<dt*14){ const x=rand(-70,40), z=RIVER_Z-rand(30,90); puff(tmp.set(x,rand(1,3),z),fireTex,rand(9,16),.35,0,.5,true); S.glow=Math.min(1,S.glow+.5); shake=Math.max(shake,.12);
-          if(Math.random()<.5) puff(tmp.set(x,6,z),smokeTex,rand(10,16),7,2.5,1.6); if(Math.random()<.35) noiseBurst({dur:1.2,freq:70,q:.4,gain:.35,type:'lowpass',delay:.4}); }
-        bk.setHex(0x8a7462).lerp(GLOW, S.glow*.35); scene.fog.color.copy(bk); hemi.intensity=.5+S.glow*.4; }
+        if(Math.random()<dt*22){ const x=rand(-32,22), z=RIVER_Z-rand(35,95); puff(tmp.set(x,rand(4,8),z),fireTex,rand(14,24),.4,0,.4,true); puff(tmp.set(x,rand(2,4),z),fireTex,rand(6,10),.25,0,.2,true); S.glow=Math.min(1,S.glow+.45); shake=Math.max(shake,.14);
+          if(Math.random()<.6) puff(tmp.set(x,9,z),smokeTex,rand(12,20),8,3,1.6); if(Math.random()<.35) noiseBurst({dur:1.2,freq:70,q:.4,gain:.35,type:'lowpass',delay:.4}); }
+        bk.setHex(0x8a7462).lerp(GLOW, S.glow*.6); scene.fog.color.copy(bk); hemi.intensity=.5+S.glow*.4; }
       if(S.crickets && Math.random()<dt*3) tone({f:rand(4200,4800),dur:.05,type:'sine',gain:.012});
       if(S.phase==='battle' || S.phase==='iron') battleUpdate(dt,t);
       if(S.phase==='encircle') encircleUpdate(dt,t);

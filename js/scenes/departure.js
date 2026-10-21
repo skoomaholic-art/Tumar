@@ -99,6 +99,7 @@ function sceneDeparture(){
     const W = { asan, zhum, father, mother, kulash, bundle, RD, R0, walkD:0,
       update(dt,t){
         grass.update(t); fgGrass.update(t,1.3); smoke.update(dt);
+        door.visible = win.visible = S.shot!=='family'; // камера этого плана стоит в доме — дверь изнутри не нужна
         if(S.walk){ W.walkD += dt*1.25; const p=R0.clone().addScaledVector(RD, W.walkD);
           asan.position.copy(p).addScaledVector(new THREE.Vector3(RD.z,0,-RD.x), -.5); zhum.position.copy(p).addScaledVector(new THREE.Vector3(RD.z,0,-RD.x), .55);
           asan.rotation.y = zhum.rotation.y = Math.atan2(RD.x,RD.z); animWalk(asan,1,dt); animWalk(zhum,1,dt);
@@ -112,7 +113,7 @@ function sceneDeparture(){
       shots:{
         est(k){ camera.fov=22; camera.position.set(44-k*.25,5.5,48); return new THREE.Vector3(-1,1.4,0); },
         side(k){ camera.fov=19; camera.position.copy(SIDE_CAM); camera.position.y += Math.sin(k*.4)*.01; return new THREE.Vector3(.4,1.15,3.1); },
-        father(k){ camera.fov=30; camera.position.set(1.6,1.15,4.4); return new THREE.Vector3(-.9,1.3,1.5); },
+        father(k){ camera.fov=30; camera.position.set(2.0,1.2,4.9); return new THREE.Vector3(-.75,1.45,1.5); },
         family(k){ camera.fov=40; camera.position.set(-.2,1.5,-1.3); return new THREE.Vector3(R0.x+RD.x*40, .9, R0.z+RD.z*40); }
       } };
     return W;
