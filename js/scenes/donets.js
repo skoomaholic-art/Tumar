@@ -124,7 +124,9 @@ function sceneDonets(){
   const KHAKI=0x7a7148, FELD=0x5a5e4a;
   const asan=makePerson({coat:KHAKI, hat:'pilotka'}), grisha=makePerson({coat:0x7f764c, hat:'pilotka', scale:.95});
   const officer=makePerson({coat:0x6a6444, hat:'pilotka'});
-  scene.add(asan, grisha, officer); officer.visible=false;
+  // Семён Кузьмин — с Асаном с акмолинского эшелона; выгоревшая гимнастёрка
+  const semyon=makePerson({coat:0x9a9068, hat:'pilotka'});
+  scene.add(asan, grisha, officer, semyon); officer.visible=false;
   const grishaCap=new THREE.Mesh(new THREE.BoxGeometry(.3,.09,.17),M(0x6a6640)); grishaCap.visible=false; scene.add(grishaCap);
   const comrades=[];
   for(const x of [-18,-12,-7,6,12,18]){ const p=makePerson({coat:KHAKI, hat:'pilotka'}); p.position.set(x,-.45,0); p.rotation.y=Math.PI; scene.add(p); comrades.push({p,alive:true,t:rand(0,3)}); }
@@ -144,6 +146,8 @@ function sceneDonets(){
     async lookCap(){ await lookTo(grishaCap.position.clone(), 2.4); },
     // общий план назад, на село: хаты горят, по улице идут немцы
     async showEncircled(){ villageGermans(); villageFG.visible=true; for(let i=0;i<10;i++){ const f=pick(S.fires); puff(tmp.copy(f).setY(4+i*.6),smokeTex,rand(5,8),6,1.6,2,false,1.4); } cut(shotVillage); await gwait(4.5); villageFG.visible=false; },
+    // Семён в темноте повторяет за Гришей казахские слова — себе под нос, с ошибкой
+    async semyonMutters(){ cut(shotSem); semyon.userData.armR.rotation.x=-.5; await gwait(2.2); semyon.userData.armR.rotation.x=0; cut(shotTwo); },
     async hitThigh(){ await hitThigh(); },
     async hitChest(){ await hitChest(); }
   });
@@ -215,6 +219,8 @@ function sceneDonets(){
   // на спине: снизу вверх, сквозь подсолнухи — небо (так начнётся глава 5)
   const shotSky = k => { camera.fov=72; camera.position.set(LIE.x,.3,LIE.z+.4); camera.lookAt(LIE.x+.6+Math.sin(k*.3)*.25, 3.2, LIE.z-2.3); };
   // двое у пулемёта: низко сбоку, лица в профиль, между ними — река
+  // со стороны бруствера: Семён сидит, рядом Асан, в ночи за ними село
+  const shotSem = k => { camera.fov=30; camera.position.set(-1.0-k*.03,1.4,-4.6); camera.lookAt(-1.45,.8,.3); };
   const shotTwo = k => { camera.fov=40; camera.position.set(.55,1.0,2.7); camera.lookAt(.3,1.15,-25); };
   // сверху: окоп, река, тот берег
   const shotTop = k => { camera.fov=46; camera.position.set(1,15,14); camera.lookAt(0,0,-12); };
@@ -237,6 +243,7 @@ function sceneDonets(){
   async function phaseNight(){
     S.phase='night'; setLight('night'); battleHud(false); setHeart(0);
     asan.position.set(0,-.45,0); asan.rotation.y=Math.PI; grisha.position.set(1.1,-.45,.15); grisha.rotation.y=Math.PI*.85;
+    semyon.visible=true; semyon.position.set(-1.7,-.62,.35); semyon.rotation.set(0,Math.PI*1.15,0); semyon.userData.legL.rotation.x=semyon.userData.legR.rotation.x=-1.45; // сидит в окопе, привалившись к стенке
     cut(shotNight); cine(true);
     await fadeTo(0,2400);
     // долгий общий план: тишина, сверчки, аэростат
@@ -252,7 +259,7 @@ function sceneDonets(){
     phaseDawn();
   }
   // ---------- фаза 2: рассвет 5 июля, артподготовка и бой ----------
-  function phaseDawnSet(){ setLight('dawn'); stars.visible=false; moon.visible=false; nightFG.visible=false; cut(shotAcross); }
+  function phaseDawnSet(){ semyon.visible=false; setLight('dawn'); stars.visible=false; moon.visible=false; nightFG.visible=false; cut(shotAcross); }
   async function phaseDawn(){
     S.phase='barrage';
     await gwait(1.2);
@@ -343,7 +350,7 @@ function sceneDonets(){
     comrades.forEach(cm=>cm.p.visible=false); grishaCap.visible=false;
     // горит село за спиной
     huts[2].children.forEach(m=>m.material=M(0x2a2420)); huts[4].children.forEach(m=>m.material=M(0x2a2420));
-    for(let i=0;i<8;i++){ const r=makePerson({coat:KHAKI, hat:'pilotka'}); r.position.set(LIE.x-3+rand(-2,2),0,LIE.z+rand(-1,2)); scene.add(r); runners.push({p:r, go:false, out:false, to:new THREE.Vector3(rand(14,26),0,rand(66,76))}); }
+    for(let i=0;i<7;i++){ const r=makePerson({coat:KHAKI, hat:"pilotka"}); r.position.set(LIE.x-3+rand(-2,2),0,LIE.z+rand(-1,2)); scene.add(r); runners.push({p:r, go:false, out:false, to:new THREE.Vector3(rand(14,26),0,rand(66,76))}); }
     cut(shotEnc);
   }
   async function phaseEncircle(){
@@ -355,6 +362,7 @@ function sceneDonets(){
     cut(shotEnc);
     S.phase='encircle'; S.busy=false; S.encT=0; S.ammo=47; S.disks=3; S.hp=100; S.wounded=false; S.encSpawn=1;
     battleHud(true); setHeart(120); officer.visible=false; runners.push({p:officer, go:false, out:false, to:new THREE.Vector3(20,0,72)});
+    semyon.visible=true; semyon.userData.legL.rotation.x=semyon.userData.legR.rotation.x=0; semyon.position.set(LIE.x-2.4,0,LIE.z+1.2); runners.push({p:semyon, go:false, out:false, glance:1.1, to:new THREE.Vector3(22,0,74)});
     S.sent=0; S.sendT=1.5;
     bark(memory.flags.raft==='wounded'?'Волков':'Старшина', pick(DAT.barks.encircle));
     await until(()=>runners.every(r=>r.out) || S.encT>48);
@@ -446,7 +454,7 @@ function sceneDonets(){
     hud();
     // по одному уходят в подсолнухи
     S.sendT-=dt; if(S.sendT<=0 && S.sent<runners.length){ runners[S.sent].go=true; S.sent++; S.sendT=rand(2.6,4.2); if(Math.random()<.4) bark('Сосед',pick(DAT.barks.encircle)); }
-    let out=0; runners.forEach(r=>{ if(r.out){ out++; return; } if(!r.go) return; r.p.visible=true; const dx=r.to.x-r.p.position.x, dz=r.to.z-r.p.position.z, d=Math.hypot(dx,dz);
+    let out=0; runners.forEach(r=>{ if(r.out){ out++; return; } if(!r.go) return; r.p.visible=true; if(r.glance>0){ r.glance-=dt; r.p.rotation.y=Math.atan2(asan.position.x-r.p.position.x, asan.position.z-r.p.position.z); animWalk(r.p,0,dt); return; } const dx=r.to.x-r.p.position.x, dz=r.to.z-r.p.position.z, d=Math.hypot(dx,dz);
       if(d<1){ r.out=true; r.p.visible=false; } else { r.p.position.x+=dx/d*3.6*dt; r.p.position.z+=dz/d*3.6*dt; r.p.rotation.y=Math.atan2(dx,dz); animWalk(r.p,1.3,dt); } });
     setObj(CH, fillObj(DAT.objectives.encircle,{n:out,m:runners.length}));
     // немцы: с севера, от наших бывших окопов, и с востока; ложатся и бьют по нему

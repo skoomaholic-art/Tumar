@@ -122,6 +122,11 @@ function sceneCity(){
   const asanSit = makePerson({coat:KHAKI, hat:'pilotka'}); asanSit.position.set(DG.x+.1,-.3,DG.z-.6); asanSit.rotation.y=Math.PI; asanSit.userData.armL.rotation.x=asanSit.userData.armR.rotation.x=-1.1; scene.add(asanSit);
   const kolSleep = new THREE.Group(); { const p=makePerson({coat:0x7a7050, hat:'pilotka'}); p.rotation.x=-Math.PI/2; p.position.y=.62; kolSleep.add(p); kolSleep.userData.p=p; } kolSleep.position.set(DG.x+2,0,DG.z+1.2); scene.add(kolSleep);
 
+  const kolLetterM = (()=>{ const sh=new THREE.Shape(); sh.moveTo(-.07,-.05); sh.lineTo(.07,-.05); sh.lineTo(.07,.05); sh.lineTo(0,.0); sh.lineTo(-.07,.05); sh.closePath();
+    const m=new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshLambertMaterial({color:0xd8ccae, side:THREE.DoubleSide, emissive:0x2a2418})); m.scale.setScalar(1.6); return m; })();
+  // блокнот политрука на построении
+  const politNote = new THREE.Mesh(new THREE.PlaneGeometry(.14,.18), new THREE.MeshLambertMaterial({color:0xe2dccb, side:THREE.DoubleSide}));
+
   // ================= МЕСТО 3: аул зимой (x = −400), для панелей =================
   const HM = new THREE.Vector3(-400,0,0);
   { const sn=new THREE.Mesh(new THREE.PlaneGeometry(80,80),M(0xd8d6d0)); sn.rotation.x=-Math.PI/2; sn.position.copy(HM); scene.add(sn);
@@ -148,10 +153,13 @@ function sceneCity(){
   for(let i=0;i<24;i++){ const p=makePerson({coat:[0x5a5e4a,0x6a6656,0x4e5244,0x7a7060][i%4], hat: i%3===0?'helmet':'scarf', scarf:[0x8a7a6a,0x6a5a4a,0x9a8a7a][i%3]});
     p.position.set(PR.x-30+(i>>1)*2.6+rand(-.3,.3), 0, PR.z-1.2+(i%2)*1.1); p.rotation.y=Math.PI/2; p.rotation.z=rand(-.06,.06); scene.add(p); column.push({p, v:rand(.5,.7), ph:rand(0,6)}); }
   const escorts=[0,1].map(i=>{ const e=makePerson({coat:0x6e6a4e, hat:'borik'}); const rf=new THREE.Mesh(new THREE.BoxGeometry(.06,1.2,.06),M(0x2a2018)); rf.position.set(.32,1.55,-.1); rf.rotation.x=.3; e.add(rf); e.position.set(PR.x-6+i*16,0,PR.z+.9); e.rotation.y=Math.PI/2; scene.add(e); return e; });
-  const boy = makePerson({coat:0x6a6c5a, hat:'pilotka', scale:.82}); // мальчишка: ниже всех, без каски, пилотка на уши boy.position.set(PR.x+1.4,0,PR.z+1.0); scene.add(boy);
+  // мальчишка: ниже всех, без каски, пилотка на уши
+  const boy = makePerson({coat:0x6a6c5a, hat:'pilotka', scale:.82}); boy.position.set(PR.x+1.4,0,PR.z+1.0); scene.add(boy);
   const asanPr = makePerson({coat:0x6e6648, hat:'borik'}); asanPr.position.set(PR.x+3.0,0,PR.z+4.4); asanPr.lookAt(boy.position.x,0,boy.position.z); scene.add(asanPr);
   const bread = new THREE.Mesh(new THREE.BoxGeometry(.2,.1,.12),M(0x6a4a2a)); bread.position.set(0,-.4,.14); asanPr.userData.armR.add(bread); asanPr.userData.armR.rotation.x=-.7;
   boy.lookAt(asanPr.position.x,0,asanPr.position.z);
+  const politMound = new THREE.Mesh(new THREE.SphereGeometry(1.4,10,6,0,Math.PI*2,0,Math.PI/2),M(0xe8e9ea)); politMound.scale.y=.38; politMound.position.set(PR.x-3,0,PR.z-4.5); scene.add(politMound);
+  const politPr = makePerson({coat:0x4e4a36, hat:'pilotka'}); politPr.position.set(PR.x-3,.5,PR.z-4.5); politPr.lookAt(PR.x+1,0,PR.z+1); scene.add(politPr);
   const snowN=900, snowGeo=new THREE.BufferGeometry(), snowPos=new Float32Array(snowN*3);
   for(let i=0;i<snowN;i++){ snowPos[i*3]=PR.x+rand(-25,25); snowPos[i*3+1]=rand(0,12); snowPos[i*3+2]=PR.z+rand(-15,25); }
   snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos,3));
@@ -205,6 +213,18 @@ function sceneCity(){
     // блиндаж
     async boom(){ S.boomT=0; await gwait(1.4); },
     async writing(){ S.shot='dugHand'; S.shotT=0; S.writing=true; await gwait(3.2); S.writing=false; S.shot='dugout'; S.shotT=0; },
+    // письмо Колесникова: протягивает треугольник; Асан берёт и прячет за голенище — или нет
+    async kolOffersLetter(){ const p=kolSleep.userData.p; S.shot='dugLetter'; S.shotT=0;
+      p.userData.armR.add(kolLetterM); kolLetterM.position.set(0,-.42,.1); kolLetterM.rotation.set(-Math.PI/2,0,0);
+      const t0=S.clock; await until(()=>{ const k=Math.min(1,(S.clock-t0)/1.2); p.userData.armR.rotation.x=lerp(0,-1.25,k); return k>=1; }); await gwait(.6); },
+    async letterToBoot(){ const a=asanSit.userData.armR, p=kolSleep.userData.p; let t0=S.clock;
+      await until(()=>{ const k=Math.min(1,(S.clock-t0)/.8); a.rotation.x=lerp(-1.1,-1.35,k); return k>=1; });
+      a.attach(kolLetterM); sfx.paper(); t0=S.clock;
+      await until(()=>{ const k=Math.min(1,(S.clock-t0)/1.2); p.userData.armR.rotation.x=lerp(-1.25,0,k); a.rotation.x=lerp(-1.35,.35,k); return k>=1; });
+      asanSit.attach(kolLetterM); kolLetterM.position.set(.3,1.22,.18); kolLetterM.rotation.set(0,-Math.PI/2,.15); await gwait(1.6); a.rotation.x=-1.1; S.shot='dugout2'; S.shotT=0; },
+    async letterBack(){ const p=kolSleep.userData.p; await gwait(.5); let t0=S.clock;
+      await until(()=>{ const k=Math.min(1,(S.clock-t0)/1.3); p.userData.armR.rotation.x=lerp(-1.25,-.6,k); return k>=1; });
+      p.attach(kolLetterM); kolLetterM.position.set(.14,1.3,.27); kolLetterM.rotation.set(0,0,.2); p.userData.armR.rotation.x=0; await gwait(1.4); S.shot='dugout2'; S.shotT=0; },
     async kolWakes(){ S.shot='dugout2'; S.shotT=0; const p=kolSleep.userData.p, t0=S.clock;
       await until(()=>{ const k=Math.min(1,(S.clock-t0)/1.6), e=k*k*(3-2*k); p.rotation.x=lerp(-Math.PI/2,0,e); p.position.y=lerp(.62,0,e);
         kolSleep.position.set(lerp(DG.x+2,DG.x+1.4,e),0,lerp(DG.z+1.2,DG.z+.3,e)); kolSleep.rotation.y=lerp(0,-2.3,e); return k>=1; }); },
@@ -226,8 +246,18 @@ function sceneCity(){
     async escortLooks(){ const e=escorts[0]; e.position.set(PR.x-1.6,0,PR.z+1.4); S.escortLook=true; await gwait(1.6); },
     async giveBread(){ S.bread='give'; await gwait(1.8); },
     async keepBread(){ S.bread='keep'; await gwait(1.2); },
+    // политрук на той стороне дороги видел хлеб
+    async politrukWatches(){ S.shot='prPolit'; S.shotT=0; politPr.lookAt(asanPr.position.x,0,asanPr.position.z); await gwait(2.6); S.shot='prClose'; S.shotT=0; },
     async boyPushed(){ const a=escorts[0].userData.armR; a.rotation.x=-1.3; S.boyStops=false; S.escortLook=false; await gwait(.4); a.rotation.x=0; await gwait(1.8); },
     // гвардия
+    // политрук идёт вдоль строя; у Асана — кивок или запись в блокнот (пулемёт на Дону)
+    async politrukWalks(){ S.shot='gPolitWalk'; S.shotT=0; const to=new THREE.Vector3(asanSlot.x, 0, asanSlot.z+1.1); S.politTo=to;
+      await until(()=>!S.politTo); commissar.lookAt(asanSlot.x,0,asanSlot.z); await gwait(.6); },
+    async politrukNods(){ S.shot='gPolitFace'; S.shotT=0; const t0=S.clock; await until(()=>{ const k=Math.min(1,(S.clock-t0)/.9); commissar.rotation.x=Math.sin(k*Math.PI)*.12; return k>=1; }); await gwait(1.2); },
+    async politrukWrites(){ commissar.userData.armL.add(politNote); politNote.position.set(.05,-.4,.16); politNote.rotation.set(-1.0,0,0);
+      commissar.userData.armL.rotation.x=-1.1; S.shot='gPolitFace'; S.shotT=0; S.writingP=true; noiseBurst({dur:1.6,freq:3200,q:.7,gain:.04,type:'bandpass'}); await gwait(1.6);
+      await politNotePage(); S.writingP=false;
+      commissar.userData.armL.rotation.x=0; commissar.userData.armR.rotation.x=0; politNote.visible=false; S.shot='gAsan'; S.shotT=0; await gwait(1.2); },
     async gapsInLine(){ S.shot='gTrack'; S.shotT=0; await gwait(7); S.shot='gAsan'; S.shotT=0; await gwait(1.5); }
   });
 
@@ -272,6 +302,16 @@ function sceneCity(){
     cine(false);
     const w=wipe(1300); setupRaid(); await w;
     S.busy=false;
+  }
+  // страница блокнота политрука крупно: строки по-русски — шум, читается только фамилия
+  function politNotePage(){
+    return new Promise(res=>{
+      const N=DAT.politNote;
+      $('paper').innerHTML = `<div style="font-family:Caveat,cursive;font-size:26px;line-height:1.35;color:#1d2a4a">${N.lines.map(l=>renderLang(l,'ru')).join('<br>')}</div><div class="hint">${escapeHtml(N.hint)}</div>`;
+      $('doc').style.display='flex'; sfx.paper();
+      let done=false; const fin=()=>{ if(done) return; done=true; $('doc').style.display='none'; $('doc').onclick=null; res(); };
+      $('doc').onclick=fin; gwait(4.5).then(fin);
+    });
   }
   // письмо как документ: сначала строки, потом цензор кладёт чёрные полосы и штамп
   function showLetter(){
@@ -387,6 +427,10 @@ function sceneCity(){
     prWide(k){ camera.fov=30; camera.position.set(PR.x+1+k*.05, 3.2, PR.z+21); return tmp.set(PR.x, 1.0, PR.z-1); },
     prClose(k){ camera.fov=26; camera.position.set(PR.x+6.2, 1.75, PR.z+6.6); return tmp.set(PR.x+1.6, 1.25, PR.z+1.0); },
     gWide(k){ camera.fov=32; camera.position.set(GD.x+3, 1.6, GD.z+22-k*.12); return tmp.set(GD.x, 1.8, GD.z); },
+    dugLetter(k){ camera.fov=40; camera.position.set(DG.x-1.3, 1.35, DG.z-.1); return tmp.set(DG.x+.8, 1.0, DG.z-.15); },
+    prPolit(k){ camera.fov=18; camera.position.set(PR.x+3.63, 2.6, PR.z+4.7); return tmp.set(PR.x-3, 1.9, PR.z-4.5); },
+    gPolitWalk(k){ camera.fov=34; camera.position.set(asanSlot.x+3, 1.8, asanSlot.z+8.5); return tmp.copy(commissar.position).setY(1.5).lerp(tmp2.set(asanSlot.x,1.5,asanSlot.z),.5); },
+    gPolitFace(k){ camera.fov=30; camera.position.set(asanSlot.x+.5, 1.72, asanSlot.z-.75); return tmp.set(commissar.position.x, 1.62, commissar.position.z); }, // из-за плеча Асана — лицо политрука и блокнот
     gAsan(k){ camera.fov=24; camera.position.set(asanSlot.x+7.5, 1.7, asanSlot.z+2.2); return tmp.set(asanSlot.x, 1.55, asanSlot.z); }
   };
 
@@ -405,6 +449,9 @@ function sceneCity(){
       else if(S.phase==='dawn'){ S.dawn=Math.min(1,S.dawn+dt*.12); const e=S.dawn; scene.background.setRGB(lerp(.05,.42,e),lerp(.07,.38,e),lerp(.09,.38,e)); scene.fog.color.copy(scene.background); hemi.intensity=lerp(.34,.6,e);
         flareLight.intensity=Math.max(0,flareLight.intensity-dt); camFollow(dt, asanW.position); }
       if(S.prisonersPlay || S.phase==='prisoners'){ prisonersUpdate(dt,t); }
+      if(S.phase==='guards' && S.politTo){ const dx=S.politTo.x-commissar.position.x, dz=S.politTo.z-commissar.position.z, d=Math.hypot(dx,dz);
+        if(d<.06){ S.politTo=null; animWalk(commissar,0,dt); } else { const st=Math.min(d,1.3*dt); commissar.position.x+=dx/d*st; commissar.position.z+=dz/d*st; commissar.rotation.y=Math.atan2(dx,dz); animWalk(commissar,1,dt); } }
+      if(S.writingP){ const a=commissar.userData.armR; a.rotation.x=-1.0+Math.sin(t*10)*.08; a.rotation.z=-.35+Math.sin(t*4)*.05; }
       if(S.phase==='guards'){ bannerWave(t); soldiersG.forEach((p,i)=>{ p.rotation.z=Math.sin(t*.7+i)*.01; }); }
       if(S.shot && SHOTS[S.shot]){ S.shotT+=dt; const look=SHOTS[S.shot](S.shotT); camera.updateProjectionMatrix(); camera.lookAt(look); }
       if(shake>0){ camera.position.x+=rand(-1,1)*shake*.3; camera.position.y+=rand(-1,1)*shake*.2; shake=Math.max(0,shake-dt*2.5); }
@@ -420,7 +467,7 @@ function sceneCity(){
       phaseDugout();
     },
     // для автопроверки
-    debug:{ asanW, gerW, kolW, POST }
+    debug:{ asanW, gerW, kolW, POST, phaseDugout, phasePrisoners, phaseGuards }
   };
 
   function raidUpdate(dt,t){

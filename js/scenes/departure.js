@@ -240,7 +240,9 @@ function sceneDeparture(){
       g.add(fl,rf,back,e1,e2,f1,f2,lint,o1,o2,o3,ob); train.add(g);
       const lamp=new THREE.PointLight(0xffd8a0,.5,7,2); lamp.position.set(0,2.6,0); g.add(lamp);
     }
-    const sitters=[]; for(let i=0;i<5;i++){ const p=makePerson({coat:[0x5e5a3e,0x6a5844,0x4e4436,0x5c5040,0x706048][i], hat:i%2?'pilotka':'borik'}); sitPose(p); p.position.set(WX-2.6+i*1.1,.85-.38,-1.0); p.rotation.y=0; train.add(p); sitters.push(p); }
+    const sitters=[]; for(let i=0;i<5;i++){ const p=makePerson(i===3 ? {coat:0x9c8c6a, hat:'borik'} : {coat:[0x5e5a3e,0x6a5844,0x4e4436,0x5c5040,0x706048][i], hat:i%2?'pilotka':'borik'}); sitPose(p); p.position.set(WX-2.6+i*1.1,.85-.38,-1.0); p.rotation.y=0; train.add(p); sitters.push(p); }
+    // Семён Кузьмин — светлая телогрейка, ложка за голенищем
+    const semyon = sitters[3]; const spoon = new THREE.Mesh(new THREE.BoxGeometry(.04,.26,.015), M(0xb8b4a8)); spoon.position.set(0,-.42,.1); spoon.visible=false; semyon.userData.armR.add(spoon);
     const asan = makePerson({coat:0x6e5a42, hat:'borik'}); asan.position.set(WX+.75,.85,.95); asan.rotation.y=-.4; train.add(asan);
     const zhum = makePerson({coat:0x5e5a38, hat:'borik'}); zhum.position.set(WX-.85,.85,.7); zhum.rotation.y=.5; train.add(zhum);
     // отец на рыжем коне
@@ -249,7 +251,7 @@ function sceneDeparture(){
     rider.add(horse, father); sc.add(rider);
     const mouth = new THREE.Mesh(new THREE.BoxGeometry(.12,.07,.04),M(0x1a1008)); mouth.position.set(0,1.72,.19); mouth.visible=false; father.add(mouth);
     const pouch = new THREE.Mesh(new THREE.SphereGeometry(.14,8,6),M(0xd8c8a0)); pouch.scale.set(1,.8,1); pouch.visible=false; sc.add(pouch);
-    const W = { train, asan, zhum, rider, father, horse, pouch, mouth, sitters, WX, loud:0, vT:5.5, rel:new THREE.Vector3(WX+75,0,48), relV:new THREE.Vector3(), mode:'wait', clackT:0, update(dt,t){
+    const W = { train, asan, zhum, rider, father, horse, pouch, mouth, sitters, semyon, spoon, WX, loud:0, vT:5.5, rel:new THREE.Vector3(WX+75,0,48), relV:new THREE.Vector3(), mode:'wait', clackT:0, update(dt,t){
         // степь едет назад со скоростью эшелона
         stepTex.offset.x += W.vT*dt/20; const sh = W.vT*dt;
         tf.forEach((it,i)=>{ it.x += sh; if(it.x>200) it.x-=400; dm.position.set(it.x,.3,it.z); dm.scale.setScalar(it.s); dm.rotation.set(0,i,0); dm.updateMatrix(); tufts.setMatrixAt(i,dm.matrix); }); tufts.instanceMatrix.needsUpdate=true;
@@ -281,6 +283,7 @@ function sceneDeparture(){
         meet(k){ camera.fov=36; camera.position.set(WX-.35,1.65,-1.0+Math.sin(k*12)*.004); return wp(father).setY(2.0); },
         behind(k){ camera.fov=lerp(42,24,Math.min(1,k/7)); camera.position.set(WX+.3,2.45,1.32+Math.sin(k*12)*.004); return W.rel.clone().setY(1.7); },
         asanDoor(k){ camera.fov=40; camera.position.set(WX+.2,2.4,-.35+Math.sin(k*12)*.004); return new THREE.Vector3(WX+1.4,1.9,3.6); },
+        sem(k){ camera.fov=40; camera.position.set(WX-.7,2.15,.75); return new THREE.Vector3(WX+.55,1.25,-1.0); },
         inside(k){ camera.fov=52; camera.position.set(WX-3.1,2.95,.3); return new THREE.Vector3(WX+.1,.95,-.2); }
       } };
     return W;
@@ -288,6 +291,15 @@ function sceneDeparture(){
 
   // ---------- ремарки: каждую сцена показывает сама ----------
   function beatHooks(){ return {
+    // Семён двигается на нарах, даёт место; достаёт ложку из сапога
+    async semyonIntro(){ const W=world, sm=W.semyon, x0=sm.position.x; setShot('sem');
+      await tween(1.1, k=>{ sm.position.x = x0 - .4*ease(k); });
+      W.spoon.visible=true; await tween(.9, k=>{ sm.userData.armR.rotation.x = -1.3*ease(k); }); await gwait(.6); },
+    async semyonNods(){ const W=world, sm=W.semyon; setShot('sem'); sm.rotation.y=Math.atan2(W.asan.position.x-sm.position.x, W.asan.position.z-sm.position.z);
+      await tween(.5, k=>{ sm.userData.head && (sm.userData.head.rotation.x=.3*Math.sin(k*Math.PI)); sm.rotation.x=.12*Math.sin(k*Math.PI); });
+      await tween(.8, k=>{ sm.userData.armR.rotation.x = -1.3*(1-ease(k)); }); W.spoon.visible=false; await gwait(.5); },
+    async semyonTurns(){ const W=world, sm=W.semyon; setShot('sem'); sm.rotation.y=Math.atan2(W.asan.position.x-sm.position.x, W.asan.position.z-sm.position.z); await gwait(1.0);
+      await tween(1.0, k=>{ sm.rotation.y = lerp(sm.rotation.y, Math.PI*.95, k*.3); sm.userData.armR.rotation.x = -1.3*(1-ease(k)); }); W.spoon.visible=false; await gwait(.5); },
     // проводы
     async motherBread(){ const W=world, m=W.mother, from=m.position.clone(), to=W.asan.position.clone().add(new THREE.Vector3(-.25,0,-.55));
       setShot('side');

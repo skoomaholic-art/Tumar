@@ -72,6 +72,56 @@ function sceneField(){
   const smokeTex = (()=>{ const cv=document.createElement('canvas'); cv.width=cv.height=64; const x=cv.getContext('2d'); const gr=x.createRadialGradient(32,32,2,32,32,30); gr.addColorStop(0,'rgba(60,52,44,.6)'); gr.addColorStop(1,'rgba(60,52,44,0)'); x.fillStyle=gr; x.fillRect(0,0,64,64); return new THREE.CanvasTexture(cv); })();
   const smokes=[]; for(const sx of [-18,6,22]) for(let i=0;i<12;i++){ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:smokeTex,transparent:true,depthWrite:false})); s.userData={t:i/12,x:sx,z:-40}; scene.add(s); smokes.push(s); }
 
+  // --- «Собака»: овчарка, унтер-офицер с флягой, конвоир, свои ноги; кулак с тумаром ---
+  // Всё это стоит в мире и каждый кадр ставится относительно камеры — к самой камере ничего не цепляем
+  // (камера не входит в сцену поля: во сне сцена подменяется).
+  const dog = new THREE.Group(); dog.visible=false; scene.add(dog);
+  { const tan=M(0x8a6a42), dark=M(0x2a2018);
+    const bd=new THREE.Mesh(new THREE.BoxGeometry(.3,.3,.82),tan); bd.position.set(0,.5,0);
+    const saddle=new THREE.Mesh(new THREE.BoxGeometry(.32,.12,.58),dark); saddle.position.set(0,.66,-.04);
+    const neck=new THREE.Mesh(new THREE.BoxGeometry(.2,.26,.22),tan); neck.position.set(0,.66,.42); neck.rotation.x=-.5;
+    const head=new THREE.Group(); head.position.set(0,.78,.55);
+    const skull=new THREE.Mesh(new THREE.BoxGeometry(.2,.18,.22),tan);
+    const snout=new THREE.Mesh(new THREE.BoxGeometry(.11,.1,.2),dark); snout.position.set(0,-.04,.18);
+    const nose=new THREE.Mesh(new THREE.BoxGeometry(.05,.04,.03),M(0x0e0c0a)); nose.position.set(0,-.01,.29);
+    const jaw=new THREE.Mesh(new THREE.BoxGeometry(.1,.04,.16),M(0x3a2018)); jaw.position.set(0,-.11,.15);
+    const earL=new THREE.Mesh(new THREE.ConeGeometry(.045,.13,4),dark); earL.position.set(-.07,.14,-.03); const earR=earL.clone(); earR.position.x=.07;
+    head.add(skull,snout,nose,jaw,earL,earR);
+    const tail=new THREE.Mesh(new THREE.CylinderGeometry(.03,.05,.42,5),dark); tail.position.set(0,.55,-.55); tail.rotation.x=-.9;
+    const dlegs=[]; for(const [x,z] of [[-.1,.3],[.1,.3],[-.1,-.3],[.1,-.3]]){ const l=new THREE.Mesh(new THREE.BoxGeometry(.07,.42,.07),tan); l.geometry.translate(0,-.21,0); l.position.set(x,.42,z); dog.add(l); dlegs.push(l); }
+    dog.add(bd,saddle,neck,head,tail); dog.userData={head,jaw,tail,legs:dlegs}; }
+  // пожилой унтер-офицер: серо-зелёная форма, каска, седая щетина; фляга в правой руке
+  const unter = makePerson({coat:0x464a3e, hat:'helmet'}); unter.visible=false; scene.add(unter);
+  const stubble=new THREE.Mesh(new THREE.BoxGeometry(.2,.07,.04),M(0x6e6a60)); stubble.position.set(0,1.69,.14); unter.add(stubble);
+  const flask=new THREE.Group(); { const fb=new THREE.Mesh(new THREE.CylinderGeometry(.06,.07,.2,10),M(0x4a5240)); const cap=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,.04,8),M(0x2a2a26)); cap.position.y=.12; flask.add(fb,cap); flask.userData.cap=cap; }
+  flask.visible=false; scene.add(flask);
+  // второй — конвоир: тень над лицом
+  const convoy = makePerson({coat:0x4e5246, hat:'helmet'}); convoy.visible=false; scene.add(convoy);
+  // свои ноги: бедро в крови, ремень-жгут выше раны
+  const myLegs=new THREE.Group(); myLegs.visible=false; scene.add(myLegs);
+  { const khaki=M(0x5c5a3a);
+    const lL=new THREE.Mesh(new THREE.BoxGeometry(.17,.15,1.0),khaki); lL.position.set(-.12,.08,.5);
+    const lR=lL.clone(); lR.position.x=.12;
+    const blood=new THREE.Mesh(new THREE.BoxGeometry(.19,.03,.34),M(0x7a1610)); blood.position.set(.12,.17,.42);
+    const belt=new THREE.Mesh(new THREE.BoxGeometry(.21,.04,.06),M(0x2a1e14)); belt.position.set(.12,.17,.16);
+    const boots=new THREE.Mesh(new THREE.BoxGeometry(.42,.18,.2),M(0x221a12)); boots.position.set(0,.09,1.05);
+    myLegs.add(lL,lR,blood,belt,boots); }
+  // своя рука: кулак с тумаром (кожаный треугольник на шнурке)
+  const fist=new THREE.Group(); fist.visible=false; scene.add(fist);
+  { const skinM=M(0x8e6a4c);
+    const palm=new THREE.Mesh(new THREE.BoxGeometry(.09,.075,.11),skinM);
+    const fingers=new THREE.Mesh(new THREE.BoxGeometry(.09,.04,.05),M(0x7e5c40)); fingers.position.set(0,.03,.05);
+    const sleeve=new THREE.Mesh(new THREE.BoxGeometry(.11,.1,.3),M(0x5c5a3a)); sleeve.position.set(0,-.01,-.2);
+    const tri=new THREE.Mesh(new THREE.ConeGeometry(.045,.06,3),M(0xa85a34)); tri.rotation.set(Math.PI/2,0,0); tri.scale.z=.35; tri.position.set(.01,.05,.075);
+    const cord=new THREE.Mesh(new THREE.TorusGeometry(.05,.004,4,14,Math.PI*1.2),M(0x3a2a1a)); cord.position.set(0,.06,.02); cord.rotation.x=1.2;
+    fist.add(palm,fingers,sleeve,tri,cord); fist.userData={fingers}; }
+  // отдельные стебли, которые раздвигает собака и которые хлещут по объективу при волочении
+  const looseStalks=[];
+  function addStalk(x,z){ const g=new THREE.Group(); const st=new THREE.Mesh(stemGeo,M(0x5e6a34)); st.position.y=.95; const hd=new THREE.Mesh(headGeo,M(0x6a4a1c)); hd.position.set(0,1.88,.12); hd.rotation.x=1.1; const pt=new THREE.Mesh(new THREE.TorusGeometry(.24,.06,4,12),M(0xc8962a)); pt.position.copy(hd.position); pt.rotation.copy(hd.rotation); g.add(st,hd,pt); g.position.set(x,0,z); g.userData={kick:0,ph:rand(0,6),ax:rand(-1,1)}; scene.add(g); looseStalks.push(g); return g; }
+  // кадр относительно камеры: вперёд по земле, вправо
+  const fwdOf = yaw => new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)), rightOf = yaw => new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+  function placeOnCamera(obj, x, y, z){ obj.position.copy(camera.position); obj.quaternion.copy(camera.quaternion); obj.translateX(x); obj.translateY(y); obj.translateZ(z); }
+
   camera.position.set(0,.32,0); camera.rotation.order='YXZ';
   const F = { yaw:0, pitch:.35, blood:.55, thirst:.25, mind:.8, tourniquet:false, bandage:false, step:0, holding:false, hold:0, crawlT:0, night:0, lidT:0, lidNeed:false, busy:true };
 
@@ -88,7 +138,7 @@ function sceneField(){
   const sc = {
     wantsJoy(){ return !F.busy && !F.dream && F.step>=2; },
     update(dt,t){
-      F.clock=(F.clock||0)+dt;
+      F.clock=(F.clock||0)+dt; F.dt=dt;
       if(F.dream){ F.dream.update(dt,t); return; }
       if(!F.busy){
         // кровь уходит, пока не затянут жгут; жажда растёт; сознание падает от потери крови и жажды
@@ -110,7 +160,8 @@ function sceneField(){
       }
       // шаг состояния
       if(F.step===2 && dist(body.position)<1.4 && lookingAt(body.position,.7)){ prompt('Обыскать убитого'); F.can=searchBody; }
-      else if(F.step===5 && dist(CRATER)<3.2){ prompt('Пить из воронки'); F.can=drink; }
+      else if(F.drinking){ prompt(isTouch?'Пить':'[Пробел] Пить'); F.can=null; }
+      else if(F.step===5 && !F.busy && dist(CRATER)<3.2){ prompt('Пить из воронки'); F.can=drink; }
       else if(F.lidNeed){ prompt(isTouch?'Не спать!':'[Пробел] Не спать!'); F.can=openEyes; }
       else { $('prompt').style.display='none'; F.can=null; }
       grassUni.uTime.value=t;
@@ -124,11 +175,25 @@ function sceneField(){
       // дым на горизонте и вспышки
       smokes.forEach(s=>{ s.userData.t+=dt*.05; if(s.userData.t>1)s.userData.t-=1; const k=s.userData.t; s.position.set(s.userData.x+k*5,2+k*14,s.userData.z); s.scale.setScalar(3+k*8); s.material.opacity=(1-k)*.7; });
       flare.intensity = Math.max(0, flare.intensity - dt*.8);
+      // стебли: раскачиваются, когда рядом собака или камера
+      looseStalks.forEach(g=>{ const near = Math.min(dog.visible?g.position.distanceTo(dog.position):9, Math.hypot(g.position.x-camera.position.x, g.position.z-camera.position.z));
+        if(near<.7) g.userData.kick=Math.min(1,g.userData.kick+dt*6); else g.userData.kick*=Math.pow(.25,dt);
+        if(g.userData.flat) return; const k=g.userData.kick; g.rotation.z=Math.sin(t*9+g.userData.ph)*.35*k + g.userData.ax*.5*k; g.rotation.x=Math.cos(t*7+g.userData.ph)*.25*k; });
+      // собака: дыхание, хвост, лапы на бегу
+      if(dog.visible){ const u=dog.userData; u.tail.rotation.z=Math.sin(t*(F.dogRun?14:6))*.5; u.jaw.position.y=-.11 - (F.dogBark>0?.05:0)*Math.abs(Math.sin(t*30)); if(F.dogBark>0) F.dogBark-=dt;
+        u.legs.forEach((l,i)=>l.rotation.x = F.dogRun ? Math.sin(t*16+(i%2?Math.PI:0)+(i>1?1.2:0))*.7 : l.rotation.x*.85);
+        if(F.dogSniff) u.head.rotation.x = Math.sin(t*11)*.12 + .25; }
+      // кулак с тумаром — в нижней части кадра, чуть дрожит
+      if(fist.visible){ placeOnCamera(fist, .12+Math.sin(t*23)*.003, -.15+Math.sin(t*1.6)*.006 + (1-(F.fistIn||0))*-.14, -.46); fist.rotateX(-.35); fist.rotateZ(.25);
+        fist.userData.fingers.scale.y = F.fistOpen ? 1.6 : 1; }
+      // фляга у губ
+      if(F.flaskAt){ const a=F.flaskAt; placeOnCamera(flask, a.x, a.y, a.z); flask.rotateX(a.tilt); }
       // покачивание при дыхании
       const breath = Math.sin(t*1.6)*.006*(1.5-F.mind);
       camera.position.y = .32 + breath;
       if(F.pitchTo!=null) F.pitch=lerp(F.pitch, F.pitchTo, 1-Math.pow(.2,dt));
-      const sh = F.shake>0 ? (F.shake-=dt, Math.sin(t*40)*.012) : 0;
+      const sh = F.shake>0 ? (F.shake-=dt, Math.sin(t*40)*(F.shakeAmp||.012)) : 0;
+      if(F.yawTo!=null){ F.yaw += (((F.yawTo-F.yaw)+Math.PI*3)%(Math.PI*2)-Math.PI)*(1-Math.pow(.12,dt)); }
       camera.rotation.set(F.pitch + breath*2 + sh, F.yaw + sh*.6, Math.sin(t*.7)*.02*(1-F.mind) + (F.roll||0));
       // виньетка зависит от сознания и крови
       const v = 35 - (1-F.mind)*30;
@@ -136,8 +201,9 @@ function sceneField(){
       setBars();
     },
     F, body,
-    onKey(code,down){ if(!down) return; if(code==='KeyE'||code==='Space'){ if(F.can && !F.busy && !dlgOpen) F.can(); } },
-    act(){ if(F.can && !F.busy && !dlgOpen) F.can(); },
+    onKey(code,down){ if(!down) return; if(code==='KeyE'||code==='Space'){ if(F.drinking){ swallow(); return; } if(F.can && !F.busy && !dlgOpen) F.can(); } },
+    act(){ if(F.drinking){ swallow(); return; } if(F.can && !F.busy && !dlgOpen) F.can(); },
+    touchAction(){ return F.drinking ? 'Пить' : null; },
     holdStart(){ F.holding=true; }, holdEnd(){ F.holding=false; },
     crawl(on){ F.touchCrawl=on; },
     async begin(){
@@ -156,14 +222,82 @@ function sceneField(){
   };
   const gwait = sec => { const t0=F.clock||0; return new Promise(r=>{ const h=setInterval(()=>{ if((F.clock||0)-t0>=sec){ clearInterval(h); r(); } },50); }); };
   const run = makeRunner({
-    dogs(){ sfx.bark(0); sfx.bark(1.4); },
     async holdShot(sec=2.4){ closeDlg(); await gwait(sec); },
     // обрывки боя вспышками: дым, удар, ещё удар
     async flashback(){ for(const [ms,b] of [[0,3.2],[700,2.4],[1500,4]]){ await gwait(ms/1000 - (ms?0:0)); canvas.style.filter=`sepia(.3) brightness(${b}) contrast(1.4)`; sfx.boom(); hitFlash && hitFlash(); await gwait(.12); canvas.style.filter=''; } await gwait(.6); },
     async shakyHands(){ F.shake=1.4; await gwait(1.4); },
     flares(){ flarePop(); setTimeout(flarePop, 1800); },
-    async drinkCam(){ const p0=F.pitch; F.pitchTo=1.0; await gwait(2.4); F.pitchTo=null; F.pitch=p0; }
+    async drinkCam(){ const p0=F.pitch; F.pitchTo=1.0; await gwait(2.4); F.pitchTo=null; F.pitch=p0; },
+    // ночью: кулак с тумаром входит в кадр снизу, разжимается и снова сжимается
+    async tumarFist(){ closeDlg(); fist.visible=true; F.fistIn=0; const t0=F.clock; await untilG(()=>{ F.fistIn=Math.min(1,(F.clock-t0)/1.2); return F.fistIn>=1; });
+      await gwait(1.4); F.fistOpen=true; await gwait(.9); F.fistOpen=false; await gwait(1.2);
+      const t1=F.clock; await untilG(()=>{ F.fistIn=Math.max(0,1-(F.clock-t1)/1.0); return F.fistIn<=0; }); fist.visible=false; },
+    // голоса и лай издалека; стебли впереди качаются
+    async germansNear(){ closeDlg(); const fw=fwdOf(F.yaw), rt=rightOf(F.yaw), c=camera.position;
+      F.dogStart = c.clone().addScaledVector(fw,6.5).addScaledVector(rt,.3);
+      for(let i=0;i<6;i++){ const k=1.4+i*.85; addStalk(c.x+fw.x*k+rt.x*rand(-.6,.6), c.z+fw.z*k+rt.z*rand(-.6,.6)); }
+      sfx.bark(0); await gwait(1.6); sfx.bark(0); F.pitchTo=.12; F.yawTo=Math.atan2(-(F.dogStart.x-c.x),-(F.dogStart.z-c.z));
+      for(let i=0;i<3;i++){ looseStalks[5-i].userData.kick=1; await gwait(.5); } await gwait(.6); },
+    // овчарка продирается сквозь подсолнухи, нюхает, лает прямо в объектив
+    async dogBreaks(){ closeDlg(); dog.visible=true; dog.position.copy(F.dogStart); const c=camera.position;
+      const target=c.clone().addScaledVector(fwdOf(F.yaw),1.5); target.y=0; F.dogRun=true; dog.lookAt(c.x,0,c.z);
+      await untilG(()=>{ const d=target.clone().sub(dog.position); d.y=0; const L=d.length(); if(L<.05) return true; dog.position.addScaledVector(d.normalize(), Math.min(L, 2.6*F.dt)); dog.lookAt(c.x,0,c.z); return false; });
+      F.dogRun=false; F.pitchTo=.42; const hd=dog.userData.head; hd.position.set(0,.44,.64); F.dogSniff=true; await gwait(1.4); F.dogSniff=false; hd.rotation.x=0; hd.position.set(0,.6,.6);
+      for(let i=0;i<2;i++){ F.dogBark=.35; sfx.bark(0); F.shake=.25; F.shakeAmp=.02; dog.position.addScaledVector(fwdOf(F.yaw),-.1); await gwait(.35); dog.position.addScaledVector(fwdOf(F.yaw),.1); await gwait(.35); } dog.userData.head.position.set(0,.78,.55); },
+    // хватает за ворот и тащит рывками: небо, головы подсолнухов, стебли хлещут по объективу
+    async dogDrags(){ closeDlg(); const fw=fwdOf(F.yaw), rt=rightOf(F.yaw); const c=camera.position;
+      for(let i=0;i<8;i++){ const k=.6+i*.42, side=(i%2?1:-1)*rand(.14,.3); addStalk(c.x+fw.x*k+rt.x*side, c.z+fw.z*k+rt.z*side); }
+      dog.position.copy(c).addScaledVector(fw,.6); dog.position.y=0; dog.lookAt(c.x,0,c.z); // пятится и тянет на себя
+      fist.visible=true; F.fistIn=1; F.fistOpen=true; F.pitchTo=1.05; // небо, по нижнему краю — пасть и ворот
+      for(let j=0;j<6;j++){ const t0=F.clock; const from=camera.position.clone(), to=from.clone().addScaledVector(fw,.5); F.dogRun=true;
+        sfx.bark(.05); noiseBurst({dur:.3,freq:2400,q:.7,gain:.12,type:'bandpass'}); F.shake=.3; F.shakeAmp=.03; F.roll=(j%2?1:-1)*.14;
+        await untilG(()=>{ const k=Math.min(1,(F.clock-t0)/.38); camera.position.x=lerp(from.x,to.x,k); camera.position.z=lerp(from.z,to.z,k); dog.position.copy(camera.position).addScaledVector(fw,.6); dog.position.y=0; return k>=1; });
+        F.dogRun=false; F.fistOpen=(j%2===0); await gwait(.32); }
+      fist.visible=false; F.roll=0; F.pitchTo=.2;
+      // вытоптанная поляна: стебли вокруг лежат
+      looseStalks.forEach(g=>{ if(Math.hypot(g.position.x-camera.position.x,g.position.z-camera.position.z)<2.2){ g.rotation.set(Math.PI/2-.1, rand(0,6), 0); g.userData.kick=0; g.userData.flat=true; } });
+      await gwait(.6);
+      // собака отходит, садится в стороне
+      const sit=camera.position.clone().addScaledVector(fw,2.2).addScaledVector(rt,-1.4); sit.y=0; F.dogRun=true;
+      await untilG(()=>{ const d=sit.clone().sub(dog.position); d.y=0; const L=d.length(); if(L<.06) return true; dog.position.addScaledVector(d.normalize(), Math.min(L,2*F.dt)); dog.lookAt(sit.x+d.x*9, 0, sit.z+d.z*9); return false; });
+      F.dogRun=false; dog.lookAt(camera.position.x,0,camera.position.z); },
+    // сапоги в кадре; пожилой унтер-офицер присаживается рядом
+    async sergeantSquats(){ closeDlg(); const fw=fwdOf(F.yaw), rt=rightOf(F.yaw), c=camera.position;
+      const spot=c.clone().addScaledVector(fw,1.35).addScaledVector(rt,.85); spot.y=0;
+      unter.visible=true; unter.position.copy(c).addScaledVector(fw,4).addScaledVector(rt,2.2); unter.position.y=0;
+      F.yawTo=Math.atan2(-(unter.position.x-c.x),-(unter.position.z-c.z)); F.pitchTo=.05;
+      for(let i=0;i<4;i++) sfx.step && setTimeout(()=>sfx.step(), i*420);
+      await untilG(()=>{ const d=spot.clone().sub(unter.position); d.y=0; const L=d.length(); if(L<.05) return true; unter.position.addScaledVector(d.normalize(), Math.min(L,1.1*F.dt)); unter.lookAt(spot.x+d.x*9,0,spot.z+d.z*9); animWalk(unter,1,F.dt); F.yawTo=Math.atan2(-(unter.position.x-c.x),-(unter.position.z-c.z)); return false; });
+      animWalk(unter,0,.016); unter.lookAt(c.x,0,c.z);
+      // присел: колени согнуты, корпус ниже
+      const t0=F.clock; await untilG(()=>{ const k=Math.min(1,(F.clock-t0)/1.1); unter.position.y=lerp(0,-.55,k); unter.userData.legL.rotation.x=unter.userData.legR.rotation.x=lerp(0,-1.5,k); return k>=1; });
+      F.yawTo=Math.atan2(-(unter.position.x-c.x),-(unter.position.z-c.z)); F.pitchTo=.18; await gwait(1.2); },
+    // долго смотрит на рану: камера опускается на бедро, потом поднимается к его лицу
+    async looksAtWound(){ closeDlg(); const c=camera.position; const yawU=Math.atan2(-(unter.position.x-c.x),-(unter.position.z-c.z));
+      const legYaw = yawU + .65; myLegs.visible=true; myLegs.position.set(c.x,0,c.z); myLegs.rotation.y = legYaw + Math.PI; myLegs.translateZ(.42);
+      F.yawTo=legYaw; F.pitchTo=-.52; unter.lookAt(myLegs.position.x,0,myLegs.position.z); await gwait(3.0);
+      F.yawTo=yawU; F.pitchTo=.22; await gwait(1.2); unter.children.forEach(ch=>{ if(ch.geometry && ch.geometry.type==='SphereGeometry' && ch.position.y>1.7) ch.rotation.x=.35; }); await gwait(2.6); },
+    // молча откручивает флягу и поит; игрок глотает, пока не захлебнётся
+    async flaskDrink(){ closeDlg(); unter.userData.armR.rotation.x=-1.3; flask.visible=true; F.flaskAt={x:.18,y:-.22,z:-.55,tilt:0};
+      await gwait(.9); flask.userData.cap.visible=false; noiseBurst({dur:.08,freq:1800,q:2,gain:.2}); await gwait(.6);
+      const t0=F.clock; await untilG(()=>{ const k=Math.min(1,(F.clock-t0)/1); F.flaskAt={x:lerp(.18,.02,k),y:lerp(-.22,-.12,k),z:lerp(-.55,-.24,k),tilt:lerp(0,-1.1,k)}; return k>=1; });
+      F.sw=0; F.drinking=true;
+      const tStart=F.clock; await untilG(()=>F.sw>=6 || F.clock-tStart>9);
+      F.drinking=false;
+      // он не убирает флягу — вода идёт дальше, Асан захлёбывается
+      F.flaskAt={x:.02,y:-.1,z:-.22,tilt:-1.5}; for(let i=0;i<3;i++){ noiseBurst({dur:.25,freq:500,q:.8,gain:.4,type:'lowpass'}); tone({f:180,dur:.18,type:'sawtooth',gain:.06}); F.shake=.45; F.shakeAmp=.035; hitFlash(); await gwait(.5); }
+      F.flaskAt={x:.25,y:-.3,z:-.6,tilt:0}; await gwait(.5); flask.visible=false; F.flaskAt=null; unter.userData.armR.rotation.x=0; F.thirst=.1; F.mind=Math.min(1,F.mind+.15); },
+    // встаёт и машет конвоиру; тень второго ложится на лицо
+    async waveConvoy(){ closeDlg(); const c=camera.position, t0=F.clock;
+      await untilG(()=>{ const k=Math.min(1,(F.clock-t0)/.9); unter.position.y=lerp(-.55,0,k); unter.userData.legL.rotation.x=unter.userData.legR.rotation.x=lerp(-1.5,0,k); return k>=1; });
+      F.pitchTo=.55; unter.rotation.y += 1.2; unter.userData.armL.rotation.x=-2.9; await gwait(.5); unter.userData.armL.rotation.x=-2.4; await gwait(.5); unter.userData.armL.rotation.x=-2.9; await gwait(.8); unter.userData.armL.rotation.x=0;
+      convoy.visible=true; const fw=fwdOf(F.yaw); convoy.position.copy(c).addScaledVector(fw,3.5); convoy.position.y=0; convoy.lookAt(c.x,0,c.z);
+      const end=c.clone().addScaledVector(fw,.45); end.y=0;
+      await untilG(()=>{ const d=end.clone().sub(convoy.position); d.y=0; const L=d.length(); if(L<.05) return true; convoy.position.addScaledVector(d.normalize(), Math.min(L,1.3*F.dt)); animWalk(convoy,1,F.dt); return false; });
+      animWalk(convoy,0,.016); F.pitchTo=.95; await gwait(1.6); }
   });
+  const untilG = f => new Promise(r=>{ const h=setInterval(()=>{ if(f()){ clearInterval(h); r(); } },16); });
+  function swallow(){ if(!F.drinking) return; F.sw++; noiseBurst({dur:.14,freq:300,q:1.4,gain:.35,type:'lowpass'}); F.shake=.12; F.shakeAmp=.01; F.thirst=Math.max(0,F.thirst-.06); }
   function hitFlash(){ const h=$('hit'); if(!h) return; h.style.opacity=.8; setTimeout(()=>h.style.opacity=0,120); }
   function prompt(text){ const pr=$('prompt'); pr.style.display='block'; pr.style.left='50%'; pr.style.top='66%'; pr.textContent=text; }
   function stepText(){
@@ -218,8 +352,9 @@ function sceneField(){
   async function drink(){
     F.busy=true; $('compass').style.display='none'; F.thirst=.35; F.mind=Math.min(1,F.mind+.2); 
     await run(DAT.scripts.drink);
-    closeDlg(); sfx.bark(.2);
-    setHeart(130); await wait(2200);
+    closeDlg(); setHeart(118); setObj(CH,''); cine(true);
+    await run(DAT.scripts.dog);
+    closeDlg(); setHeart(96); await gwait(.8);
     await fadeTo(1,1800); setHeart(0); setRing(false);
     startCamp(); // дальше в той же главе: сборный пункт и палатка умирающих
   }

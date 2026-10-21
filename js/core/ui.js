@@ -76,6 +76,7 @@ const PORTRAITS = {
   'Волков': {bg:'#262420', hat:'<path d="M18 22 Q38 8 58 22 L58 26 L18 26 Z" fill="#4a4630"/><rect x="16" y="24" width="44" height="4" fill="#222"/><circle cx="38" cy="18" r="2.5" fill="#8e1f1a"/>', face:'#b8927a'},
   'Старшина': {bg:'#2b2820', hat:'<rect x="22" y="14" width="32" height="9" rx="2" fill="#4e4a30"/><circle cx="38" cy="18" r="2.5" fill="#8e1f1a"/>', face:'#a8825e', beard:false},
   'Солдат': {bg:'#2b2820', hat:'<rect x="22" y="15" width="32" height="8" rx="2" fill="#5e5a38"/>', face:'#a8825e'},
+  'Семён': {bg:'#2c2820', hat:'<rect x="23" y="14" width="30" height="10" rx="3" fill="#3e3428"/>', face:'#c8a07e'},
   'Сашко': {bg:'#2b2820', hat:'<rect x="22" y="15" width="32" height="8" rx="2" fill="#5e5a38"/>', face:'#c09676'},
   'Мать': {bg:'#30281e', hat:'<path d="M16 34 Q38 0 60 34 L60 46 L16 46 Z" fill="#e2dccb"/>', face:'#9a7656'},
   'Габдулла': {bg:'#2a251c', hat:'<path d="M22 20 Q38 8 54 20 Z" fill="#3a5a3a"/>', face:'#8e6c50', beard:true},
