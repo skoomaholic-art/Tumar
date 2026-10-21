@@ -388,7 +388,7 @@ function sceneDonets(){
     await gwait(.8);
   }
   async function hitChest(){
-    cut(shotLow); await gwait(.5);
+    setObj(CH,''); cut(shotLow); await gwait(.5);
     hitFlash(); shake=1.3; tone({f:120,dur:.6,type:'sawtooth',gain:.08,slide:-80}); noiseBurst({dur:.1,freq:350,gain:.45});
     // его переворачивает на спину; ДП падает рядом
     asan.rotation.set(Math.PI/2,Math.PI,0); asan.position.y=.22; decal(LIE.x,LIE.z-.2,.6,bloodM); dp.rotation.set(0,1.2,.4); dp.position.set(LIE.x+.9,.12,LIE.z-.6);
@@ -507,6 +507,7 @@ function sceneDonets(){
     },
     // для автопроверки: перемотать бой и отход
     debugSkipBattle(){ S.battleT=Math.max(S.battleT,31.5); enemies.forEach(e=>e.alive&&killEnemy(e)); tanks.forEach(tk=>{ if(tk.iron) tk.g.position.z=Math.max(tk.g.position.z,-8); }); },
+    debugDawn(){ S.phase='barrage'; phaseDawnSet(); $('fade').style.opacity=0; phaseDawn(); },
     async debugEncircle(){ S.phase='encOpen'; stars.visible=false; moon.visible=false; setupEncircle(); $('fade').style.opacity=0; await phaseEncircle(); },
     debugSkipEncircle(){ runners.forEach(r=>{ r.go=true; r.out=true; r.p.visible=false; }); }
   };
