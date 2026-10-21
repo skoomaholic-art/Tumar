@@ -74,9 +74,10 @@ function sceneDonets(){
       stems.setMatrixAt(i,d.matrix); heads.setMatrixAt(i,d.matrix); discs.setMatrixAt(i,d.matrix); i++; } }
   scene.add(stems,heads,discs);
   // ночной план: два подсолнуха у самого объектива — смотрим на реку сквозь них
+  const nightFG = new THREE.Group(); scene.add(nightFG);
   const nightF = new THREE.Vector3(-18.4,0,-128).normalize(), nightR = new THREE.Vector3(-nightF.z,0,nightF.x);
   for(const [fw,sd,sc] of [[1.7,-1.0,.86],[2.4,1.15,.9]]){ const g=new THREE.Group(); g.add(new THREE.Mesh(stemG,stems.material), new THREE.Mesh(headG,heads.material), new THREE.Mesh(discG,discs.material));
-    g.position.copy(NIGHT_CAM).addScaledVector(nightF,fw).addScaledVector(nightR,sd).setY(0); g.scale.setScalar(sc); g.rotation.y=Math.atan2(-nightF.x,-nightF.z)+rand(-.4,.4); scene.add(g); }
+    g.position.copy(NIGHT_CAM).addScaledVector(nightF,fw).addScaledVector(nightR,sd).setY(0); g.scale.setScalar(sc); g.rotation.y=Math.atan2(-nightF.x,-nightF.z)+rand(-.4,.4); nightFG.add(g); }
 
   // ---------- их «глаз»: привязной аэростат над тем берегом ----------
   const balloon=new THREE.Group();
@@ -251,7 +252,7 @@ function sceneDonets(){
     phaseDawn();
   }
   // ---------- фаза 2: рассвет 5 июля, артподготовка и бой ----------
-  function phaseDawnSet(){ setLight('dawn'); stars.visible=false; moon.visible=false; cut(shotAcross); }
+  function phaseDawnSet(){ setLight('dawn'); stars.visible=false; moon.visible=false; nightFG.visible=false; cut(shotAcross); }
   async function phaseDawn(){
     S.phase='barrage';
     await gwait(1.2);
@@ -394,7 +395,7 @@ function sceneDonets(){
     asan.rotation.set(Math.PI/2,Math.PI,0); asan.position.y=.22; decal(LIE.x,LIE.z-.2,.6,bloodM); dp.rotation.set(0,1.2,.4); dp.position.set(LIE.x+.9,.12,LIE.z-.6);
     setHeart(54); await gwait(1.4);
     // и мы — его глазами: подсолнухи качаются над головой, небо
-    asan.visible=false; cut(shotSky); setRing(true);
+    asan.visible=false; cut(shotSky); setRing(true); setObj(CH,''); cine(true);
     await gwait(3);
   }
   function cleanup(){ battleHud(false); if(dirt){ dirt.remove(); dirt=null; } $('vig').style.background='';
@@ -508,7 +509,7 @@ function sceneDonets(){
     // для автопроверки: перемотать бой и отход
     debugSkipBattle(){ S.battleT=Math.max(S.battleT,31.5); enemies.forEach(e=>e.alive&&killEnemy(e)); tanks.forEach(tk=>{ if(tk.iron) tk.g.position.z=Math.max(tk.g.position.z,-8); }); },
     debugDawn(){ S.phase='barrage'; phaseDawnSet(); $('fade').style.opacity=0; phaseDawn(); },
-    async debugEncircle(){ S.phase='encOpen'; stars.visible=false; moon.visible=false; setupEncircle(); $('fade').style.opacity=0; await phaseEncircle(); },
+    async debugEncircle(){ S.phase='encOpen'; stars.visible=false; moon.visible=false; nightFG.visible=false; setupEncircle(); $('fade').style.opacity=0; await phaseEncircle(); },
     debugSkipEncircle(){ runners.forEach(r=>{ r.go=true; r.out=true; r.p.visible=false; }); }
   };
   return sc;
