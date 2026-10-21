@@ -141,13 +141,13 @@ function sceneDon(){
     if(!S.busy && (S.phase==='train' || S.phase==='riverWalk')){ const p=screenToGround(ev, tmp2); if(p) S.target={x:p.x, z:p.z}; }
   };
   const onUp = ()=>{ S.firing=false; };
-  canvas.addEventListener('pointermove', onMove); canvas.addEventListener('pointerdown', onDown); addEventListener('pointerup', onUp);
-  canvas.addEventListener('wheel', e=>{ S.zoom = clamp(S.zoom + Math.sign(e.deltaY)*.1, .6, 1.6); }, {passive:true});
+  listen(canvas,'pointermove', onMove); listen(canvas,'pointerdown', onDown); listen(window,'pointerup', onUp);
+  listen(canvas,'wheel', e=>{ S.zoom = clamp(S.zoom + Math.sign(e.deltaY)*.1, .6, 1.6); }, {passive:true});
 
   function walk(dt, t, bounds){
     let mx=0, mz=0;
     if(!S.busy && !dlgOpen){
-      if(keys.KeyW||keys.ArrowUp) mz-=1; if(keys.KeyS||keys.ArrowDown) mz+=1; if(keys.KeyA||keys.ArrowLeft) mx-=1; if(keys.KeyD||keys.ArrowRight) mx+=1;
+      [mx, mz] = moveInput();
       if(mx||mz) S.target=null;
       if(S.target){ const dx=S.target.x-asan.position.x, dz=S.target.z-asan.position.z, d=Math.hypot(dx,dz); if(d<.25) S.target=null; else { mx=dx/d; mz=dz/d; } }
     }
@@ -301,6 +301,7 @@ function sceneDon(){
   // ---------- кадр ----------
   const sc = {
     S,
+    wantsJoy(){ return !S.busy && (S.phase==='train' || S.phase==='riverWalk'); },
     update(dt,t){
       if(BIRD.active){ BIRD.update(dt); return; }
       // эффекты
@@ -355,7 +356,7 @@ function sceneDon(){
     // для автопроверки: закончить бой сразу
     debugWin(){ enemies.forEach(e=>e.alive&&killEnemy(e)); S.wave=3; S.spawnLeft=0; }
   };
-  addEventListener('keyup', e=>{ if(e.code==='Space' && S.phase==='battle') S.firing=false; });
+  listen(window,'keyup', e=>{ if(e.code==='Space' && S.phase==='battle') S.firing=false; });
 
   function reload(){ if(S.reload>0 || S.ammo===47) return; if(S.disks<=0){ bark('Асан','Дисков нет…'); return; } S.reload=2.2; S.disks--; noiseBurst({dur:.15,freq:600,gain:.15}); setTimeout(()=>noiseBurst({dur:.12,freq:900,gain:.18}),900); }
 

@@ -129,3 +129,10 @@ body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s
 #chron .ch-leg{fill:none;stroke:#8e1f1a;stroke-width:6;stroke-linejoin:round;stroke-linecap:round}
 @media (max-height:500px){#chron{gap:2vw;padding:2vh 3vw}#chron .ch-lines p{font-size:12px;margin-bottom:.5em}#chron .ch-place{margin-bottom:.6em}}
 @media (prefers-reduced-motion:reduce){#chron,#chron .ch-lines p{transition:none}}
+
+/* джойстик на телефоне: зона слева, ручка появляется под пальцем */
+#joyZone{position:fixed;left:0;top:12vh;bottom:0;width:44vw;z-index:13;display:none;touch-action:none}
+#joyBase{position:fixed;width:132px;height:132px;border-radius:50%;border:2px solid rgba(233,223,201,.45);background:rgba(20,16,12,.25);z-index:13;display:none;pointer-events:none}
+#joyKnob{position:absolute;left:38px;top:38px;width:52px;height:52px;border-radius:50%;background:rgba(233,223,201,.55);box-shadow:0 2px 6px rgba(0,0,0,.5)}
+#tAct.ctx{min-width:0;width:auto;padding:16px 20px;font-size:16px;border-radius:999px;border-width:2px}
+#touch button{touch-action:manipulation}

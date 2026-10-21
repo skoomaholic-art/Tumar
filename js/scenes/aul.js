@@ -242,13 +242,13 @@ function sceneAul(){
     const it = nearestInteract(hit.point, 1.8);
     S.target = it ? {x:it.pos.x, z:it.pos.z, then:it} : {x:hit.point.x, z:hit.point.z};
   }
-  canvas.addEventListener('pointerdown', pointerGround);
+  listen(canvas,'pointerdown', pointerGround);
   // масштаб колесом и щипком
-  canvas.addEventListener('wheel', e=>{ S.zoom = clamp(S.zoom + Math.sign(e.deltaY)*.1, .45, 1.7); }, {passive:true});
+  listen(canvas,'wheel', e=>{ S.zoom = clamp(S.zoom + Math.sign(e.deltaY)*.1, .45, 1.7); }, {passive:true});
   const toggleCam=()=>{ S.cam = S.cam==='obs' ? 'top' : 'obs'; fg.visible = S.cam==='obs'; toast(S.cam==='obs' ? 'Ракурс: из травы' : 'Ракурс: сверху'); };
   let pinch=null;
-  canvas.addEventListener('touchmove', e=>{ if(e.touches.length===2){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); if(pinch) S.zoom=clamp(S.zoom*(pinch/d),.45,1.7); pinch=d; } }, {passive:true});
-  canvas.addEventListener('touchend', ()=>pinch=null);
+  listen(canvas,'touchmove', e=>{ if(e.touches.length===2){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); if(pinch) S.zoom=clamp(S.zoom*(pinch/d),.45,1.7); pinch=d; } }, {passive:true});
+  listen(canvas,'touchend', ()=>pinch=null);
 
   // крючки, которые сценарий главы вызывает по имени
   const run = makeRunner({
@@ -519,8 +519,7 @@ function sceneAul(){
       // движение
       let mx=0, mz=0;
       if(!S.busy && !dlgOpen){
-        if(keys.KeyW||keys.ArrowUp) mz-=1; if(keys.KeyS||keys.ArrowDown) mz+=1;
-        if(keys.KeyA||keys.ArrowLeft) mx-=1; if(keys.KeyD||keys.ArrowRight) mx+=1;
+        [mx, mz] = moveInput();
         if(mx||mz) S.target=null;
         if(S.target){ const dx=S.target.x-asan.position.x, dz=S.target.z-asan.position.z, d=Math.hypot(dx,dz);
           if(d<.25 || (S.target.then && d<1.4)){ const th=S.target.then; S.target=null; if(th) th.act(); } else { mx=dx/d; mz=dz/d; } }
@@ -611,6 +610,8 @@ function sceneAul(){
     },
     S,
     onKey(code, down){ if(down && code==='KeyE' && S.near && !S.busy && !dlgOpen) S.near.act(); },
+    wantsJoy(){ return !S.busy && !S.seq && !S.intro; },
+    touchAction(){ return (!S.busy && S.near) ? S.near.label : null; },
     act(){ if(S.near && !S.busy && !dlgOpen) S.near.act(); },
     async begin(){
       setObj(CH,'');

@@ -77,15 +77,16 @@ function sceneField(){
 
   // взгляд мышью/пальцем
   let drag=null;
-  canvas.addEventListener('pointerdown', e=>{ drag={x:e.clientX,y:e.clientY}; });
-  addEventListener('pointerup', ()=>drag=null);
-  addEventListener('pointermove', e=>{ if(!drag || F.busy) return; F.yaw -= (e.clientX-drag.x)*.004; F.pitch = clamp(F.pitch-(e.clientY-drag.y)*.004, -.25, 1.1); drag={x:e.clientX,y:e.clientY}; });
+  listen(canvas,'pointerdown', e=>{ drag={x:e.clientX,y:e.clientY}; });
+  listen(window,'pointerup', ()=>drag=null);
+  listen(window,'pointermove', e=>{ if(!drag || F.busy) return; F.yaw -= (e.clientX-drag.x)*.004; F.pitch = clamp(F.pitch-(e.clientY-drag.y)*.004, -.25, 1.1); drag={x:e.clientX,y:e.clientY}; });
 
   function setBars(){ $('bBlood').style.width=(F.blood*100)+'%'; $('bThirst').style.width=(F.thirst*100)+'%'; $('bMind').style.width=(F.mind*100)+'%'; }
   function lookingAt(p, tol=.5){ const a=Math.atan2(-(p.x-camera.position.x), -(p.z-camera.position.z)); let dd=Math.abs(((a-F.yaw)+Math.PI*3)%(Math.PI*2)-Math.PI); return dd<tol; }
   function dist(p){ return Math.hypot(p.x-camera.position.x, p.z-camera.position.z); }
 
   const sc = {
+    wantsJoy(){ return !F.busy && !F.dream && F.step>=2; },
     update(dt,t){
       if(F.dream){ F.dream.update(dt,t); return; }
       if(!F.busy){
@@ -95,9 +96,10 @@ function sceneField(){
         F.mind = clamp(F.mind - dt*(.002 + (1-F.blood)*.004 + F.thirst*.003), 0, 1);
         if(F.blood<.12 || F.mind<.02) { lose(); }
         // ползти
-        const crawl = keys.KeyW || keys.ArrowUp || F.touchCrawl;
+        const crawl = keys.KeyW || keys.ArrowUp || F.touchCrawl || (JOY.on && JOY.y < -.35);
         if(crawl){ F.crawlT+=dt; const s=.45*dt; camera.position.x -= Math.sin(F.yaw)*s; camera.position.z -= Math.cos(F.yaw)*s; F.mind-=dt*.004; if(F.crawlT>.7){F.crawlT=0; sfx.step(); noiseBurst({dur:.35,freq:2600,q:.8,gain:.06,type:'bandpass'});} F.roll=Math.sin(t*5)*.03; } else F.roll=(F.roll||0)*.9;
         if(keys.KeyA||keys.ArrowLeft) F.yaw+=dt*1.2; if(keys.KeyD||keys.ArrowRight) F.yaw-=dt*1.2;
+        if(JOY.on && Math.abs(JOY.x)>.25) F.yaw -= JOY.x*dt*1.4;
         // жгут — удержание
         if(F.step===1){ $('hold').style.display='block'; if(F.holding||keys.Space){ F.hold=clamp(F.hold+dt*.5,0,1); } else F.hold=clamp(F.hold-dt*.25,0,1); $('bHold').style.width=(F.hold*100)+'%'; if(F.hold>=1){ F.tourniquet=true; $('hold').style.display='none'; F.step=2; setBars(); stepText(); run(DAT.scripts.tourniquet_done); } }
         // веки смыкаются
@@ -137,7 +139,7 @@ function sceneField(){
     crawl(on){ F.touchCrawl=on; },
     async begin(){
       $('bars').style.display='block';
-      setHelp(isTouch ? 'Тяни пальцем — осмотреться' : 'W — ползти · A/D или мышь — повернуться · Пробел/E — действие');
+      setHelp(isTouch ? 'Слева — джойстик: вперёд ползти, вбок поворот · справа тяни — осмотреться' : 'W — ползти · A/D или мышь — повернуться · Пробел/E — действие');
       setObj(CH,'');
       await showCard(DAT.card.small, DAT.card.big, DAT.card.text, 'Дальше');
       // чёрный экран, звон в ушах, сердце

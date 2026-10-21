@@ -62,11 +62,18 @@ function animWalk(p, speed, dt){
   if(!u.carry){ u.armL.rotation.x = -s*.6; u.armR.rotation.x = s*.6; }
 }
 
+// Обработчики мыши/касаний/клавиш, которые ставит сцена: снимаются при переходе к следующей,
+// иначе старая сцена продолжает ловить нажатия в новой
+const SCENE_LISTENERS = [];
+function listen(target, type, fn, opts){ target.addEventListener(type, fn, opts); SCENE_LISTENERS.push([target, type, fn, opts]); }
+function clearSceneListeners(){ while(SCENE_LISTENERS.length){ const [t,ty,f,o]=SCENE_LISTENERS.pop(); t.removeEventListener(ty,f,o); } }
+
 // Перед каждой сценой: снять с камеры всё, что к ней прикрепила прошлая сцена (трава переднего плана),
 // и вернуть обычный объектив
 function resetCamera(){
   // камера, добавленная в прошлую сцену, остаётся её ребёнком: рендерер тогда не обновляет её матрицу,
   // и новая сцена снимается со старой точки. Поэтому отвязываем её.
+  clearSceneListeners(); for(const k in keys) keys[k]=false; MoveRef.yaw=null;
   if(camera.parent) camera.parent.remove(camera);
   camera.matrixAutoUpdate=true;
   while(camera.children.length) camera.remove(camera.children[0]);

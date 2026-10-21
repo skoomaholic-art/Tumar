@@ -17,7 +17,7 @@ function wipe(ms=1100, dir='right'){
 }
 function fadeTo(v, ms=1200){ const f=$('fade'); f.style.transitionDuration=ms+'ms'; f.style.opacity=v; return wait(ms); }
 function setHelp(t){ $('help').textContent=t; }
-setHelp(isTouch ? 'Касание — идти · щипок — масштаб' : 'Клик или WASD — идти · E — действие · колесо — масштаб');
+setHelp(isTouch ? 'Слева — джойстик · касание — идти · кнопка справа — действие' : 'Клик или WASD — идти · E — действие · колесо — масштаб');
 
 // Язык: незнакомые русские слова превращаются в шум, известные — читаются
 function scramble(word){ return word.replace(/[а-яёa-zäöüß]/gi, ch => '▒░▓'[Math.random()*3|0]).replace(/[▒░▓]{2,}/g, m => m.slice(0, Math.max(2, m.length))); }
@@ -82,7 +82,7 @@ function choose(who, text, options, seconds=0, silentIndex=-1){
     if(main[0]!==undefined) mk(main[0],'left', isTouch?'◀':'◀ A');
     if(main[1]!==undefined) mk(main[1],'right', isTouch?'▶':'D ▶');
     if(silentIndex>=0 && options[silentIndex]!==undefined) mk(silentIndex,'bottom', isTouch?'▼':'▼ S');
-    choose.slots=slots;
+    choose.slots=slots; choose.shownAt=performance.now();
     if(seconds){
       box.classList.add('timed');
       // песочные часы между вариантами; вокруг них фитиль, который догорает
