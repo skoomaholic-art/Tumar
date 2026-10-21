@@ -11,9 +11,11 @@ function mockApi(picks){
     say: async (who,text)=>{ out.said.push(who+': '+text); },
     choose: async ()=> picks.shift(),
     close: ()=>{}, wait: async ()=>{},
+    think: async t=>{ out.said.push('мысль: '+t); }, caption: t=>out.log.push('титр:'+t), beat: ()=>{},
     remember: t=>out.log.push(t), diary: t=>out.diary.push(t), later: t=>out.later.push(t), toast: t=>out.log.push('toast:'+t),
     word: (ru)=>out.words.push(ru), testify: (topic,value)=>out.testimony.push([topic,value]),
-    hooks: { paper(){ out.calls.push('paper'); }, showDoc(k){ out.calls.push('showDoc:'+k); }, kulashRuns(){ out.calls.push('kulash'); }, riderLeaves(){ out.calls.push('leave'); }, cut(n){ out.calls.push('cut:'+n); }, reachBag(){ out.calls.push('reachBag'); }, sign(){ out.calls.push('sign'); }, readPaper(){ out.calls.push('read'); }, dogs(){ out.calls.push('dogs'); } }
+    // любой крючок сцены записывается по имени; cut и показ ремарок — тоже
+    hooks: new Proxy({}, { get:(_,name)=> (...a)=>{ out.calls.push(name==='showDoc' ? 'showDoc:'+a[0] : name==='cut' ? 'cut:'+a[0] : ({kulashRuns:'kulash', riderLeaves:'leave', readPaper:'read'})[name] || name); } }),
   };
   return out;
 }
@@ -49,7 +51,7 @@ test('глава 1: повестка и Күләш — слова в блокн�
   assert.deepStrictEqual(m.words, ['явиться','завтра','военкомат','повестка']);
   assert.ok(m.diary.some(d=>d.includes('Про сестру')));
   // порядок сцены: рука к поясу → лист → подпись → уезжает → Асан не может прочесть → бежит Күләш
-  assert.deepStrictEqual(m.calls.filter(c=>!c.startsWith('cut:')), ['reachBag','paper','sign','leave','read','showDoc:false','kulash','showDoc:true']);
+  assert.deepStrictEqual(m.calls.filter(c=>!c.startsWith('cut:') && !['fatherWatches','holdShot'].includes(c)), ['reachBag','paper','signInsert','leave','read','showDoc:false','kulash','showDoc:true']);
   assert.ok(m.calls.includes('cut:kulash'), 'есть план глазами Күләш');
   assert.deepStrictEqual(m.testimony[0], ['name','Нурбеков Асан Нурбекович']);
 });
