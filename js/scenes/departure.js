@@ -195,7 +195,7 @@ function sceneDeparture(){
       },
       shots:{
         maxim(k){ camera.fov=28; const p=asan.position; camera.position.set(p.x+3.2, 1.5, p.z+.4); return new THREE.Vector3(p.x,1.5,p.z-.3); },
-        halt(k){ camera.fov=32; const p=asan.position; camera.position.set(p.x+2.9, 1.6, p.z+1.4); return new THREE.Vector3(p.x+.55,1.3,p.z-.3); },
+        halt(k){ camera.fov=30; const p=asan.position; camera.position.set(p.x+3.8, 1.6, p.z+2.4); return new THREE.Vector3(p.x+.5,1.45,p.z-.3); },
         follow(k){ camera.fov=40; tmp.set(asan.position.x+3.2, 9.5, asan.position.z+8.5); if(S.fresh) camera.position.copy(tmp); else camera.position.lerp(tmp,.08); return asan.position.clone().add(new THREE.Vector3(0,.6,-2.5)); }
       } };
     return W;
@@ -275,12 +275,12 @@ function sceneDeparture(){
       },
       shots:{
         wide(k){ camera.fov=16; camera.position.set(WX-28,2.6,74); return new THREE.Vector3(WX-6,1.8,0); },
-        door(k){ camera.fov=50; camera.position.set(WX-.35,1.6,-1.05+Math.sin(k*12)*.004); return new THREE.Vector3(WX+.9,1.55,6); },
+        door(k){ camera.fov=50; camera.position.set(WX-.3,1.85,-.5+Math.sin(k*12)*.004); return new THREE.Vector3(WX+.9,1.45,6); },
         track(k){ camera.fov=34; tmp.set(W.rel.x+6.5, 1.8, W.rel.z+7.5); if(S.fresh) camera.position.copy(tmp); else camera.position.lerp(tmp,.1); return W.rel.clone().setY(1.6).lerp(new THREE.Vector3(WX,2,1.4),.25); },
-        meet(k){ camera.fov=40; camera.position.set(WX-.55,1.85,.25); return wp(father).setY(2.1); },
+        meet(k){ camera.fov=40; camera.position.set(WX-1.6,2.15,-.35+Math.sin(k*12)*.004); return wp(father).setY(2.0); },
         behind(k){ camera.fov=lerp(30,22,Math.min(1,k/7)); camera.position.set(WX+.15,1.75,1.75); return W.rel.clone().setY(1.6); },
         asanDoor(k){ camera.fov=34; camera.position.set(WX+3.2,2.0,4.6); return new THREE.Vector3(WX+.7,1.9,1.1); },
-        inside(k){ camera.fov=46; camera.position.set(WX-2.9,1.55,-.35); return new THREE.Vector3(WX+.6,1.15,.6); }
+        inside(k){ camera.fov=46; camera.position.set(WX-3.05,2.05,1.0); return new THREE.Vector3(WX-.3,1.0,-.5); }
       } };
     return W;
   }
@@ -451,10 +451,10 @@ function sceneDeparture(){
     async begin(){
       $('bars').style.display='none'; setObj(CH,'');
       listen(canvas,'pointerdown', ()=>{ if(S.wantWalk) S.walk=true; });
-      await partFarewell();
-      await partDrill();
-      await partMarch();
-      await partTrain();
+      // для проверки: ?part=drill|march|train в адресе начинает сразу с нужной части
+      const from = (location.search.match(/[?&]part=(\w+)/)||[])[1] || 'farewell';
+      const order = ['farewell','drill','march','train'], parts={farewell:partFarewell, drill:partDrill, march:partMarch, train:partTrain};
+      for(const k of order.slice(Math.max(0,order.indexOf(from)))) await parts[k]();
       cleanupDom(); closeDlg(); cine(false);
       await fadeTo(1,1200);
       endChapter1();
