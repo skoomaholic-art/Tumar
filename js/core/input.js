@@ -8,7 +8,7 @@ addEventListener('keydown', e=>{
   if(e.repeat){ if(active && active.onKey) active.onKey(e.code, true); return; }
   if(e.code==='KeyN' && (memory.notebook.length||memory.diary.length)){ $('nb').style.display==='flex' ? closeNotebook() : openNotebook(); return; }
   if(e.code==='Escape') closeNotebook();
-  if(e.code==='Space'||e.code==='Enter'){ if(dlgOpen) advance(); }
+  if(e.code==='Space'||e.code==='Enter'){ if(dlgOpen) advance(); else if(thinkSkip) thinkSkip(); }
   if(choose.slots && choose.pick && performance.now()-(choose.shownAt||0) > 450){
     const pos = ({ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowDown:'bottom',KeyS:'bottom'})[e.code];
     if(pos && choose.slots[pos]!==undefined){ choose.pick(choose.slots[pos]); return; }

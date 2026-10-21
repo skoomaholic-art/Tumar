@@ -1,8 +1,20 @@
 'use strict';
 // Интерфейс: задачи, тосты, язык, портреты, диалоги и выборы
 // ---------- интерфейс: подсказки, тосты, задачи ----------
-function cine(on){ document.body.classList.toggle('cine', on); }
-function setObj(chap, text){ $('chap').textContent = chap; $('obj').textContent = text; }
+function cine(on){ document.body.classList.toggle('cine', on); if(!on && objPending) setTimeout(popObj, 450); }
+// Задача всплывает слева сверху: выезжает с меткой «Новая задача» и короткой подсветкой.
+// Если сейчас идёт сцена (полосы кино), всплывёт, когда сцена кончится.
+let objText='', objPending=false;
+function setObj(chap, text){
+  $('chap').textContent = chap;
+  if(text===objText) return; objText=text;
+  const o=$('obj'); o.innerHTML = text ? `<span class="objNew">Новая задача</span><span class="objText">${escapeHtml(text)}</span>` : '';
+  o.style.display = text ? '' : 'none';
+  if(!text) return;
+  if(document.body.classList.contains('cine')){ objPending=true; return; }
+  popObj();
+}
+function popObj(){ const o=$('obj'); objPending=false; o.classList.remove('pop'); void o.offsetWidth; o.classList.add('pop'); if(typeof tone==='function' && AC) tone({f:660,dur:.18,gain:.035}); }
 let toastT=null;
 function toast(text){ const t=$('toast'); t.textContent=text; t.classList.add('on'); sfx.memory(); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),3400); }
 // Шторка, как у Куросавы: прошлый кадр уходит за жёсткую вертикальную линию и открывает новый.
@@ -15,6 +27,26 @@ function wipe(ms=1100, dir='right'){
     w.style.transition=`clip-path ${ms}ms linear`; w.style.clipPath = dir==='right' ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)';
     setTimeout(()=>{ w.style.display='none'; res(); }, ms+40); })); });
 }
+// Мысли Асана: не в диалоге, а в кадре — почерком из блокнота, слово за словом; края темнеют, звук тише.
+// Гаснут сами; касание или пробел — дальше.
+let thinkSkip=null;
+function think(text){
+  return new Promise(res=>{
+    const el=$('think'); el.innerHTML = text.split(/\s+/).map((w,i)=>`<span style="animation-delay:${(i*.11).toFixed(2)}s">${escapeHtml(w)}</span>`).join(' ');
+    el.classList.add('on'); document.body.classList.add('thinking');
+    if(master && AC) master.gain.setTargetAtTime(.45, AC.currentTime, .3);
+    const hold = 1800 + text.length*55; let done=false;
+    const finish=()=>{ if(done) return; done=true; thinkSkip=null; clearTimeout(tm); el.classList.remove('on'); document.body.classList.remove('thinking');
+      if(master && AC) master.gain.setTargetAtTime(.8, AC.currentTime, .4); setTimeout(res, 450); };
+    const tm=setTimeout(finish, hold); setTimeout(()=>{ thinkSkip=finish; }, 350);
+  });
+}
+// Титр места и времени — как в кино, внизу слева, без плашки. Не останавливает сцену.
+let capT=null;
+function caption(text){ const c=$('caption'); c.textContent=text; c.classList.remove('on'); void c.offsetWidth; c.classList.add('on'); clearTimeout(capT); capT=setTimeout(()=>c.classList.remove('on'), 3600); }
+// Ремарка — задание сцене, что показать. Игроку не видна; с ?dev в адресе — мелко в углу, для проверки.
+const DEV = /[?&]dev\b/.test(location.search);
+function beat(text){ if(!DEV) return; const b=$('beatDev'); b.textContent='ремарка: '+text; b.style.opacity=1; clearTimeout(beat.t); beat.t=setTimeout(()=>b.style.opacity=0, 3500); }
 function fadeTo(v, ms=1200){ const f=$('fade'); f.style.transitionDuration=ms+'ms'; f.style.opacity=v; return wait(ms); }
 function setHelp(t){ $('help').textContent=t; }
 setHelp(isTouch ? 'Слева — джойстик · касание — идти · кнопка справа — действие' : 'Клик или WASD — идти · E — действие · колесо — масштаб');

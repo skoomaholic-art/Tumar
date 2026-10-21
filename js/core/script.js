@@ -13,6 +13,10 @@
 //   {once:"ключ", then:[…]}                               выполнить один раз за игру
 //   {call:"showDoc", args:[true]}                         крючок в код сцены
 //   {wait:800} {close:true}
+//   {think:"…"}                                           мысль Асана — в кадре, почерком, не в диалоге
+//   {caption:"Ночь. Берег Дона."}                         титр места и времени, как в кино
+//   {beat:"что происходит", show:"крючок", args:[…]}      ремарка: игроку не видна, сцена ПОКАЗЫВАЕТ это крючком show;
+//                                                          без show — только с todo:true (ещё не изображено)
 
 function evalCond(expr, flags){
   expr = String(expr).trim();
@@ -48,6 +52,9 @@ function createRunner(api){
       else if('testify' in st) api.testify(st.testify[0], st.testify[1], st.where||'');
       else if('once' in st){ if(!mem.once[st.once]){ mem.once[st.once]=true; await run(st.then); } }
       else if('call' in st){ const fn=api.hooks && api.hooks[st.call]; if(!fn) throw new Error('Нет крючка сценария: '+st.call); await fn(...(st.args||[])); }
+      else if('think' in st) await api.think(st.think);
+      else if('caption' in st) api.caption(st.caption);
+      else if('beat' in st){ if(api.beat) api.beat(st.beat); if(st.show){ const fn=api.hooks && api.hooks[st.show]; if(!fn) throw new Error('Нет крючка для ремарки: '+st.show); await fn(...(st.args||[])); } }
       else if('wait' in st) await api.wait(st.wait);
       else if('close' in st) api.close();
       else throw new Error('Неизвестный шаг сценария: '+JSON.stringify(st));

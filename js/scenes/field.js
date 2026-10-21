@@ -88,6 +88,7 @@ function sceneField(){
   const sc = {
     wantsJoy(){ return !F.busy && !F.dream && F.step>=2; },
     update(dt,t){
+      F.clock=(F.clock||0)+dt;
       if(F.dream){ F.dream.update(dt,t); return; }
       if(!F.busy){
         // кровь уходит, пока не затянут жгут; жажда растёт; сознание падает от потери крови и жажды
@@ -126,7 +127,9 @@ function sceneField(){
       // покачивание при дыхании
       const breath = Math.sin(t*1.6)*.006*(1.5-F.mind);
       camera.position.y = .32 + breath;
-      camera.rotation.set(F.pitch + breath*2, F.yaw, Math.sin(t*.7)*.02*(1-F.mind) + (F.roll||0));
+      if(F.pitchTo!=null) F.pitch=lerp(F.pitch, F.pitchTo, 1-Math.pow(.2,dt));
+      const sh = F.shake>0 ? (F.shake-=dt, Math.sin(t*40)*.012) : 0;
+      camera.rotation.set(F.pitch + breath*2 + sh, F.yaw + sh*.6, Math.sin(t*.7)*.02*(1-F.mind) + (F.roll||0));
       // виньетка зависит от сознания и крови
       const v = 35 - (1-F.mind)*30;
       $('vig').style.background = `radial-gradient(ellipse at center,transparent ${v}%,rgba(${(1-F.blood)*60|0},0,0,.92) 100%)`;
@@ -151,7 +154,17 @@ function sceneField(){
       if(isTouch){ $('touch').style.display='flex'; $('tAct').textContent='Тянуть'; }
     }
   };
-  const run = makeRunner({ dogs(){ sfx.bark(0); sfx.bark(1.4); } });
+  const gwait = sec => { const t0=F.clock||0; return new Promise(r=>{ const h=setInterval(()=>{ if((F.clock||0)-t0>=sec){ clearInterval(h); r(); } },50); }); };
+  const run = makeRunner({
+    dogs(){ sfx.bark(0); sfx.bark(1.4); },
+    async holdShot(sec=2.4){ closeDlg(); await gwait(sec); },
+    // обрывки боя вспышками: дым, удар, ещё удар
+    async flashback(){ for(const [ms,b] of [[0,3.2],[700,2.4],[1500,4]]){ await gwait(ms/1000 - (ms?0:0)); canvas.style.filter=`sepia(.3) brightness(${b}) contrast(1.4)`; sfx.boom(); hitFlash && hitFlash(); await gwait(.12); canvas.style.filter=''; } await gwait(.6); },
+    async shakyHands(){ F.shake=1.4; await gwait(1.4); },
+    flares(){ flarePop(); setTimeout(flarePop, 1800); },
+    async drinkCam(){ const p0=F.pitch; F.pitchTo=1.0; await gwait(2.4); F.pitchTo=null; F.pitch=p0; }
+  });
+  function hitFlash(){ const h=$('hit'); if(!h) return; h.style.opacity=.8; setTimeout(()=>h.style.opacity=0,120); }
   function prompt(text){ const pr=$('prompt'); pr.style.display='block'; pr.style.left='50%'; pr.style.top='66%'; pr.textContent=text; }
   function stepText(){
     const t = DAT.objectives[(F.step===1 && isTouch) ? '1touch' : String(F.step)] || '';

@@ -126,7 +126,17 @@ function sceneDon(){
   // ---------- состояние ----------
   const S = { phase:'intro', busy:true, zoom:1, hp:100, ammo:47, disks:3, reload:0, firing:false, fireCd:0, aim:new THREE.Vector3(0,0,-30),
     wave:0, waveT:0, spawnLeft:0, spawnT:0, artT:3, battleT:0, target:null, stepT:0, camFocus:null };
-  const run = makeRunner({});
+  // ремарки показываются в кадре: короткие режиссёрские планы поверх обычной камеры
+  const gwait = sec => { const t0=S.clock; return new Promise(r=>{ const h=setInterval(()=>{ if(S.clock-t0>=sec){ clearInterval(h); r(); } },50); }); };
+  function holdCam(pos, look, sec){ S.shot={pos:pos.clone(), look:look.clone(), until:S.clock+sec}; return gwait(sec); }
+  const run = makeRunner({
+    singer(){ S.singing=true; [392,440,392,349,330,349,392].forEach((f,i)=>tone({f, dur:.42, gain:.035, delay:i*.45, type:'triangle'})); },
+    async deadSinger(){ closeDlg(); const p=singer.position; await holdCam(new THREE.Vector3(p.x+2.2,1.6,p.z+2.4), new THREE.Vector3(p.x,.3,p.z), 3.2); },
+    async shakeFlask(){ closeDlg(); S.flaskT=1.6; await holdCam(new THREE.Vector3(zhum.position.x+1.6,1.1,zhum.position.z+2.2), new THREE.Vector3(zhum.position.x,.9,zhum.position.z), 1.8); },
+    async raftView(){ closeDlg(); await holdCam(new THREE.Vector3(0,7.5,108.5), new THREE.Vector3(0,0,116.5), 3.4); },
+    raftPush(){ S.raftDrift=true; },
+    async pushedOnRaft(){ closeDlg(); await fadeTo(.85,500); asan.position.set(0,.45,raft.position.z); await fadeTo(0,700); }
+  });
 
   // ---------- ввод ----------
   const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(), groundPlane = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
@@ -303,6 +313,7 @@ function sceneDon(){
     S,
     wantsJoy(){ return !S.busy && (S.phase==='train' || S.phase==='riverWalk'); },
     update(dt,t){
+      S.clock=(S.clock||0)+dt;
       if(BIRD.active){ BIRD.update(dt); return; }
       // эффекты
       for(let i=fx.length-1;i>=0;i--){ const f=fx[i]; f.life-=dt; const k=1-f.life/f.max; f.s.position.y+=f.vy*dt; f.s.scale.setScalar(f.base*(1+k*f.grow)); f.s.material.opacity=Math.max(0,1-k); if(f.life<=0){ scene.remove(f.s); f.s.material.dispose(); fx.splice(i,1);} }
@@ -361,6 +372,7 @@ function sceneDon(){
   function reload(){ if(S.reload>0 || S.ammo===47) return; if(S.disks<=0){ bark('Асан','Дисков нет…'); return; } S.reload=2.2; S.disks--; noiseBurst({dur:.15,freq:600,gain:.15}); setTimeout(()=>noiseBurst({dur:.12,freq:900,gain:.18}),900); }
 
   function camFollow(dt, target, h, back){
+    if(S.shot && S.shot.until>S.clock){ camera.position.copy(S.shot.pos); camera.lookAt(S.shot.look); return; }
     const z=S.zoom; tmp2.set(target.x, h*z, target.z + back*z);
     camera.position.lerp(tmp2, 1-Math.pow(.03,dt)); camera.lookAt(target.x, 0, target.z - (S.phase==='battle'?10:0));
   }
@@ -398,6 +410,9 @@ function sceneDon(){
     // товарищи стреляют
     comrades.forEach(cm=>{ if(!cm.alive) return; cm.t-=dt; if(cm.t<=0){ cm.t=rand(1.2,3); const tg=enemies.find(e=>e.alive && Math.random()<.5); const to = tg ? tmp2.copy(tg.p.position).setY(1) : tmp2.set(rand(-20,20),.5,rand(-60,-30)); tracer(tmp.copy(cm.p.position).setY(.9), to); noiseBurst({dur:.08,freq:900,gain:.05}); if(tg && Math.random()<.12) killEnemy(tg); } });
     // Жумабай бежит по ходу сообщения за дисками
+    if(S.singing && singer.rotation.x===0){ singer.userData.armR.rotation.x=-2.2+Math.sin(t*2)*.3; singer.position.y=Math.abs(Math.sin(t*2.2))*.04; }
+    if(S.flaskT>0){ S.flaskT-=dt; zhum.userData.armR.rotation.x=-1.4+Math.sin(t*16)*.45; if(S.flaskT<=0) zhum.userData.armR.rotation.x=0; }
+    if(S.raftDrift && !S.crossing){ raft.position.z+=dt*.25; }
     if(S.zhumRun){ zhum.position.x-=3.2*dt; zhum.rotation.y=-Math.PI/2; animWalk(zhum,1,dt); }
     // камера над окопом: видно сектор впереди
     // низкая камера за спиной расчёта: виден и окоп, и всё поле до горизонта

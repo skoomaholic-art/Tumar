@@ -256,6 +256,11 @@ function sceneAul(){
     showDoc,
     async kulashRuns(){ setShot('kulashRun'); S.look.asan=kulash; S.look.father=kulash; S.kulashGo=true; await until(()=>!S.kulashGo); S.look.kulash=asan; setShot('three'); },
     cut(name){ setShot(name); },
+    // ремарки — показать, а не рассказать
+    async holdShot(sec=2.4){ closeDlg(); await gwait(sec); },
+    async fatherLooksAway(){ closeDlg(); father.lookAt(40,0,30); await gwait(2.2); },
+    fatherWatches(){ S.look && (S.look.father=rman); },
+    async signInsert(){ closeDlg(); sfx.paper(); asan.userData.armR.rotation.x=-.9; await signatureInsert(); asan.userData.armR.rotation.x=-.5; },
     async reachBag(){ await reachBag(); },
     sign(){ sfx.paper(); asan.userData.armR.rotation.x=-.9; setTimeout(()=>{ asan.userData.armR.rotation.x=-.5; },900); },
     async riderLeaves(){ await riderLeaves(); },
@@ -459,6 +464,18 @@ function sceneAul(){
       if(dd<.08){ S.rmanWalk=null; animWalk(rman,0,dt); } else { const st=Math.min(dd,1.3*dt); rman.position.x+=dx/dd*st; rman.position.z+=dz/dd*st; rman.rotation.y=Math.atan2(dx,dz); rman.userData.carry=false; animWalk(rman,1,dt); rman.userData.carry=true; } }
     // Күләш встаёт и замирает
     if(S.kulashUp && kulash.position.y<0) kulash.position.y=Math.min(0,kulash.position.y+dt*.6);
+  }
+  // вставка крупным планом: строка на повестке, и Асан выводит своё имя латиницей — как учили до новых букв
+  function signatureInsert(){
+    return new Promise(res=>{
+      $('paper').innerHTML = `<div style="font-size:15px;opacity:.75">${renderLang('Получил. Подпись:','ru')}</div>
+        <svg viewBox="0 0 320 90" style="width:100%;max-width:420px;display:block;margin:10px auto 0"><line x1="10" y1="72" x2="310" y2="72" stroke="#3a3026" stroke-width="1.5"/>
+        <text x="40" y="62" font-family="Caveat,cursive" font-size="54" fill="#1d2a4a" stroke="#1d2a4a" stroke-width=".6" style="stroke-dasharray:900;stroke-dashoffset:900;fill-opacity:0;animation:sig 1.8s ease forwards">Asan</text></svg>
+        <style>@keyframes sig{60%{fill-opacity:0}100%{stroke-dashoffset:0;fill-opacity:1}}</style>`;
+      $('doc').style.display='flex';
+      let done=false; const fin=()=>{ if(done) return; done=true; $('doc').style.display='none'; res(); };
+      $('doc').onclick=fin; gwait(3.2).then(fin);
+    });
   }
   function showDoc(known){
     return new Promise(res=>{

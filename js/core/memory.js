@@ -38,6 +38,6 @@ async function loadData(){
 }
 // Сценарий главы, подключённый к интерфейсу; hooks — крючки в код сцены
 function makeRunner(hooks){
-  return createRunner({ say, choose, close:closeDlg, memory, remember, diary, later, toast, word:noteWord, testify, hooks, wait });
+  return createRunner({ say, choose, close:closeDlg, memory, remember, diary, later, toast, word:noteWord, testify, hooks, wait, think, caption, beat });
 }
 function fillObj(tpl, vars){ return String(tpl).replace(/\{(\w+)\}/g, (_,k)=>vars[k]); }

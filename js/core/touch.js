@@ -34,12 +34,12 @@ const JOY = { on:false, x:0, y:0, id:null, cx:0, cy:0, t0:0, moved:false };
     const tap = !JOY.moved && performance.now()-JOY.t0 < 300;
     JOY.id=null; JOY.on=false; JOY.x=JOY.y=0; base.style.display='none';
     // короткое касание — в игру, как будто коснулись самого кадра
-    if(tap){ if(dlgOpen){ advance(); return; } canvas.dispatchEvent(new PointerEvent('pointerdown',{clientX:e.clientX, clientY:e.clientY, pointerId:e.pointerId, bubbles:true, pointerType:'touch'})); canvas.dispatchEvent(new PointerEvent('pointerup',{clientX:e.clientX, clientY:e.clientY, pointerId:e.pointerId, bubbles:true, pointerType:'touch'})); }
+    if(tap){ if(dlgOpen){ advance(); return; } if(thinkSkip){ thinkSkip(); return; } canvas.dispatchEvent(new PointerEvent('pointerdown',{clientX:e.clientX, clientY:e.clientY, pointerId:e.pointerId, bubbles:true, pointerType:'touch'})); canvas.dispatchEvent(new PointerEvent('pointerup',{clientX:e.clientX, clientY:e.clientY, pointerId:e.pointerId, bubbles:true, pointerType:'touch'})); }
   };
   zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end);
 
   // диалог: касание по кадру листает реплику
-  canvas.addEventListener('pointerdown', ()=>{ if(dlgOpen) advance(); }, true);
+  canvas.addEventListener('pointerdown', ()=>{ if(dlgOpen) advance(); else if(thinkSkip) thinkSkip(); }, true);
 
   // показывать джойстик и кнопку действия, когда сцена этого хочет
   const act = $('tAct');
