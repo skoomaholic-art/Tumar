@@ -277,7 +277,7 @@ function sceneDeparture(){
       shots:{
         wide(k){ camera.fov=16; camera.position.set(WX-28,2.6,74); return new THREE.Vector3(WX-6,1.8,0); },
         door(k){ camera.fov=50; camera.position.set(WX-.3,1.85,-.5+Math.sin(k*12)*.004); return new THREE.Vector3(WX+.9,1.45,6); },
-        track(k){ camera.fov=40; camera.position.set(WX-.05,2.35,-.6+Math.sin(k*12)*.004); return wp(father).setY(2.0); },
+        track(k){ camera.fov=38; camera.position.set(WX-.8,2.45,1.36+Math.sin(k*12)*.004); return wp(father).setY(1.9); },
         meet(k){ camera.fov=36; camera.position.set(WX-.35,1.65,-1.0+Math.sin(k*12)*.004); return wp(father).setY(2.0); },
         behind(k){ camera.fov=lerp(42,24,Math.min(1,k/7)); camera.position.set(WX+.3,2.45,1.32+Math.sin(k*12)*.004); return W.rel.clone().setY(1.7); },
         asanDoor(k){ camera.fov=40; camera.position.set(WX+.2,2.4,-.35+Math.sin(k*12)*.004); return new THREE.Vector3(WX+1.4,1.9,3.6); },
