@@ -65,6 +65,10 @@ function animWalk(p, speed, dt){
 // Перед каждой сценой: снять с камеры всё, что к ней прикрепила прошлая сцена (трава переднего плана),
 // и вернуть обычный объектив
 function resetCamera(){
+  // камера, добавленная в прошлую сцену, остаётся её ребёнком: рендерер тогда не обновляет её матрицу,
+  // и новая сцена снимается со старой точки. Поэтому отвязываем её.
+  if(camera.parent) camera.parent.remove(camera);
+  camera.matrixAutoUpdate=true;
   while(camera.children.length) camera.remove(camera.children[0]);
   camera.fov=45; camera.rotation.order='XYZ'; camera.updateProjectionMatrix();
   cine(false); $('vig').style.background=''; canvas.style.cursor='';

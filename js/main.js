@@ -1,21 +1,19 @@
 'use strict';
 // Порядок глав, сохранения, финал, главный цикл и запуск
 
-const CHAPTERS = { ch1: startAul, ch2: startDon, ch5: startField };
+const CHAPTERS = { ch1: startAul, ch2: startDon, ch3: startCity, ch4: startDonets, ch5: startField };
 
-async function endChapter1(){
-  saveGame('ch2');
-  const lines = memory.log.map(l=>'· '+escapeHtml(l)).join('<br>');
-  await showCard('Конец главы 1', 'Что запомнили', `<span style="text-align:left;display:inline-block">${lines}</span><br><br><span class="small">В полной игре здесь будет доля игроков, сделавших тот же выбор. Игра сохранена.</span>`, 'Июль 1942 →');
-  startDon();
-}
+async function endChapter1(){ saveGame('ch2'); await chapterSummary(1); startDon(); }
 
-async function endChapter2(){
-  saveGame('ch5');
+// итог главы: что запомнили персонажи
+function chapterSummary(n){
   const lines = memory.log.map(l=>'· '+escapeHtml(l)).join('<br>');
-  await showCard('Конец главы 2', 'Что запомнили', `<span style="text-align:left;display:inline-block">${lines}</span><br><br><span class="small">Главы 3–4 ещё в работе. Игра сохранена.</span>`, 'Июль 1943 →');
-  startField();
+  return showCard('Конец главы '+n, 'Что запомнили', `<span style="text-align:left;display:inline-block">${lines}</span><br><br><span class="small">В полной игре здесь будет доля игроков, сделавших тот же выбор. Игра сохранена.</span>`, 'Дальше');
 }
+async function endChapter2(){ saveGame('ch3'); await chapterSummary(2); startCity(); }
+async function endChapter3(){ saveGame('ch4'); await chapterSummary(3); startDonets(); }
+// глава 4 кончается ранением — в поле переходим без итоговой карточки, прямо из темноты
+async function endChapter4(){ saveGame('ch5'); startField(); }
 
 async function finale(){
   $('bars').style.display='none'; $('touch').style.display='none'; setObj('','');
@@ -40,7 +38,9 @@ function loop(now){
 requestAnimationFrame(loop);
 
 async function startAul(){ saveGame('ch1'); active=sceneAul(); await active.begin(); }
-async function startDon(){ $('fade').style.opacity=1; active=sceneDon(); await active.begin(); }
+async function startDon(){ $('fade').style.opacity=1; await showChronicle('ch2'); active=sceneDon(); await active.begin(); }
+async function startCity(){ $('fade').style.opacity=1; await showChronicle('ch3'); active=sceneCity(); await active.begin(); }
+async function startDonets(){ $('fade').style.opacity=1; await showChronicle('ch4'); active=sceneDonets(); await active.begin(); }
 async function startField(){ $('fade').style.opacity=1; camera.position.set(0,.32,0); active=sceneField(); await active.begin(); }
 
 // на телефоне — полный экран и горизонтальная ориентация, если браузер позволяет
