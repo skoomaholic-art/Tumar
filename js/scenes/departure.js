@@ -280,7 +280,7 @@ function sceneDeparture(){
         meet(k){ camera.fov=36; camera.position.set(WX-.35,1.65,-1.0+Math.sin(k*12)*.004); return wp(father).setY(2.0); },
         behind(k){ camera.fov=lerp(30,22,Math.min(1,k/7)); camera.position.set(WX+.15,1.75,1.75); return W.rel.clone().setY(1.6); },
         asanDoor(k){ camera.fov=34; camera.position.set(WX+3.2,2.0,4.6); return new THREE.Vector3(WX+.7,1.9,1.1); },
-        inside(k){ camera.fov=46; camera.position.set(WX-3.05,2.05,1.0); return new THREE.Vector3(WX-.3,1.0,-.5); }
+        inside(k){ camera.fov=58; camera.position.set(WX-.4,2.55,1.25); return new THREE.Vector3(WX-.3,1.25,-.8); }
       } };
     return W;
   }
