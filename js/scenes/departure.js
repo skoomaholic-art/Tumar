@@ -273,13 +273,14 @@ function sceneDeparture(){
         if(W.throwT!==undefined){ W.throwT += dt; const k=Math.min(1,W.throwT/.75); const a=W.throwFrom, b=new THREE.Vector3(WX+.2,.95,.2);
           pouch.position.set(lerp(a.x,b.x,k), lerp(a.y,b.y,k)+Math.sin(k*Math.PI)*.8, lerp(a.z,b.z,k)); if(k>=1){ W.throwT=undefined; try{ noiseBurst({dur:.12,freq:500,q:1,gain:.3}); }catch(e){} } }
       },
+      // наяву отец виден только изнутри вагона, глазами Асана; во сне (глава 5) — та же сцена со стороны
       shots:{
         wide(k){ camera.fov=16; camera.position.set(WX-28,2.6,74); return new THREE.Vector3(WX-6,1.8,0); },
         door(k){ camera.fov=50; camera.position.set(WX-.3,1.85,-.5+Math.sin(k*12)*.004); return new THREE.Vector3(WX+.9,1.45,6); },
-        track(k){ camera.fov=34; tmp.set(W.rel.x+6.5, 1.8, W.rel.z+7.5); if(S.fresh) camera.position.copy(tmp); else camera.position.lerp(tmp,.1); return W.rel.clone().setY(1.6).lerp(new THREE.Vector3(WX,2,1.4),.25); },
+        track(k){ camera.fov=40; camera.position.set(WX-.05,2.35,-.6+Math.sin(k*12)*.004); return wp(father).setY(2.0); },
         meet(k){ camera.fov=36; camera.position.set(WX-.35,1.65,-1.0+Math.sin(k*12)*.004); return wp(father).setY(2.0); },
-        behind(k){ camera.fov=lerp(40,26,Math.min(1,k/7)); camera.position.set(WX+.1,1.8,.55); return W.rel.clone().setY(1.6); },
-        asanDoor(k){ camera.fov=34; camera.position.set(WX+3.2,2.0,4.6); return new THREE.Vector3(WX+.7,1.9,1.1); },
+        behind(k){ camera.fov=lerp(42,24,Math.min(1,k/7)); camera.position.set(WX+.3,2.45,1.32+Math.sin(k*12)*.004); return W.rel.clone().setY(1.7); },
+        asanDoor(k){ camera.fov=40; camera.position.set(WX+.2,2.4,-.35+Math.sin(k*12)*.004); return new THREE.Vector3(WX+1.4,1.9,3.6); },
         inside(k){ camera.fov=52; camera.position.set(WX-3.1,2.95,.3); return new THREE.Vector3(WX+.1,.95,-.2); }
       } };
     return W;
