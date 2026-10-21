@@ -492,7 +492,7 @@ function sceneAul(){
     await run(DAT.scripts.house_end);
     await wait(900);
     await fadeTo(1,900); $('panels').style.display='none';
-    endChapter1();
+    startDeparture(); // дальше в той же главе: проводы, Акмолинск, эшелон
   }
   function faceEach(a,b){ a.lookAt(b.position.x,0,b.position.z); }
   // долгий план в начале главы: горы и далёкий всадник справа, потом взгляд медленно уходит к двору

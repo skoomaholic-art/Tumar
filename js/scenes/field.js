@@ -206,7 +206,7 @@ function sceneField(){
     closeDlg(); sfx.bark(.2);
     setHeart(130); await wait(2200);
     await fadeTo(1,1800); setHeart(0); setRing(false);
-    finale();
+    startCamp(); // дальше в той же главе: сборный пункт и палатка умирающих
   }
   async function lose(){
     if(F.lost) return; F.lost=true; F.busy=true; setHeart(0);

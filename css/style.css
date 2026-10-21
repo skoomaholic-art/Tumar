@@ -106,3 +106,26 @@ body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s
 #ammo b{font-size:22px;color:var(--ink);font-weight:normal}
 #aim{position:fixed;width:26px;height:26px;margin:-13px 0 0 -13px;border:1px solid rgba(233,223,201,.8);border-radius:50%;pointer-events:none;z-index:5;display:none}
 #aim::after{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px;background:#e9dfc9;border-radius:50%}
+/* хроника между главами: карта на старой бумаге */
+#chron{position:fixed;inset:0;z-index:11;display:none;align-items:center;justify-content:center;gap:3vw;padding:4vh 4vw;
+  background:radial-gradient(ellipse at 30% 40%,#efe5cd 0,#e2d5b6 55%,#c9b892 100%);color:#2b241c;opacity:0;transition:opacity .6s}
+#chron.on{opacity:1}
+#chron::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(60,40,20,.35) 100%)}
+#chron .ch-map{flex:0 1 auto;width:min(52vw,92vh*1.075);min-width:0}
+#chron .ch-map svg{width:100%;height:auto;max-height:84vh;display:block}
+#chron .ch-text{flex:0 1 34vw;font-family:'Old Standard TT','PT Serif',serif;position:relative;z-index:1}
+#chron .ch-date{font-size:clamp(18px,2.6vw,30px);letter-spacing:.04em}
+#chron .ch-place{font-size:clamp(12px,1.3vw,15px);text-transform:uppercase;letter-spacing:.18em;opacity:.7;margin:.4em 0 1.2em}
+#chron .ch-lines p{font-family:'PT Serif',serif;font-size:clamp(13px,1.45vw,17px);line-height:1.5;margin:0 0 .8em;opacity:0;transform:translateY(4px);transition:opacity .9s,transform .9s}
+#chron .ch-lines p.on{opacity:1;transform:none}
+#chron .ch-next{margin-top:.6em;color:#2b241c;border-color:#2b241c;background:transparent}
+#chron .ch-map svg{border:2px solid rgba(43,36,28,.55);background:rgba(255,250,235,.25)}
+#chron .ch-town{font:26px 'PT Serif',serif;fill:#2b241c}
+#chron .ch-river{font:italic 22px 'PT Serif',serif;fill:#4d5a62}
+#chron .ch-far{font:italic 22px 'PT Serif',serif;fill:#8e1f1a}
+#chron .ch-scale,#chron .ch-frontlbl{font:20px 'PT Serif',serif;fill:#2b241c}
+#chron .ch-front{fill:none;stroke:#2b241c;stroke-width:4;stroke-dasharray:3 10;stroke-linecap:round}
+#chron .ch-past{fill:none;stroke:#8e1f1a;stroke-width:4;opacity:.45;stroke-linejoin:round}
+#chron .ch-leg{fill:none;stroke:#8e1f1a;stroke-width:6;stroke-linejoin:round;stroke-linecap:round}
+@media (max-height:500px){#chron{gap:2vw;padding:2vh 3vw}#chron .ch-lines p{font-size:12px;margin-bottom:.5em}#chron .ch-place{margin-bottom:.6em}}
+@media (prefers-reduced-motion:reduce){#chron,#chron .ch-lines p{transition:none}}
