@@ -278,9 +278,9 @@ function sceneDeparture(){
         door(k){ camera.fov=50; camera.position.set(WX-.3,1.85,-.5+Math.sin(k*12)*.004); return new THREE.Vector3(WX+.9,1.45,6); },
         track(k){ camera.fov=34; tmp.set(W.rel.x+6.5, 1.8, W.rel.z+7.5); if(S.fresh) camera.position.copy(tmp); else camera.position.lerp(tmp,.1); return W.rel.clone().setY(1.6).lerp(new THREE.Vector3(WX,2,1.4),.25); },
         meet(k){ camera.fov=36; camera.position.set(WX-.35,1.65,-1.0+Math.sin(k*12)*.004); return wp(father).setY(2.0); },
-        behind(k){ camera.fov=lerp(30,22,Math.min(1,k/7)); camera.position.set(WX+.15,1.75,1.75); return W.rel.clone().setY(1.6); },
+        behind(k){ camera.fov=lerp(40,26,Math.min(1,k/7)); camera.position.set(WX+.1,1.8,.55); return W.rel.clone().setY(1.6); },
         asanDoor(k){ camera.fov=34; camera.position.set(WX+3.2,2.0,4.6); return new THREE.Vector3(WX+.7,1.9,1.1); },
-        inside(k){ camera.fov=58; camera.position.set(WX-.4,2.55,1.25); return new THREE.Vector3(WX-.3,1.25,-.8); }
+        inside(k){ camera.fov=52; camera.position.set(WX-3.1,2.95,.3); return new THREE.Vector3(WX+.1,.95,-.2); }
       } };
     return W;
   }
