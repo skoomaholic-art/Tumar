@@ -223,3 +223,6 @@ body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate
 #letterLive{position:fixed;left:50%;top:calc(6vh + env(safe-area-inset-top,0px));transform:translateX(-50%) rotate(-.8deg);width:min(560px,88vw);max-height:56vh;overflow:hidden;z-index:14;display:none;
   background:#d8ccae;color:#22263a;padding:16px 22px;box-shadow:0 10px 40px #000;font-family:'Caveat','Courier New',cursive;font-size:clamp(17px,2.6vw,24px);line-height:1.35}
 #letterLive .blank{display:inline-block;min-width:5em;border-bottom:2px dashed #8e1f1a;color:#8e1f1a}
+#panels .page.four{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+#panels .page.four .pn:first-child{grid-row:auto}
+#panels .cap.top{top:10px;bottom:auto}

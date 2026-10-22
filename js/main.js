@@ -60,12 +60,12 @@ function loop(now){
 requestAnimationFrame(loop);
 
 async function startAul(){ saveGame('ch1'); active=sceneAul(); await active.begin(); }
-async function startDon(){ $('fade').style.opacity=1; await showChronicle('ch2'); active=sceneDon(); await active.begin(); }
+async function startDon(){ $('fade').style.opacity=1; await showChronicle('ch2'); await showInterlude('ch2'); active=sceneDon(); await active.begin(); }
 async function startDeparture(){ saveGame('ch1b'); $('fade').style.opacity=1; active=sceneDeparture(); await active.begin(); }
-async function startStalag(){ saveGame('ch6'); $('fade').style.opacity=1; active=sceneStalag(); await active.begin(); }
+async function startStalag(){ saveGame('ch6'); $('fade').style.opacity=1; await showInterlude('ch6'); active=sceneStalag(); await active.begin(); }
 async function startCamp(){ saveGame('ch5b'); $('fade').style.opacity=1; active=sceneCamp(); await active.begin(); }
-async function startCity(){ $('fade').style.opacity=1; await showChronicle('ch3'); active=sceneCity(); await active.begin(); }
-async function startDonets(){ $('fade').style.opacity=1; await showChronicle('ch4'); active=sceneDonets(); await active.begin(); }
+async function startCity(){ $('fade').style.opacity=1; await showChronicle('ch3'); await showInterlude('ch3'); active=sceneCity(); await active.begin(); }
+async function startDonets(){ $('fade').style.opacity=1; await showChronicle('ch4'); await showInterlude('ch4'); active=sceneDonets(); await active.begin(); }
 async function startField(){ $('fade').style.opacity=1; camera.position.set(0,.32,0); active=sceneField(); await active.begin(); }
 
 // на телефоне — полный экран и горизонтальная ориентация, если браузер позволяет

@@ -322,3 +322,54 @@ function wordWriteGame(ru, kz, where){
     $('wgSkip').onclick=e=>{ e.stopPropagation(); finish(); };
   });
 }
+
+// ---------- комиксные вставки между главами ----------
+// Заполняют месяцы между главами: новости, письма, и как Асан учится понимать чужую речь.
+// Рисунки — чернилами по бумаге, простые силуэты (позже заменим рисованными).
+const INK='#2b241c', PAPER='#e2d5b6';
+const ART = {
+  train: ()=>`<rect width="400" height="260" fill="${PAPER}"/><line x1="0" y1="200" x2="400" y2="200" stroke="${INK}" stroke-width="3"/>
+    ${[40,140,240,340].map(x=>`<line x1="${x}" y1="200" x2="${x}" y2="120" stroke="${INK}" stroke-width="3"/><line x1="${x-14}" y1="128" x2="${x+14}" y2="128" stroke="${INK}" stroke-width="2"/>`).join('')}
+    <path d="M0 140 Q200 130 400 142" fill="none" stroke="${INK}" stroke-width="1"/>
+    ${[20,130,240].map(x=>`<rect x="${x}" y="150" width="100" height="44" fill="${INK}"/><rect x="${x+36}" y="160" width="26" height="22" fill="${PAPER}" opacity=".35"/><circle cx="${x+20}" cy="198" r="7" fill="${INK}"/><circle cx="${x+80}" cy="198" r="7" fill="${INK}"/>`).join('')}
+    <rect x="345" y="140" width="55" height="54" fill="${INK}"/><path d="M370 140 q-10 -30 20 -50 q30 -20 10 -60" fill="none" stroke="${INK}" stroke-width="10" opacity=".35" stroke-linecap="round"/>`,
+  drill: ()=>`<rect width="400" height="260" fill="${PAPER}"/><line x1="0" y1="210" x2="400" y2="210" stroke="${INK}" stroke-width="2"/>
+    ${[0,1,2,3,4,5,6].map(i=>{const x=40+i*50; return `<circle cx="${x}" cy="120" r="11" fill="${INK}"/><rect x="${x-11}" y="132" width="22" height="50" fill="${INK}"/><rect x="${x-9}" y="182" width="7" height="28" fill="${INK}"/><rect x="${x+2}" y="182" width="7" height="28" fill="${INK}"/><line x1="${x+14}" y1="100" x2="${x+14}" y2="185" stroke="${INK}" stroke-width="3"/>`;}).join('')}`,
+  notebook: (words)=>`<rect width="400" height="260" fill="#3a3026"/><g transform="rotate(-3 200 130)"><rect x="50" y="22" width="300" height="220" fill="#d9cdb0"/>
+    ${[0,1,2,3,4,5,6].map(i=>`<line x1="60" y1="${58+i*26}" x2="340" y2="${58+i*26}" stroke="#7a8aa0" stroke-width="1" opacity=".5"/>`).join('')}
+    <line x1="88" y1="22" x2="88" y2="242" stroke="#a0382a" stroke-width="1.5" opacity=".6"/>
+    ${(words||[]).slice(0,6).map((w,i)=>`<text x="96" y="${54+i*26}" font-family="Caveat,'Courier New',cursive" font-size="20" fill="#1d2a4a">${escapeHtml(w[0])} — ${escapeHtml(w[1])}</text>`).join('')}</g>`,
+  letter: ()=>`<rect width="400" height="260" fill="${PAPER}"/><g transform="translate(200 130) rotate(-12)"><path d="M-80 -50 L80 -50 L0 60 Z" fill="#efe6d0" stroke="${INK}" stroke-width="3"/><path d="M-80 -50 L0 10 L80 -50" fill="none" stroke="${INK}" stroke-width="2"/>
+    <text x="-40" y="-26" font-family="Caveat,cursive" font-size="16" fill="${INK}">полевая почта</text></g>
+    <path d="M20 250 q40 -60 90 -70 l30 10" fill="none" stroke="${INK}" stroke-width="10" stroke-linecap="round"/>`,
+  river: ()=>`<rect width="400" height="260" fill="${PAPER}"/><rect x="0" y="170" width="400" height="90" fill="#8e8a7a"/>
+    ${[0,1,2,3,4,5,6,7].map(i=>`<rect x="${10+i*48}" y="${100+(i*37)%40}" width="34" height="${70-(i*37)%40}" fill="${INK}"/>`).join('')}
+    ${[60,180,300].map(x=>`<path d="M${x} 110 q-20 -40 10 -70 q20 -20 -5 -40" fill="none" stroke="${INK}" stroke-width="16" opacity=".3" stroke-linecap="round"/>`).join('')}
+    ${[0,1,2,3].map(i=>`<line x1="${20+i*100}" y1="${200+i%2*12}" x2="${80+i*100}" y2="${200+i%2*12}" stroke="${PAPER}" stroke-width="2" opacity=".6"/>`).join('')}`,
+  banner: ()=>`<rect width="400" height="260" fill="${PAPER}"/><line x1="120" y1="40" x2="120" y2="240" stroke="${INK}" stroke-width="5"/><path d="M122 44 q60 -10 120 10 q50 16 100 0 l0 70 q-50 16 -100 0 q-60 -20 -120 -10 Z" fill="#8e1f1a"/>
+    ${[0,1,2,3,4].map(i=>`<circle cx="${40+i*80}" cy="208" r="9" fill="${INK}"/><rect x="${31+i*80}" y="218" width="18" height="42" fill="${INK}"/>`).join('')}`,
+  hospital: ()=>`<rect width="400" height="260" fill="#cfc2a2"/>${[0,1,2].map(i=>`<rect x="${20+i*130}" y="150" width="110" height="18" fill="${INK}"/><rect x="${24+i*130}" y="168" width="6" height="40" fill="${INK}"/><rect x="${120+i*130}" y="168" width="6" height="40" fill="${INK}"/>`).join('')}
+    <circle cx="200" cy="80" r="12" fill="${INK}"/><rect x="190" y="92" width="20" height="50" fill="${INK}"/><rect x="186" y="142" width="8" height="40" fill="${INK}"/><rect x="204" y="142" width="8" height="40" fill="${INK}" transform="rotate(14 208 142)"/><line x1="228" y1="96" x2="240" y2="186" stroke="${INK}" stroke-width="4"/>`,
+  wire: ()=>`<rect width="400" height="260" fill="#c9c6bc"/>${[30,130,230,330].map(x=>`<line x1="${x}" y1="70" x2="${x}" y2="240" stroke="${INK}" stroke-width="5"/>`).join('')}
+    ${[90,120,150,180,210].map(y=>`<path d="M0 ${y} ${Array.from({length:20},(_,k)=>`L${k*20+10} ${y+(k%2?4:-4)}`).join(' ')}" fill="none" stroke="${INK}" stroke-width="1.5"/>`).join('')}
+    <rect x="300" y="10" width="60" height="30" fill="${INK}"/><line x1="310" y1="40" x2="305" y2="240" stroke="${INK}" stroke-width="4"/><line x1="350" y1="40" x2="355" y2="240" stroke="${INK}" stroke-width="4"/>`
+};
+async function showInterlude(key){
+  const D = DATA.interludes && DATA.interludes[key]; if(!D) return;
+  // что Асан выучил за эти месяцы: на лёгком — всё, на среднем — две трети, на сложном — треть
+  const lvl = memory.difficulty||'normal', share = lvl==='easy'?1 : lvl==='hard'?.34 : .67;
+  const learnt = (D.learn||[]).slice(0, Math.max(1, Math.round((D.learn||[]).length*share)));
+  learnt.forEach(([ru,kz])=>{ const base=ru.replace(/\s*\(.*\)/,''); memory.knownWords.add(base); if(!memory.notebook.some(n=>n.ru===ru)) memory.notebook.push({ru, lat:toLat(base), kz, where:D.title}); });
+  (D.learnDe||[]).slice(0, Math.max(1, Math.round((D.learnDe||[]).length*share))).forEach(w=>memory.knownWords.add(w));
+  const page=$('page'); page.innerHTML='';
+  D.panels.forEach(p=>{ const d=document.createElement('div'); d.className='pn';
+    const words = p.art==='notebook' ? learnt : null;
+    d.innerHTML=`<svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block;filter:sepia(.35) contrast(1.1)">${ART[p.art] ? ART[p.art](words) : ''}</svg><div class="cap${p.art==='notebook'?'':' top'}">${escapeHtml(p.text)}</div>`;
+    page.appendChild(d); });
+  page.classList.toggle('four', D.panels.length>=4);
+  $('panels').style.display='flex'; $('fade').style.transitionDuration='600ms'; $('fade').style.opacity=0;
+  const click=()=>new Promise(r=>{ const h=()=>{ $('panels').removeEventListener('pointerdown',h); removeEventListener('keydown',kk); r(); }; const kk=e=>{ if(e.code==='Space'||e.code==='Enter') h(); }; $('panels').addEventListener('pointerdown',h); addEventListener('keydown',kk); });
+  const cells=[...page.children];
+  for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); sfx.paper(); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await click(); }
+  await fadeTo(1,600); $('panels').style.display='none'; page.classList.remove('four');
+}
