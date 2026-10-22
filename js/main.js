@@ -91,7 +91,7 @@ function lockLandscape(){
   const toGame=()=>{ $('gearBtn').style.display='block'; $('help').style.visibility=''; $('hud').style.visibility=''; const f=$('fade'); f.style.transitionDuration='0ms'; f.style.opacity=1; };
   const saved = loadGame();
   if(saved && CHAPTERS[saved.chapter]){
-    $('continue').hidden=false;
+    $('continue').hidden=false; $('continue').disabled=false;
     const go=(sv)=>{ initAudio(); lockLandscape(); memory=sv.memory; if(memory.notebook.length||memory.diary.length) $('nbBtn').style.display='block'; $('title').style.display='none'; toGame(); CHAPTERS[sv.chapter](); };
     // «Продолжить» — выбор: любая из пройденных глав, последняя отмечена
     $('continue').onclick=()=>{
@@ -137,7 +137,11 @@ window.__dbg = { get memory(){ return memory; }, DATA, get active(){ return acti
   $('fsBtn').onclick=e=>{ e.stopPropagation(); const d=document; (d.fullscreenElement ? d.exitFullscreen() : d.documentElement.requestFullscreen({navigationUI:'hide'})).catch(()=>{}).finally(()=>setTimeout(fsLabel,200)); };
   document.addEventListener('fullscreenchange', fsLabel);
   const inGame=()=>$('title').style.display==='none';
-  const open=e=>{ if(e) e.stopPropagation(); initAudio(); fsLabel(); $('settings').style.display='flex'; $('setHead').textContent = inGame() ? 'Пауза' : 'Настройки'; if(inGame()) setPaused(true); };
+  const open=e=>{ if(e) e.stopPropagation(); initAudio(); fsLabel(); $('settings').style.display='flex'; const g=inGame(); $('setHead').textContent = g ? 'Пауза' : 'Настройки'; $('gameRow').style.display = g ? '' : 'none'; $('setClose').textContent = g ? 'Вернуться в игру' : 'Готово'; $('saveNote').textContent=''; if(g) setPaused(true); };
+  // сохранение — контрольная точка: начало текущей главы (посреди сцены состояние не сохранить)
+  const chapName=()=>{ const s=loadGame(); if(!s) return ''; const c=DATA[s.chapter]&&DATA[s.chapter].card; return c?`${c.small} · ${c.big}`:''; };
+  $('setSave').onclick=e=>{ e.stopPropagation(); const ok=!!loadGame(); $('saveNote').textContent = ok ? `Сохранено: ${chapName()||'текущая глава'}, с начала главы` : 'Не удалось сохранить'; };
+  $('setMenu').onclick=e=>{ e.stopPropagation(); $('saveNote').textContent='Сохраняю…'; setPaused(false); location.reload(); };
   const close=()=>{ $('settings').style.display='none'; setPaused(false); };
   $('setBtn').onclick=open; $('gearBtn').onclick=open;
   $('setClose').onclick=e=>{ e.stopPropagation(); close(); };

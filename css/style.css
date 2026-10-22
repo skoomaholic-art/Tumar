@@ -301,3 +301,6 @@ body.cine #bark .bw{color:#d8cfb8}
 body.cine #dlg .who{font-size:13px;letter-spacing:.14em;font-weight:600;text-shadow:0 1px 3px #000,0 0 2px #000}
 body.cine #bark .bw{font-size:12px;font-weight:600}
 body:has(#dlg[style*="block"]) #prompt{opacity:0;pointer-events:none}
+
+#title .btn:disabled{opacity:.35;cursor:default;pointer-events:none}
+#settings .gameRow{display:flex;gap:10px;flex-wrap:wrap}

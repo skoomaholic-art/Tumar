@@ -44,13 +44,15 @@
   <label>Эффекты <input type="range" id="sSfx" min="0" max="1" step="0.05"><span class="val" id="vSfx"></span></label>
   <label>Диалоги <input type="range" id="sVoice" min="0" max="1" step="0.05"><span class="val" id="vVoice"></span></label>
   <label>Гамма <input type="range" id="sGamma" min="0.7" max="1.4" step="0.05"><span class="val" id="vGamma"></span></label>
-  <div class="row"><button class="btn" id="setClose" type="button">Готово</button></div>
+  <div class="row gameRow" id="gameRow"><button class="btn" id="setSave" type="button">Сохранить игру</button><button class="btn" id="setMenu" type="button">В главное меню</button></div>
+  <div class="small" id="saveNote" style="min-height:18px"></div>
+  <div class="row"><button class="btn" id="setClose" type="button">Вернуться в игру</button></div>
 </div></div>
 <div id="nb"><div class="sheet" id="nbSheet"></div></div>
 <div class="screen" id="title" style="display:flex">
   <h1>TUMAR</h1>
   <p class="small">серый макет · главы 1–6</p>
-    <button class="btn" id="continue" hidden>Продолжить</button>
+    <button class="btn" id="continue" disabled>Продолжить</button>
   <button class="btn" id="start">К истории</button>
   <button class="btn" id="fullStart" hidden>История без шифровок</button>
   <button class="btn" id="setBtn">Настройки</button>
