@@ -67,7 +67,7 @@ function sceneStalag(){
   const wIn=new THREE.Mesh(new THREE.BoxGeometry(8,2.5,2.9), new THREE.MeshLambertMaterial({color:0x2a2218, side:THREE.BackSide})); wIn.position.set(WX,1.25,0); wagon.add(wIn);
   // стенка с дверью — доски с щелями, сквозь щели бьёт день
   const plankM=M(0x3a2c20);
-  const slatWall=new THREE.Group(); for(let i=0;i<30;i++){ const pl=new THREE.Mesh(new THREE.BoxGeometry(.22,2.5,.06),plankM); pl.position.set(WX-3.6+i*.26,1.25,1.42); slatWall.add(pl); } wagon.add(slatWall);
+  const slatWall=new THREE.Group(); for(let i=0;i<30;i++){ const pl=new THREE.Mesh(new THREE.BoxGeometry(.19,2.5,.06),plankM); pl.position.set(WX-3.6+i*.26,1.25,1.42); slatWall.add(pl); } wagon.add(slatWall);
   // мир за щелями: мокрые чёрные поля и столбы, плывут мимо
   const outside=new THREE.Group(); scene.add(outside);
   for(let i=0;i<26;i++){ const f=new THREE.Mesh(new THREE.BoxGeometry(rand(3,7),.05,rand(2,6)), M([0x2a2620,0x3a3428,0x4a4434][i%3])); f.position.set(WX-40+i*3.2,-.4,rand(4,18)); outside.add(f); }
@@ -102,7 +102,7 @@ function sceneStalag(){
   const potato=new THREE.Mesh(new THREE.SphereGeometry(.07,6,5),M(0x8a6a3a)); potato.visible=false; bar.add(potato);
   const letter=new THREE.Mesh(new THREE.ConeGeometry(.09,.02,3),M(0xd8ccae)); letter.visible=false; bar.add(letter);
   const sleepers=[]; for(let i=0;i<10;i++){ const p=makePerson({coat:coats[i%6], hat:'none'}); p.rotation.x=-Math.PI/2; const side=i%2?1:-1; p.position.set(BX-6.6+(i>>1)*2.3+(i>>1>=2?2.3:0), .48+((i*7)%3)*.75, side*2.05); p.rotation.z=side>0?-Math.PI/2:Math.PI/2; bar.add(p); sleepers.push(p); }
-  function placeAsanB(){ const spot = memory.flags.barrackSpot==='stove' ? new THREE.Vector3(BX-.9,.48,1.0) : new THREE.Vector3(BX+6.4,.1,-1.1);
+  function placeAsanB(){ const spot = memory.flags.barrackSpot==='stove' ? new THREE.Vector3(BX-.9,.1,1.0) : new THREE.Vector3(BX+6.4,.1,-1.1);
     asanB.position.copy(spot); asanB.rotation.set(-Math.PI/2,0,memory.flags.barrackSpot==='stove'?0:Math.PI/2);
     vasily.position.set(spot.x+(memory.flags.barrackSpot==='stove'?-.7:-.75), spot.y, spot.z); vasily.rotation.set(-Math.PI/2,0,asanB.rotation.z); }
 
@@ -115,7 +115,7 @@ function sceneStalag(){
   const lamp=new THREE.Mesh(new THREE.ConeGeometry(.22,.2,10,1,true),M(0x2a2a24,{side:THREE.DoubleSide})); lamp.position.set(OX,2.1,0); office.add(lamp);
   const cord=new THREE.Mesh(new THREE.BoxGeometry(.02,.9,.02),M(0x111111)); cord.position.set(OX,2.6,0); office.add(cord);
   const bulb=new THREE.PointLight(0xffd8a0,1.5,6,1.6); bulb.position.set(OX,1.9,0); office.add(bulb);
-  const form=new THREE.Mesh(new THREE.PlaneGeometry(.3,.4),M(0xe2dccb)); form.rotation.x=-Math.PI/2; form.position.set(OX,.85,.15); form.visible=false; office.add(form);
+  const form=new THREE.Mesh(new THREE.PlaneGeometry(.3,.4),M(0xb8ae94)); form.rotation.x=-Math.PI/2; form.position.set(OX,.85,.15); form.visible=false; office.add(form);
   const pen=new THREE.Mesh(new THREE.BoxGeometry(.015,.015,.18),M(0x111111)); pen.position.set(OX+.22,.86,.15); pen.visible=false; office.add(pen);
   const haidar=sitDown(makePerson({coat:0x5e6252, hat:'pilotka'})); haidar.position.set(OX,-.15,-.75); haidar.userData.legL.rotation.x=haidar.userData.legR.rotation.x=-1.4; office.add(haidar);
   const patch=new THREE.Mesh(new THREE.CircleGeometry(.07,10),M(0x2e5a3a)); patch.position.set(-.08,.12,0); patch.rotation.y=-Math.PI/2; haidar.userData.armL.add(patch);
@@ -134,27 +134,27 @@ function sceneStalag(){
 
   const SHOTS = {
     // вагон: из глубины, тела против полос света
-    wagonDeep(k){ camera.fov=48; camera.position.set(WX-3.4,1.5,-1.1); return tmp.set(WX+1.5,1.1,1.2); },
+    wagonDeep(k){ camera.fov=46; camera.position.set(WX-3.85,2.15,-1.3); return tmp.set(WX+1.2,1.0,1.3); },
     // глаз у щели: поля плывут
-    gap(k){ camera.fov=30; camera.position.set(WX+.6,1.55,1.25); return tmp.set(WX+.4,1.4,6); },
+    gap(k){ camera.fov=50; camera.position.set(WX+.69,1.45,1.33); return tmp.set(WX+.69,1.0,8); },
     // лагерь сверху: медленный кран вниз
     campTop(k){ camera.fov=42; const e=Math.min(1,k/14); camera.position.set(lerp(-6,-2,e), lerp(46,30,e), lerp(28,22,e)); return tmp.set(0,0,lerp(2,4,e)); },
     // сверху за Асаном (игровой план)
-    follow(k){ camera.fov=40; const a=asan.position; camera.position.set(a.x+.5,10.5,a.z+7.5); return tmp.set(a.x,0,a.z+.3); },
+    follow(k){ camera.fov=40; const a=asan.position; camera.position.set(a.x+.5,12,a.z+4.2); return tmp.set(a.x,0,a.z+.2); },
     // руки у проволоки: сбоку, низко
     trade(k){ camera.fov=32; camera.position.set(TRADE.x+3,1.3,TRADE.z+1.2); return tmp.set(TRADE.x,1.2,TRADE.z+1.1); },
     // перекличка: высоко и сбоку, строй как узор
     rollTop(k){ camera.fov=36; camera.position.set(-16,17-Math.min(4,k*.2),16); return tmp.set(0,0,0); },
     // мёртвый в строю — средний план со стороны
-    rollDead(k){ camera.fov=28; const d=deadP.position; camera.position.set(d.x+3.4,1.7,d.z+6); return tmp.set(d.x,1.3,d.z); },
+    rollDead(k){ camera.fov=28; const d=deadP.position; camera.position.set(d.x+2.4,2.0,d.z-6.5); return tmp.set(d.x-.4,1.3,d.z); },
     // барак сверху, крыши нет: печка — единственный тёплый свет
     barrackTop(k){ camera.fov=44; const e=Math.min(1,k/12); camera.position.set(BX+lerp(2,1,e), lerp(13,10,e), lerp(6,4.5,e)); return tmp.set(BX,0,0); },
     // крупнее на месте Асана
-    bunk(k){ camera.fov=36; const a=asanB.position; camera.position.set(a.x+1.4,a.y+3.2,a.z+(a.z>0?-1.6:1.6)); return tmp.set(a.x-.3,a.y,a.z); },
+    bunk(k){ camera.fov=40; const a=asanB.position; camera.position.set(a.x+.9,2.2,a.z+(a.z>0?-1.4:1.4)); return tmp.set(a.x-.2,.15,a.z); },
     // Семён у печки, огонь снизу
-    semyon(k){ camera.fov=30; camera.position.set(BX-1,1.15,1.9); return tmp.set(semyon.position.x,1.0,semyon.position.z); },
+    semyon(k){ camera.fov=32; camera.position.set(BX+3.2,1.2,1.5); return tmp.set(semyon.position.x,1.0,semyon.position.z); },
     // полицай идёт между нар
-    polizai(k){ camera.fov=40; camera.position.set(BX-7.2,2.6,0); return wp(polizai).setY(1.3); },
+    polizai(k){ camera.fov=40; camera.position.set(BX+7.0,2.2,.6); return wp(polizai).setY(1.3); },
     // Ибрай-ага: двухплановый, учитель и ученик
     ibray(k){ camera.fov=34; const a=ibray.position; camera.position.set(a.x+1.8,1.5,a.z+1.6); return tmp.set(a.x+.5,1.0,a.z+.2); },
     // кабинет: общий, лампа сверху
@@ -174,7 +174,7 @@ function sceneStalag(){
     // шестеро уходят к воротам: со спины строя
     leave(k){ camera.fov=36; camera.position.set(1,2.4,5.5); return tmp.set(0,1,-14); },
     // мёртвый Габдулла на нарах, иней на бороде
-    gab(k){ camera.fov=30; const g=gabB.position; camera.position.set(g.x+.7,g.y+1.5,g.z+1.3-Math.min(.4,k*.05)); return tmp.set(g.x,g.y,g.z); }
+    gab(k){ camera.fov=34; const g=gabB.position; camera.position.set(g.x+.35,.95,g.z+1.6-Math.min(.3,k*.04)); return tmp.set(g.x,.5,g.z); }
   };
 
   // ---------- панели (как в главе 5) ----------
@@ -198,7 +198,7 @@ function sceneStalag(){
     async campTop(){ setShot('campTop'); await gwait(5); },
     async tradeHands(){ setShot('trade'); guardF.userData.armR.rotation.x=-1.4; await gwait(.9); rings.visible=false; sfx.paper();
       breadF.visible=true; breadF.position.set(TRADE.x,.06,TRADE.z+.5); guardF.userData.armR.rotation.x=0; noiseBurst({dur:.12,freq:300,q:1,gain:.3,type:'lowpass'}); await gwait(1.2); },
-    async deadHand(){ deadP.visible=true; const hp=rows[17], hq=rows[19]; deadP.position.set(hp.position.x+.75,0,hp.position.z); deadP.rotation.z=.18; deadP.userData.legL.rotation.x=.3;
+    async deadHand(){ deadP.visible=true; const hp=rows[4], hq=rows[5]; deadP.position.set(hp.position.x+.75,0,hp.position.z); deadP.rotation.y=Math.PI; deadP.rotation.z=.18; deadP.userData.legL.rotation.x=.3;
       hp.position.x-=.05; hq.position.x+=.05; setShot('rollDead'); await gwait(1.2); hp.userData.armR.rotation.x=-1.0; deadP.userData.armR.rotation.x=-2.9; tone({f:200,dur:.4,type:'sine',gain:.03}); await gwait(2.2); deadP.userData.armR.rotation.x=0; },
     async barrackTop(){ setShot('barrackTop'); await gwait(4); },
     async semyonLooksUp(){ semyon.rotation.y=Math.atan2(-(semyon.position.x-(BX+7)),-(semyon.position.z)); setShot('semyon'); await gwait(2.2); },
@@ -248,7 +248,7 @@ function sceneStalag(){
     S.phase='arrive'; setShot('campTop'); await fadeTo(0,1600);
     await run(DAT.scripts.arrive); closeDlg();
     // воскресенье: кольца
-    await wipe(1100,'right'); asan.position.set(-3,0,6.6); asan.rotation.y=Math.PI; sitDown(asan); gab.position.set(-4.1,0,6.9); sitDown(gab); gab.rotation.y=Math.PI*.85;
+    await wipe(1100,'right'); asan.position.set(-3,0,4.6); asan.rotation.y=Math.PI; sitDown(asan); gab.position.set(-4.1,0,4.9); sitDown(gab); gab.rotation.y=Math.PI*.85;
     setShot('follow'); rings.visible=true; asan.userData.armR.rotation.x=-.9;
     await run(DAT.scripts.rings_intro); closeDlg(); cine(false);
     S.phase='polish'; S.polish=0; $('holdLabel').textContent=DAT.objectives.polishLabel; $('hold').style.display='block'; $('bHold').style.width='0%';
@@ -293,7 +293,7 @@ function sceneStalag(){
     await fadeTo(1,1200);
   }
   async function winterPart(){
-    S.phase='winter'; placeAsanB(); await fadeTo(0,1400);
+    S.phase='winter'; placeAsanB(); setShot('barrackTop'); await fadeTo(0,1400);
     await run(DAT.scripts.gabdulla_dies); closeDlg();
     await fadeTo(1,1000);
     // перекличка зимой: Асан держит Габдуллу
@@ -309,7 +309,7 @@ function sceneStalag(){
     deadP.userData.armR.rotation.x=0; await gwait(1); await fadeTo(1,1400);
   }
   async function selectionPart(){
-    S.phase='selection'; scene.background.setHex(0xa8aaa6); scene.fog.color.setHex(0xa8aaa6); deadP.visible=false; rows[7].visible=true;
+    S.phase='selection'; setShot('rollTop'); scene.background.setHex(0xa8aaa6); scene.fog.color.setHex(0xa8aaa6); deadP.visible=false; rows[7].visible=true;
     // Ибрай-ага в строю, через одного от Асана
     ibray.parent && ibray.parent.remove(ibray); scene.add(ibray); ibray.rotation.set(0,Math.PI,0); ibray.position.set(rows[9].position.x,0,rows[9].position.z); ibray.userData.legL.rotation.x=ibray.userData.legR.rotation.x=0; ibray.userData.armR.rotation.x=0; rows[9].visible=false;
     if(S.board) S.board.visible=false;
