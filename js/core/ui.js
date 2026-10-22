@@ -58,7 +58,7 @@ function renderLang(text, lang){
   return text.split(/(\s+|[.,!?—:])/).map(w => {
     const k = w.toLowerCase();
     if(!/[а-яёa-zäöüß]/i.test(w)) return escapeHtml(w);
-    return memory.knownWords.has(k) ? `<span class="known">${escapeHtml(w)}</span>` : `<span class="noise">${scramble(w)}</span>`;
+    return (memory.knownWords.has(k) || COGNATES.has(k)) ? `<span class="known">${escapeHtml(w)}</span>` : `<span class="noise">${scramble(w)}</span>`;
   }).join('');
 }
 function escapeHtml(s){ return s.replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }

@@ -8,7 +8,7 @@ async function endChapter1(){ await chapterSummary(1,'ch2'); startDon(); }
 // итог главы: только решения этой главы (если предыдущая глава кончилась без итога — и её тоже)
 async function chapterSummary(n, next){
   const from = memory.logMark||0, first = (memory.lastSummary||0)+1;
-  const items = memory.log.slice(from);
+  const items = memory.log.slice(from).filter((x,i,a)=>a.findIndex(y=>JSON.stringify(y)===JSON.stringify(x))===i); // повтор после «Попробовать снова» не дублируем
   const words = memory.notebook.slice(memory.wordMark||0);
   memory.logMark = memory.log.length; memory.lastSummary = n; memory.wordMark = memory.notebook.length;
   // короткий тест по словам этой главы: учим казахский (игра на русском) или русский (игра на казахском)
@@ -51,8 +51,8 @@ async function finale(){
 // ---------- главный цикл ----------
 let last=performance.now(), gT=0;
 function loop(now){
-  const dt=Math.min((now-last)/1000,.05); last=now; gT+=dt;
-  if(active) active.update(dt,gT);
+  const dt=Math.min((now-last)/1000,.05); last=now; if(!PAUSED) gT+=dt;
+  if(active && !PAUSED) active.update(dt,gT);
   if(scene) renderer.render(scene,camera);
   if((gT*12|0)%2===0) drawGrain();
   requestAnimationFrame(loop);
@@ -125,9 +125,12 @@ window.__dbg = { get memory(){ return memory; }, DATA, get active(){ return acti
   const fsLabel=()=>{ $('fsBtn').textContent = document.fullscreenElement ? 'Выйти из полного экрана' : 'Полный экран'; };
   $('fsBtn').onclick=e=>{ e.stopPropagation(); const d=document; (d.fullscreenElement ? d.exitFullscreen() : d.documentElement.requestFullscreen({navigationUI:'hide'})).catch(()=>{}).finally(()=>setTimeout(fsLabel,200)); };
   document.addEventListener('fullscreenchange', fsLabel);
-  const open=e=>{ if(e) e.stopPropagation(); initAudio(); fsLabel(); $('settings').style.display='flex'; };
+  const inGame=()=>$('title').style.display==='none';
+  const open=e=>{ if(e) e.stopPropagation(); initAudio(); fsLabel(); $('settings').style.display='flex'; $('setHead').textContent = inGame() ? 'Пауза' : 'Настройки'; if(inGame()) setPaused(true); };
+  const close=()=>{ $('settings').style.display='none'; setPaused(false); };
   $('setBtn').onclick=open; $('gearBtn').onclick=open;
-  $('setClose').onclick=e=>{ e.stopPropagation(); $('settings').style.display='none'; };
-  $('settings').onclick=e=>{ if(e.target.id==='settings') $('settings').style.display='none'; };
-  addEventListener('keydown',e=>{ if(e.code==='Escape'){ const st=$('settings'); st.style.display = st.style.display==='flex' ? 'none' : (($('title').style.display==='none') ? 'flex' : st.style.display); } });
+  $('setClose').onclick=e=>{ e.stopPropagation(); close(); };
+  $('settings').onclick=e=>{ if(e.target.id==='settings') close(); };
+  addEventListener('keydown',e=>{ if(e.code==='Escape' || (e.code==='KeyP' && inGame())){ if($('settings').style.display==='flex') close(); else if(inGame()) open(); } });
+  addEventListener('blur',()=>{ if(inGame() && $('settings').style.display!=='flex') open(); }); // ушёл из вкладки — пауза
 })();

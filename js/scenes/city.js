@@ -310,6 +310,7 @@ function sceneCity(){
     S.shot='dugout'; S.shotT=0;
     await fadeTo(0,900);
     await run(DAT.scripts.raid_brief); closeDlg();
+    await prepRaid();
     cine(false);
     const w=wipe(1300); setupRaid(); await w;
     S.busy=false;
@@ -364,6 +365,33 @@ function sceneCity(){
     await fadeTo(1,800); $('panels').style.display='none';
   }
 
+  // сборы перед вылазкой: тёмные плащ-палатки, ничего звенящего, ракеты над нейтралкой — считать
+  const capeM = M(0x17191b);
+  function putCape(w){ const p=w.userData.p; const c=new THREE.Mesh(new THREE.CylinderGeometry(.46,.6,1.3,9,1,true), capeM); c.geometry.translate(0,-.65,0); c.material.side=THREE.DoubleSide; c.position.y=1.72; c.scale.y=.05; p.add(c);
+    const hood=new THREE.Mesh(new THREE.SphereGeometry(.25,10,8,0,Math.PI*2,0,Math.PI*.62), capeM); hood.position.set(0,1.84,-.03); hood.visible=false; p.add(hood);
+    const t0=performance.now(); (function grow(){ const k=Math.min(1,(performance.now()-t0)/900); c.scale.y=.05+k*.95; if(k<1) requestAnimationFrame(grow); else hood.visible=true; })(); sfx.paper && sfx.paper(); }
+  function stand(w,x,z,ry){ const p=w.userData.p; p.rotation.x=0; p.position.set(0,0,0); w.position.set(x,0,z); w.rotation.y=ry; }
+  function lie(w){ const p=w.userData.p; p.rotation.x=Math.PI/2; p.position.set(0,.3,-.9); }
+  async function prepRaid(){
+    const P=DAT.prep;
+    await fadeTo(1,700);
+    S.phase='prep'; showSet('raid'); lampLight.intensity=0;
+    scene.background.setHex(0x0d1117); scene.fog.color.setHex(0x0d1117); scene.fog.near=18; scene.fog.far=85; hemi.intensity=.34; moon.intensity=.3;
+    stand(kolW,-1,36.3,Math.PI/2+.4); stand(sashW,1.05,36.4,-Math.PI/2-.4); stand(asanW,0,35.5,0);
+    S.flareT=999; S.shot='prepGroup'; S.shotT=0;
+    await fadeTo(0,900);
+    caption(P.caption); await gwait(1.6);
+    bark('Колесников',P.kol,'ru'); await gwait(.8); putCape(kolW); await gwait(1.2); think(P.think1); await gwait(1.8);
+    putCape(sashW); bark('Сашко',P.sash,'ru'); await gwait(2.4);
+    putCape(asanW); await gwait(.6); think(P.think); await gwait(3);
+    kolW.rotation.y=sashW.rotation.y=asanW.rotation.y=Math.PI; // все трое к нейтралке
+    S.shot='prepFlare'; S.shotT=0; bark('Колесников',P.kol2,'ru'); await gwait(1.4);
+    launchFlare(); await gwait(7);
+    think(P.count); await gwait(4.5);
+    launchFlare(); bark('Колесников',P.kolCount,'ru'); await gwait(4);
+    S.shot='prepGroup'; S.shotT=0; bark('Колесников',P.go,'ru'); await gwait(1.6);
+    lie(kolW); lie(sashW); lie(asanW); S.shot=null; S.flare=0; flareSpr.visible=false; flareLight.intensity=0;
+  }
   function setupRaid(){
     S.phase='raid'; showSet('raid'); S.shot=null; lampLight.intensity=0;
     scene.background.setHex(0x0d1117); scene.fog.color.setHex(0x0d1117); scene.fog.near=18; scene.fog.far=85; hemi.intensity=.34; moon.intensity=.3;
@@ -431,6 +459,8 @@ function sceneCity(){
     camera.position.lerp(tmp2, 1-Math.pow(.03,dt)); camera.lookAt(target.x, 0, target.z-2); }
   // постановочные планы — неподвижная камера, живут ветер, снег, дыхание
   const SHOTS = {
+    prepGroup(k){ camera.fov=30; camera.position.set(5.8-k*.05, 2.1, 42.8); return tmp.set(0, 1.1, 36); },
+    prepFlare(k){ camera.fov=44; camera.position.set(2.4, 2.6, 39.2); return tmp.set(-.5, 3+Math.min(k,8)*.2, 14); },
     dugout(k){ camera.fov=40; camera.position.set(DG.x-2.05, 1.2, DG.z-2.0); return tmp.set(DG.x-.1, 1.0, DG.z-.85); },
     dugHand(k){ camera.fov=34; camera.position.set(DG.x-.35, 1.65, DG.z-1.75); return tmp.set(DG.x+.08, .82, DG.z-1.2); },
     gTrack(k){ const e=Math.min(1,k/7); camera.fov=30; camera.position.set(GD.x-11+e*8.5, 1.65, GD.z+4.2); return tmp.set(GD.x-11+e*8.5+1.2, 1.5, GD.z-.3); },
@@ -457,6 +487,8 @@ function sceneCity(){
         if(S.writing){ const a=asanSit.userData.armR; a.rotation.x=-1.15+Math.sin(t*9)*.07; a.rotation.z=Math.sin(t*3.7)*.06; }
         S.boomT=(S.boomT||4)-dt; if(S.boomT<=0){ S.boomT=rand(5,9); noiseBurst({dur:1.2,freq:70,q:.5,gain:.35,type:'lowpass'}); shake=.25; for(let i=0;i<5;i++) puff(tmp.set(DG.x+rand(-1.5,1.5),2,DG.z+rand(-2,1)), dustTex, .25, 1.6, -.9, .8); } }
       if(crawlPhase() || S.phase==='grabbing'){ raidUpdate(dt,t); }
+      else if(S.phase==='prep' && S.flare>0){ S.flare-=dt; const age=6.5-S.flare; flareSpr.position.y-=dt*2.4; flareLight.position.copy(flareSpr.position);
+        flareLight.intensity=(age<.5?age/.5:1)*clamp(S.flare/4,0,1)*2.4; flareSpr.scale.setScalar(1.6+Math.sin(t*30)*.2); if(S.flare<=0){ flareSpr.visible=false; flareLight.intensity=0; } }
       else if(S.phase==='dawn'){ S.dawn=Math.min(1,S.dawn+dt*.12); const e=S.dawn; scene.background.setRGB(lerp(.05,.42,e),lerp(.07,.38,e),lerp(.09,.38,e)); scene.fog.color.copy(scene.background); hemi.intensity=lerp(.34,.6,e);
         flareLight.intensity=Math.max(0,flareLight.intensity-dt); camFollow(dt, asanW.position); }
       if(S.prisonersPlay || S.phase==='prisoners'){ prisonersUpdate(dt,t); }
@@ -478,7 +510,7 @@ function sceneCity(){
       phaseDugout();
     },
     // для автопроверки
-    debug:{ asanW, gerW, kolW, POST, phaseDugout, phasePrisoners, phaseGuards }
+    debug:{ asanW, gerW, kolW, POST, prepRaid, phaseDugout, phasePrisoners, phaseGuards }
   };
 
   function raidUpdate(dt,t){

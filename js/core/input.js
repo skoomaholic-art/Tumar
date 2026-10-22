@@ -3,6 +3,7 @@
 // ---------- ввод ----------
 const keys = {};
 addEventListener('keydown', e=>{
+  if(PAUSED) return; // на паузе игра клавиш не слышит
   keys[e.code]=true;
   // автоповтор зажатой клавиши не должен листать реплики и выбирать варианты
   if(e.repeat){ if(active && active.onKey) active.onKey(e.code, true); return; }

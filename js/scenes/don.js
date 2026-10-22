@@ -170,6 +170,28 @@ function sceneDon(){
     animWalk(asan, len?1:0, dt);
   }
 
+  // налёт: бомбы ложатся «дорожкой» вдоль состава; на земле заранее видна растущая тень
+  const shadowM = new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.0});
+  async function dropBomb(x,z){
+    const m=new THREE.Mesh(new THREE.CircleGeometry(2.4,20), shadowM.clone()); m.rotation.x=-Math.PI/2; m.position.set(x,.05,z); m.scale.setScalar(.2); scene.add(m);
+    tone({f:1400,dur:1.1,type:'sine',gain:.05,slide:-900,bus:'sfx'});
+    const t0=performance.now();
+    while(performance.now()-t0<1150){ const k=(performance.now()-t0)/1150; m.scale.setScalar(.2+k*.8); m.material.opacity=.15+k*.4; await wait(30); }
+    scene.remove(m);
+    explode(x,z,1.2);
+    if(Math.hypot(singer.position.x-x, singer.position.z-z)<3 && singer.rotation.x===0){ S.singing=false; singer.rotation.x=-Math.PI/2; singer.position.y=.25; decal(singer.position.x, singer.position.z+.4, .8, bloodM); }
+    if(S.zhumFrozen && Math.hypot(zhum.position.x-x, zhum.position.z-z)<3.2){ zhum.rotation.x=-Math.PI/2; zhum.position.y=.25; setTimeout(()=>{ zhum.rotation.x=0; zhum.position.y=0; bark('Жумабай','Живой… живой я!'); },2200); }
+    const under = asan.position.distanceTo(SAFE)<2.2;
+    return !under && Math.hypot(asan.position.x-x, asan.position.z-z)<3.4;
+  }
+  async function raid(){
+    await wait(2600); // самолёты заходят, первая бомба отрывается
+    const path=[[-27,TRAIN_Z+6],[-20,TRAIN_Z+4],[-13,TRAIN_Z+7],[-6,TRAIN_Z+3.4],[-2.5,TRAIN_Z+5.5],[1,TRAIN_Z+3.8],[5,TRAIN_Z+6.5],[10,TRAIN_Z+4],[17,TRAIN_Z+6],[24,TRAIN_Z+3.5]];
+    let hit=false; const all=[];
+    for(const [x,z] of path){ all.push(dropBomb(x,z).then(h=>{ if(h) hit=true; })); await wait(520); if(hit) break; }
+    await Promise.all(all); await wait(hit?0:1500);
+    return hit;
+  }
   // ---------- фазы ----------
   async function phaseTrain(){
     S.phase='train'; asan.position.set(-3,0,TRAIN_Z+4); zhum.position.set(-1.5,0,TRAIN_Z+4.5); kol.position.set(5,0,TRAIN_Z+4); semyon.position.set(1,0,TRAIN_Z+4.6);
@@ -183,11 +205,23 @@ function sceneDon(){
     S.bombT=0;
     // Семён первым замечает самолёты и ныряет под вагон: «Ложись» Асан уже понимает
     bark('Семён', DAT.barks.semyonAlarm, 'ru'); S.semyonRun=true;
-    await wait(9500);
+    // Жумабай застыл посреди насыпи — его можно утащить под вагон (E)
+    S.zhumFrozen=true; S.zhumPulled=false;
+    await wait(1200); bark('Жумабай','Ой-бай… Құдай…');
+    for(;;){
+      const hit = await raid();
+      if(!hit) break;
+      // Асана накрыло: заново с начала налёта
+      S.busy=true; S.target=null; hitFlash(); await wait(700); await fadeTo(1,900);
+      await showCard('','Асана накрыло у насыпи', DAT.texts && DAT.texts.raidRetry || 'Тени бомб ползут по земле к составу. Как только крикнули «Ложись!» — под вагон.','Попробовать снова');
+      singer.rotation.x=0; singer.position.set(-6,0,TRAIN_Z+3.5); S.singing=true;
+      asan.position.set(-3,0,TRAIN_Z+4); zhum.position.set(-1.5,0,TRAIN_Z+4.5); zhum.rotation.set(0,0,0); S.zhumFrozen=!S.zhumPulled; S.zhumGo=false;
+      planes.forEach(p=>scene.remove(p)); planes.length=0;
+      for(let i=0;i<3;i++){ const p=makePlane(); p.position.set(-140-i*14, 45+i*3, TRAIN_Z-12+i*6); p.rotation.y=Math.PI/2; planes.push(p); }
+      await fadeTo(0,700); S.busy=false; bark('Семён', DAT.barks.semyonAlarm, 'ru');
+    }
     S.busy=true; S.target=null;
-    const safe = asan.position.distanceTo(SAFE) < 2.2;
-    if(!safe){ S.hp=Math.max(30,S.hp-35); hitFlash(); toast('Осколок рассёк плечо. Повезло, что не голову'); remember('Асан не успел укрыться под вагоном. Ранен в плечо, легко'); }
-    singer.rotation.x=-Math.PI/2; singer.position.y=.25; decal(singer.position.x, singer.position.z+.4, .8, bloodM);
+    if(S.zhumPulled){ memory.flags.zhumPulled=true; memory.relations.zhumabai=(memory.relations.zhumabai||0)+1; remember('Ты утащил Жумабая под вагон, когда он застыл под бомбами'); }
     planes.forEach(p=>scene.remove(p)); planes.length=0;
     await run(DAT.scripts.train_after); closeDlg();
     await fadeTo(1,1200);
@@ -207,13 +241,34 @@ function sceneDon(){
     if(S.wave===2){ spawnTank(); zhumabaiRun(); }
     bark('Колесников', ['','Идут! Дыши. Вперёд смотри!','Танк! По пехоте бей, по пехоте!','Ещё идут! Диск!'][S.wave], 'ru');
   }
+  // Жумабай уходит за дисками. Что с ним — игрок понимает сам, когда диск кончится, а его всё нет
   async function zhumabaiRun(){
-    await wait(1500); bark('Жумабай','Диски кончаются! Я к старшине — мигом!');
+    // врезка: диск пуст, Жумабай бежит за новыми
+    S.cut=true; S.firing=false; cine(true); $('aim').style.display='none';
+    for(let i=0;i<7;i++){ afterShot(); tracer(tmp.set(0,.8,-2.1), tmp2.set(rand(-6,6),.5,rand(-40,-25))); await wait(95); }
+    tone({f:900,dur:.04,type:'square',gain:.05}); await wait(260); tone({f:900,dur:.04,type:'square',gain:.05});
+    bark('Асан','Пусто! Жумабай, диск! Диск давай!');
+    await wait(1600);
+    bark('Жумабай','Последний был! Сейчас — к старшине, мигом!');
+    await wait(1100);
     S.zhumRun=1;
-    await wait(5200);
+    await wait(2600);
+    S.cut=false; cine(false); if(!isTouch) $('aim').style.display='block';
+    S.ammo=0; S.disks=Math.min(S.disks,1); // один запасной в подсумке — и всё
+    await wait(2600);
+    // разрыв там, куда он убежал; дым, и больше его не видно
     explode(zhum.position.x, zhum.position.z-.4, 1.1); zhum.visible=false; S.zhumRun=0;
-    await wait(900); bark('Асан','Жумабай! Жумабай!'); await run(DAT.scripts.zhumabai_lost);
-    await wait(9000); S.disks+=2; bark('Колесников','Держи диски! Жумабая не жди!','ru');
+    const cap=new THREE.Mesh(new THREE.BoxGeometry(.32,.08,.18), M(KHAKI)); cap.position.set(zhum.position.x+.6,-.4,zhum.position.z+.3); cap.rotation.y=.6; scene.add(cap);
+    S.zhumWait=true; S.zhumWaitT=0;
+  }
+  async function zhumabaiRealize(){
+    S.zhumWait=false;
+    think('Жумабай?');
+    await wait(2200);
+    think('Его всё нет. Тот разрыв в ходе сообщения… там, куда он побежал.');
+    await run(DAT.scripts.zhumabai_lost);
+    await wait(2500); S.disks+=2; bark('Колесников','Держи диски! Жумабая не жди — ход сообщения накрыло!','ru');
+    await wait(1500); bark('Асан','Жумабай…');
   }
   function phaseBattle(){
     semyon.visible=false; // в бою он на соседнем участке
@@ -260,7 +315,7 @@ function sceneDon(){
     await showCard('','Асан погиб у Дона','Не подпускай пехоту к окопу и меняй диск, пока они лежат.','Попробовать снова');
     // заново только бой: враги и танк убираются
     enemies.forEach(e=>scene.remove(e.p)); enemies.length=0; if(tank){ scene.remove(tank.g); tank=null; }
-    S.wave=0; S.hp=100; S.ammo=47; S.disks=3; S.reload=0; zhum.visible=true; zhum.position.set(1.2,-.45,.2);
+    S.wave=0; S.zhumWait=false; S.zhumRun=0; S.hp=100; S.ammo=47; S.disks=3; S.reload=0; zhum.visible=true; zhum.position.set(1.2,-.45,.2);
     await fadeTo(0,1000); phaseBattle();
   }
   async function battleWon(){
@@ -336,10 +391,12 @@ function sceneDon(){
         if(asan.position.distanceTo(SAFE)<2.2){ asan.position.y=-.5; } else asan.position.y=0;
         S.bombT=(S.bombT||0)+dt;
         planes.forEach((p,i)=>{ p.position.x+=dt*(38+i*2); p.position.y=Math.max(22, p.position.y - (Math.abs(p.position.x)<60?dt*6:0)); });
-        if(planes.length && S.bombT>4 && !S.bombsDone){ S.bombsDone=true; [-24,-12,-4,6,15,26].forEach((x,i)=>setTimeout(()=>{ if(S.phase==='train') explode(x, TRAIN_Z+rand(-6,7), 1.2); }, i*520)); }
         // знак укрытия под вагоном
         tmp.copy(SAFE); tmp.y=1.2; tmp.project(camera); const pr=$('prompt');
-        if(!S.busy && asan.position.distanceTo(SAFE)>2.2){ pr.style.display='block'; pr.style.left=((tmp.x+1)/2*innerWidth)+'px'; pr.style.top=((1-tmp.y)/2*innerHeight)+'px'; pr.textContent='Сюда — под вагон'; } else pr.style.display='none';
+        const nearZ = S.zhumFrozen && asan.position.distanceTo(zhum.position)<1.8;
+        if(nearZ){ tmp.copy(zhum.position); tmp.y=2; tmp.project(camera); }
+        if(!S.busy && (nearZ || asan.position.distanceTo(SAFE)>2.2)){ pr.style.display='block'; pr.style.left=((tmp.x+1)/2*innerWidth)+'px'; pr.style.top=((1-tmp.y)/2*innerHeight)+'px'; pr.textContent= nearZ ? (isTouch?'Тащить Жумабая':'E — тащить Жумабая') : 'Сюда — под вагон'; } else pr.style.display='none';
+        if(S.zhumGo){ const dx=SAFE.x-1-zhum.position.x, dz=SAFE.z-zhum.position.z, d=Math.hypot(dx,dz); if(d>.15){ zhum.position.x+=dx/d*Math.min(d,5*dt); zhum.position.z+=dz/d*Math.min(d,5*dt); zhum.rotation.y=Math.atan2(dx,dz); animWalk(zhum,1.4,dt); } else { zhum.position.y=-.5; S.zhumGo=false; animWalk(zhum,0,dt); } }
         camFollow(dt, asan.position, 15, 13);
       }
       else if(S.phase==='trench'){ camFollow(dt, tmp.set(0,0,-6), 13, 12); }
@@ -367,8 +424,9 @@ function sceneDon(){
     onKey(code,down){ if(!down) return;
       if(code==='KeyR' && S.phase==='battle') reload();
       if(S.phase==='battle' && code==='Space') S.firing=true;
+      if(S.phase==='train' && code==='KeyE') pullZhum();
     },
-    act(){ if(S.phase==='battle') reload(); },
+    act(){ if(S.phase==='battle') reload(); else if(S.phase==='train') pullZhum(); },
     holdStart(){}, holdEnd(){},
     async begin(){
       setObj(CH,'');
@@ -376,11 +434,13 @@ function sceneDon(){
       phaseTrain();
     },
     // для автопроверки: закончить бой сразу
+    debugZhum(){ zhumabaiRun(); },
     debugWin(){ enemies.forEach(e=>e.alive&&killEnemy(e)); S.wave=3; S.spawnLeft=0; }
   };
   listen(window,'keyup', e=>{ if(e.code==='Space' && S.phase==='battle') S.firing=false; });
 
-  function reload(){ if(S.reload>0 || S.ammo===47) return; if(S.disks<=0){ bark('Асан','Дисков нет…'); return; } S.reload=2.2; S.disks--; noiseBurst({dur:.15,freq:600,gain:.15}); setTimeout(()=>noiseBurst({dur:.12,freq:900,gain:.18}),900); }
+  function pullZhum(){ if(!S.zhumFrozen || S.busy || asan.position.distanceTo(zhum.position)>1.8) return; S.zhumFrozen=false; S.zhumPulled=true; S.zhumGo=true; zhum.rotation.x=0; zhum.position.y=0; bark('Асан','Жумабай! Вниз, вниз!'); }
+  function reload(){ if(S.reload>0 || S.ammo===47) return; if(S.disks<=0){ if(S.zhumWait) zhumabaiRealize(); else bark('Асан','Дисков нет…'); return; } S.reload=2.2; S.disks--; noiseBurst({dur:.15,freq:600,gain:.15}); setTimeout(()=>noiseBurst({dur:.12,freq:900,gain:.18}),900); }
 
   function camFollow(dt, target, h, back){
     if(S.shot && S.shot.until>S.clock){ camera.position.copy(S.shot.pos); camera.lookAt(S.shot.look); return; }
@@ -389,6 +449,12 @@ function sceneDon(){
   }
 
   function battleUpdate(dt,t){
+    if(S.cut){ if(S.zhumRun){ zhum.position.x-=3.2*dt; zhum.rotation.y=-Math.PI/2; animWalk(zhum,1,dt); }
+      muzzle.intensity=Math.max(0,muzzle.intensity-dt*30);
+      tmp2.set(3.6,1.05,2.4); camera.position.lerp(tmp2, 1-Math.pow(.001,dt)); camera.fov=lerp(camera.fov,38,1-Math.pow(.02,dt)); camera.updateProjectionMatrix();
+      camera.lookAt(lerp(.4,-1.5,Math.min(1,Math.max(0,(1.2-zhum.position.x)/8))), .35, -.2); return; }
+    // нужен диск, а Жумабая нет — тут и доходит
+    if(S.zhumWait){ S.zhumWaitT+=dt; if((S.disks===0 && (S.ammo<12 || S.reload>0)) || S.zhumWaitT>28) zhumabaiRealize(); }
     S.battleT+=dt; S.waveT+=dt;
     // огонь
     S.fireCd-=dt;
