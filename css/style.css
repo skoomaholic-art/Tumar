@@ -16,9 +16,9 @@ html,body{margin:0;height:100%;background:#0d0b09;color:var(--ink);font-family:"
 .bar i{display:block;height:100%;background:var(--ink2);width:50%}
 .bar.blood i{background:var(--accent)}
 #prompt{position:fixed;transform:translate(-50%,-100%);padding:4px 9px;background:var(--panel);border:1px solid var(--line);font-size:13px;pointer-events:none;display:none;white-space:nowrap}
-#toast{position:fixed;right:16px;bottom:120px;padding:10px 14px;background:var(--panel);border-left:3px solid var(--accent);font-size:14px;opacity:0;transform:translateY(8px);transition:all .4s;pointer-events:none;max-width:280px}
+#toast{position:fixed;right:16px;bottom:calc(120px + var(--ub));padding:10px 14px;background:var(--panel);border-left:3px solid var(--accent);font-size:14px;opacity:0;transform:translateY(8px);transition:all .4s;pointer-events:none;max-width:280px}
 #toast.on{opacity:1;transform:none}
-#dlg{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(760px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--line);padding:14px 16px 14px 104px;min-height:104px;display:none;cursor:pointer}
+#dlg{position:fixed;left:50%;bottom:calc(18px + var(--ub));transform:translateX(-50%);width:min(760px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--line);padding:14px 16px 14px 104px;min-height:104px;display:none;cursor:pointer}
 #dlg .por{position:absolute;left:14px;top:14px;width:76px;height:76px;border:1px solid var(--line);background:#2a231b;overflow:hidden}
 #dlg .who{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
 #dlg .txt{font-size:17px;line-height:1.4;margin-top:4px;min-height:24px}
@@ -57,20 +57,20 @@ html,body{margin:0;height:100%;background:#0d0b09;color:var(--ink);font-family:"
 #panels .pn:first-child{grid-row:1/3}
 #panels .pn img{width:100%;height:100%;object-fit:cover;filter:sepia(.55) contrast(1.25) saturate(.7) brightness(.95)}
 #panels .cap{position:absolute;left:10px;right:10px;bottom:10px;background:#e9dfc9;color:#1b1712;padding:7px 10px;font-size:15px;line-height:1.35;box-shadow:2px 2px 0 #000}
-#panels .note{position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:12px;color:#7d705a}
-#touch{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(140px + env(safe-area-inset-bottom,0px));display:none;flex-direction:column;gap:10px;align-items:flex-end}
+#panels .note{position:fixed;bottom:calc(10px + var(--ub));left:0;right:0;text-align:center;font-size:12px;color:#7d705a}
+#touch{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(140px + var(--ub));display:none;flex-direction:column;gap:10px;align-items:flex-end}
 #touch button{font:inherit;font-size:15px;min-width:120px;padding:12px 14px;background:var(--panel);color:var(--ink);border:1px solid var(--ink2)}
-#help{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));font-size:12px;color:var(--ink2);text-shadow:0 1px 2px #000}
+#help{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));bottom:calc(14px + var(--ub));font-size:12px;color:var(--ink2);text-shadow:0 1px 2px #000}
 #hold{position:fixed;left:50%;top:58%;transform:translateX(-50%);width:min(340px,76vw);display:none;text-align:center;font-size:14px;background:var(--panel);border:1px solid var(--line);padding:10px 14px 4px}
 #hold .bar{height:10px}
-#compass{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:none;font-size:15px;padding:6px 14px;background:var(--panel);border:1px solid var(--line);z-index:5;letter-spacing:.04em}
-#panels .next{position:fixed;bottom:34px;left:0;right:0;text-align:center;font-size:14px;color:var(--ink2)}
+#compass{position:fixed;left:50%;bottom:calc(150px + var(--ub));transform:translateX(-50%);display:none;font-size:15px;padding:6px 14px;background:var(--panel);border:1px solid var(--line);z-index:5;letter-spacing:.04em}
+#panels .next{position:fixed;bottom:calc(34px + var(--ub));left:0;right:0;text-align:center;font-size:14px;color:var(--ink2)}
 #panels{cursor:pointer}
 .lb{position:fixed;left:0;right:0;height:0;background:#000;z-index:8;transition:height .9s ease}
 #lbT{top:0}#lbB{bottom:0}
 body.cine .lb{height:11vh}
 body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s}
-#nbBtn{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:5;font:inherit;font-size:14px;padding:8px 14px;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer;display:none}
+#nbBtn{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(14px + var(--ub));z-index:5;font:inherit;font-size:14px;padding:8px 14px;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer;display:none}
 #nbBtn:focus-visible,#camBtn:focus-visible{outline:1px solid var(--ink)}
 #camBtn{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));top:calc(14px + env(safe-area-inset-top,0px));z-index:5;font:inherit;font-size:13px;padding:6px 12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer;display:none}
 #wings{position:fixed;inset:0;pointer-events:none;z-index:7;display:none}
@@ -96,13 +96,13 @@ body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s
 @keyframes turn{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
 @media (orientation:portrait) and (pointer:coarse){ #rotate{display:flex} }
 
-#bark{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:6;max-width:min(640px,90vw);padding:7px 14px;background:var(--panel);border:1px solid var(--line);font-size:16px;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center}
+#bark{position:fixed;left:50%;bottom:calc(84px + var(--ub));transform:translateX(-50%);z-index:6;max-width:min(640px,90vw);padding:7px 14px;background:var(--panel);border:1px solid var(--line);font-size:16px;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center}
 #bark.on{opacity:1}
 #bark .bw{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-right:6px}
 #bark .noise{color:#8a7d66;letter-spacing:.06em}
 #bark .known{text-decoration:underline dotted #8a7d66}
 #hit{position:fixed;inset:0;pointer-events:none;z-index:4;background:radial-gradient(ellipse at center,transparent 35%,rgba(120,10,6,.75) 100%);opacity:0;transition:opacity .25s}
-#ammo{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:5;font-size:14px;color:var(--ink2);text-align:right;display:none;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px #000}
+#ammo{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(64px + var(--ub));z-index:5;font-size:14px;color:var(--ink2);text-align:right;display:none;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px #000}
 #ammo b{font-size:22px;color:var(--ink);font-weight:normal}
 #aim{position:fixed;width:26px;height:26px;margin:-13px 0 0 -13px;border:1px solid rgba(233,223,201,.8);border-radius:50%;pointer-events:none;z-index:5;display:none}
 #aim::after{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px;background:#e9dfc9;border-radius:50%}
@@ -145,7 +145,7 @@ body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s
 @keyframes objIn{from{transform:translateX(-28px);opacity:0;background-color:rgba(201,164,106,.35)}to{transform:none;opacity:1}}
 @keyframes objLbl{0%{max-height:0;opacity:0}12%{max-height:18px;opacity:1}78%{max-height:18px;opacity:1}100%{max-height:0;opacity:0}}
 /* мысли Асана: почерк в кадре */
-#think{position:fixed;left:50%;bottom:calc(17vh + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(760px,86vw);text-align:center;z-index:12;pointer-events:none;
+#think{position:fixed;left:50%;bottom:calc(17vh + var(--ub));transform:translateX(-50%);width:min(760px,86vw);text-align:center;z-index:12;pointer-events:none;
   font-family:'Caveat','PT Serif',cursive;font-size:clamp(24px,3.2vw,36px);line-height:1.2;color:#f1e7d0;text-shadow:0 2px 10px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.9);opacity:0;transition:opacity .45s}
 #think.on{opacity:1}
 #think span{display:inline-block;opacity:0;transform:translateY(6px);filter:blur(3px)}
@@ -154,8 +154,15 @@ body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s
 body.thinking #vig{background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,.82) 100%)!important}
 body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate(.6) brightness(.85)}
 /* титр места и времени */
-#caption{position:fixed;left:calc(22px + env(safe-area-inset-left,0px));bottom:calc(13vh + env(safe-area-inset-bottom,0px));z-index:12;pointer-events:none;
+#caption{position:fixed;left:calc(22px + env(safe-area-inset-left,0px));bottom:calc(13vh + var(--ub));z-index:12;pointer-events:none;
   font-family:'Old Standard TT','PT Serif',serif;font-size:clamp(14px,1.6vw,19px);letter-spacing:.22em;text-transform:uppercase;color:#efe6d2;text-shadow:0 1px 6px rgba(0,0,0,.9);opacity:0;transition:opacity 1s}
 #caption.on{opacity:1}
 #beatDev{position:fixed;right:10px;top:10px;max-width:40vw;z-index:30;font:12px/1.3 monospace;color:#9bd;background:rgba(0,0,0,.6);padding:4px 6px;opacity:0;transition:opacity .4s;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.hud .obj.pop,#think span,#think.on span{animation:none;opacity:1;transform:none;filter:none}}
+/* нижний интерфейс поднимается над панелями браузера/приложения, которые лежат поверх страницы */
+:root{--ub:max(env(safe-area-inset-bottom,0px), var(--vvb,0px))}
+@media (pointer:coarse) and (orientation:landscape) and (max-height:560px){
+  :root{--ub:max(env(safe-area-inset-bottom,0px), var(--vvb,0px), 15vh)}
+  #dlg{min-height:0;padding:8px 12px 8px 76px}#dlg .por{width:54px;height:54px;top:8px;left:10px}#dlg .txt{font-size:15px}
+  body.cine .lb{height:7vh}
+}

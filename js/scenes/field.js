@@ -248,12 +248,12 @@ function sceneField(){
     async dogDrags(){ closeDlg(); const fw=fwdOf(F.yaw), rt=rightOf(F.yaw); const c=camera.position;
       for(let i=0;i<8;i++){ const k=.6+i*.42, side=(i%2?1:-1)*rand(.14,.3); addStalk(c.x+fw.x*k+rt.x*side, c.z+fw.z*k+rt.z*side); }
       dog.position.copy(c).addScaledVector(fw,.6); dog.position.y=0; dog.lookAt(c.x,0,c.z); // пятится и тянет на себя
-      fist.visible=true; F.fistIn=1; F.fistOpen=true; F.pitchTo=1.05; // небо, по нижнему краю — пасть и ворот
+      fist.visible=true; F.fistIn=1; F.fistOpen=true; F.pitchTo=1.05; dog.visible=false; // только небо, стебли и кулак — собаку слышно, но не видно
       for(let j=0;j<6;j++){ const t0=F.clock; const from=camera.position.clone(), to=from.clone().addScaledVector(fw,.5); F.dogRun=true;
         sfx.bark(.05); noiseBurst({dur:.3,freq:2400,q:.7,gain:.12,type:'bandpass'}); F.shake=.3; F.shakeAmp=.03; F.roll=(j%2?1:-1)*.14;
         await untilG(()=>{ const k=Math.min(1,(F.clock-t0)/.38); camera.position.x=lerp(from.x,to.x,k); camera.position.z=lerp(from.z,to.z,k); dog.position.copy(camera.position).addScaledVector(fw,.6); dog.position.y=0; return k>=1; });
         F.dogRun=false; F.fistOpen=(j%2===0); await gwait(.32); }
-      fist.visible=false; F.roll=0; F.pitchTo=.2;
+      fist.visible=false; F.roll=0; F.pitchTo=.2; dog.visible=true;
       // вытоптанная поляна: стебли вокруг лежат
       looseStalks.forEach(g=>{ if(Math.hypot(g.position.x-camera.position.x,g.position.z-camera.position.z)<2.2){ g.rotation.set(Math.PI/2-.1, rand(0,6), 0); g.userData.kick=0; g.userData.flat=true; } });
       await gwait(.6);

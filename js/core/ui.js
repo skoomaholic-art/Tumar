@@ -184,3 +184,10 @@ function bark(who, text, lang='kz'){
   const b=$('bark'); b.innerHTML=`<span class="bw">${escapeHtml(who)}</span> ${renderLang(text, lang)}`; b.classList.add('on');
   clearTimeout(barkT); barkT=setTimeout(()=>b.classList.remove('on'), 2600);
 }
+
+// Сколько снизу страницы закрыто панелью браузера/клавиатурой: поднимаем на столько весь нижний интерфейс
+(function trackBottomBar(){
+  const vv = window.visualViewport; if(!vv) return;
+  const upd = ()=>{ const hidden = Math.max(0, window.innerHeight - vv.height - vv.offsetTop); document.documentElement.style.setProperty('--vvb', Math.round(hidden)+'px'); };
+  vv.addEventListener('resize', upd); vv.addEventListener('scroll', upd); addEventListener('resize', upd); upd();
+})();
