@@ -78,17 +78,20 @@ function lockLandscape(){
   catch(e){ $('start').disabled=true; $('bootErr').textContent='Не удалось загрузить данные игры. Обновите страницу.'; return; }
   // меню — живая сцена: тумар на жерди загона, барашки, степь
   active=sceneMenu(); active.begin(); fadeTo(0,1800);
+  // перед новой игрой — один раз: вымысел, источники, предупреждение
+  const disclaimer=()=>showCard('', '', `<span style="display:block;max-width:560px;margin:0 auto;font-size:18px;line-height:1.6;color:var(--ink)">Художественный вымысел по мотивам воспоминаний ветеранов и бывших военнопленных из открытых источников. Все совпадения имён и судеб случайны.</span><br><span class="small">Игра содержит сцены жестокости, смерти и голода. 18+. Звук рекомендуется.</span>`, 'Понятно');
+  const newGame=async()=>{ initAudio(); lockLandscape(); $('title').style.display='none'; await disclaimer(); toGame(); startAul(); };
   const toGame=()=>{ $('help').style.visibility=''; $('hud').style.visibility=''; const f=$('fade'); f.style.transitionDuration='0ms'; f.style.opacity=1; };
   const saved = loadGame();
   if(saved && CHAPTERS[saved.chapter]){
     $('continue').hidden=false;
     $('continue').onclick=()=>{ initAudio(); lockLandscape(); memory=saved.memory; if(memory.notebook.length||memory.diary.length) $('nbBtn').style.display='block'; $('title').style.display='none'; toGame(); CHAPTERS[saved.chapter](); };
-    $('start').textContent='Новая игра';
+    $('start').textContent='К истории';
     // новая игра поверх сохранения — только со второго нажатия
     let armed=false;
-    $('start').onclick=()=>{ if(!armed){ armed=true; $('start').textContent='Сохранение сотрётся. Нажми ещё раз'; return; } deleteSave(); initAudio(); lockLandscape(); $('title').style.display='none'; toGame(); startAul(); };
+    $('start').onclick=()=>{ if(!armed){ armed=true; $('start').textContent='Сохранение сотрётся. Нажми ещё раз'; return; } deleteSave(); newGame(); };
   } else {
-    $('start').onclick=()=>{ initAudio(); lockLandscape(); $('title').style.display='none'; toGame(); startAul(); };
+    $('start').onclick=newGame;
   }
 })();
 
