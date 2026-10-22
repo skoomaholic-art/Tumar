@@ -37,7 +37,7 @@ async function finale(){
   $('bars').style.display='none'; $('touch').style.display='none'; setObj('','');
   const lines = decisionLines();
   const later = memory.later.length ? `<br><br><span class="small">Весной 1945-го, на хуторе, он запишет в блокнот:</span><br><span style="text-align:left;display:inline-block;font-family:'Courier New',monospace;font-size:14px">${memory.later.map(l=>'· '+escapeHtml(l)).join('<br>')}</span>` : '';
-  await showCard('Конец прототипа','Тумар',
+  await showCard('Конец прототипа','TUMAR',
     `Дальше — хутор в Австрии, освобождение и фильтрация.<div class="decs">${lines}</div>${later}<br><br><span class="small">История и персонажи вымышлены. Сцены написаны по мотивам опубликованных воспоминаний фронтовиков и бывших военнопленных.</span>`,
     'Сыграть снова');
   deleteSave();
