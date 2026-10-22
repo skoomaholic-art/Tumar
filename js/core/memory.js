@@ -7,8 +7,13 @@ function remember(text){ memory.log.push(text); toast(text); }
 // Асан записывает слово так, как слышит, школьной латиницей, и рядом пишет смысл по-казахски
 const LAT={а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'jo',ж:'ƶ',з:'z',и:'i',й:'j',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'ts',ч:'c',ш:'ş',щ:'ş',ъ:'',ы:'ь',ь:'',э:'e',ю:'ju',я:'ja'};
 function toLat(w){ return [...w.toLowerCase()].map(c=>LAT[c]??c).join(''); }
-function noteWord(ru, kz, where){
+// ярус слова: base — для всех, extra — средний и сложный, deep — только сложный
+const WORD_TIER={base:0, extra:1, deep:2}, LEVEL_RANK={easy:0, normal:1, hard:2};
+async function noteWord(ru, kz, where, tier='base'){
   if(memory.notebook.some(n=>n.ru===ru)) return;
+  if((WORD_TIER[tier]||0) > (LEVEL_RANK[memory.difficulty||'normal']||0)) return; // на этом уровне слово остаётся шумом
+  // мини-игра: записать слово в блокнот, собрав его по кусочкам
+  if(typeof wordWriteGame==='function') await wordWriteGame(ru, kz, where);
   memory.notebook.push({ru, lat:toLat(ru), kz, where}); memory.knownWords.add(ru);
   $('nbBtn').style.display='block';
 }

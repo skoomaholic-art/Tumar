@@ -46,9 +46,10 @@ test('палатка: хромота, тумар забран, раненый н
   assert.deepStrictEqual(m.calls.filter(c=>!c.startsWith('crossArms')), ['dragIn','feldWalk','beltsDown','neighbourDrip','bread','sinKneel','guardWalk','tearTumar']);
 });
 
-test('немецкая речь — шумом, слово «Jude» в панели тоже шум', ()=>{
+test('немецкая речь — шумом, а слово «Jude» понятно: его переводит Габдулла', ()=>{
   const de = [];
   for(const list of Object.values(D.scripts)) for(const s of list) if(['Фельдфебель','Санитар','Охранник'].includes(s.say)) de.push(s.lang);
   assert.ok(de.length>=4 && de.every(l=>l==='de'));
-  assert.ok(D.panels.point.some(p=>p.text.includes('{de:Jude}')));
+  assert.ok(D.panels.point.some(p=>/Jude.*еврей/.test(p.text)));
+  assert.ok(D.scripts.point_choice.some(s=>s.say==='Габдулла' && /еврей/.test(s.text)));
 });

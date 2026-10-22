@@ -48,7 +48,7 @@
     "head": "Әке, апа, Күләш — сәлем!",
     "lines": {
       "fine": "Я жив, здоров. Кормят хорошо, не беспокойтесь.",
-      "truth": "Здесь трудно. Спим в земле. Но я живой.",
+      "truth": "Я жив, но здесь трудно. Спим в земле.",
       "zhum_told": "Жумабай пропал за Доном. Скажите его матери сами, я не смог.",
       "zhum_lied": "Жумабай велел кланяться всему аулу.",
       "city": "Стоим в городе Сталинграде, на большой реке.",
@@ -59,7 +59,12 @@
     "struck": [
       "Сталинграде",
       "пропал за Доном"
-    ]
+    ],
+    "blanks": {
+      "self": "Я жив, ______.",
+      "zhum": "Жумабай ______.",
+      "end": "______"
+    }
   },
   "scripts": {
     "dugout": [
@@ -80,7 +85,19 @@
     ],
     "letter": [
       {
+        "call": "letterLine",
+        "args": [
+          "head"
+        ]
+      },
+      {
         "think": "Что написать о себе?"
+      },
+      {
+        "call": "letterBlank",
+        "args": [
+          "self"
+        ]
       },
       {
         "choose": "Асан",
@@ -90,18 +107,40 @@
             "text": "«Жив, здоров, кормят хорошо»",
             "set": {
               "letterSelf": "fine"
-            }
+            },
+            "then": [
+              {
+                "call": "letterFill",
+                "args": [
+                  "fine"
+                ]
+              }
+            ]
           },
           {
             "text": "«Здесь трудно. Спим в земле»",
             "set": {
               "letterSelf": "truth"
-            }
+            },
+            "then": [
+              {
+                "call": "letterFill",
+                "args": [
+                  "truth"
+                ]
+              }
+            ]
           }
         ]
       },
       {
         "think": "Жумабай. Его мать живёт через три двора."
+      },
+      {
+        "call": "letterBlank",
+        "args": [
+          "zhum"
+        ]
       },
       {
         "choose": "Асан",
@@ -117,6 +156,12 @@
             "then": [
               {
                 "remember": "Асан написал правду о Жумабае. Цензор это вычеркнет"
+              },
+              {
+                "call": "letterFill",
+                "args": [
+                  "zhum_told"
+                ]
               }
             ]
           },
@@ -128,6 +173,12 @@
             "then": [
               {
                 "remember": "Асан солгал о Жумабае в письме домой"
+              },
+              {
+                "call": "letterFill",
+                "args": [
+                  "zhum_lied"
+                ]
               }
             ]
           },
@@ -135,8 +186,22 @@
             "text": "[Не писать о нём]",
             "set": {
               "letterZhum": "none"
-            }
+            },
+            "then": [
+              {
+                "call": "letterFill",
+                "args": [
+                  "none"
+                ]
+              }
+            ]
           }
+        ]
+      },
+      {
+        "call": "letterLine",
+        "args": [
+          "city"
         ]
       },
       {
@@ -144,6 +209,12 @@
         "then": [
           {
             "think": "Последняя строчка."
+          },
+          {
+            "call": "letterBlank",
+            "args": [
+              "end"
+            ]
           },
           {
             "choose": "Асан",
@@ -160,6 +231,12 @@
                       "who": "father",
                       "delta": 1
                     }
+                  },
+                  {
+                    "call": "letterFill",
+                    "args": [
+                      "pen"
+                    ]
                   }
                 ]
               },
@@ -174,6 +251,12 @@
                       "who": "kulash",
                       "delta": 1
                     }
+                  },
+                  {
+                    "call": "letterFill",
+                    "args": [
+                      "kulash"
+                    ]
                   }
                 ]
               }
@@ -185,8 +268,23 @@
             "set": {
               "letterEnd": "pen"
             }
+          },
+          {
+            "call": "letterLine",
+            "args": [
+              "pen"
+            ]
           }
         ]
+      },
+      {
+        "call": "letterLine",
+        "args": [
+          "end"
+        ]
+      },
+      {
+        "call": "letterClose"
       },
       {
         "word": [

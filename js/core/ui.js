@@ -278,13 +278,47 @@ function chooseDifficulty(){
     let el=$('diff'); if(!el){ el=document.createElement('div'); el.id='diff'; el.className='screen'; document.body.appendChild(el); }
     el.innerHTML=`<p class="small">Уровень сложности</p><h1 style="font-size:clamp(26px,5vw,40px)">Сколько Асан понимает</h1>
       <div class="dOpts">
-        <button class="btn" data-l="easy"><b>Лёгкий</b><span>Асан с начала знает три десятка русских слов. В тесте главы — три слова.</span></button>
-        <button class="btn" data-l="normal"><b>Обычный</b><span>Асан почти не знает русского. В тесте главы — шесть слов.</span></button>
-        <button class="btn" data-l="hard"><b>Трудный</b><span>Каждое слово надо выучить. В тесте — все слова главы, ошибка возвращает слово в шум.</span></button>
+        <button class="btn" data-l="easy"><b>Лёгкий</b><span>Асан с начала знает 30 частых русских слов. За игру — около 64 новых слов, в тесте главы три слова.</span></button>
+        <button class="btn" data-l="normal"><b>Обычный</b><span>Асан почти не знает русского. За игру — около 120 новых слов, в тесте главы шесть.</span></button>
+        <button class="btn" data-l="hard"><b>Трудный</b><span>За игру — около 200 новых слов. В тесте все слова главы, ошибка возвращает слово в шум.</span></button>
       </div>`;
     el.style.display='flex';
     el.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{ const l=b.dataset.l; memory.difficulty=l;
       if(l==='easy') EASY_WORDS.forEach(w=>memory.knownWords.add(w));
       el.style.display='none'; res(l); });
+  });
+}
+
+// ---------- мини-игра «запиши слово»: собрать слово из кусочков по порядку ----------
+// Играем на русском — учим казахский: по русскому смыслу собираем казахское слово.
+// Играем на казахском — учим русский: по казахскому смыслу собираем русское слово латиницей, как писал Асан.
+function wordWriteGame(ru, kz, where){
+  return new Promise(res=>{
+    const toKz = SETTINGS.lang!=='kz';
+    const target = toKz ? kzClean(kz) : toLat(ru), hint = toKz ? ru : kzClean(kz);
+    const lvl = memory.difficulty||'normal';
+    let size = lvl==='easy'?3 : lvl==='hard'?1 : 2; const letters=[...target];
+    while(Math.ceil(letters.length/size)>9) size++;
+    const parts=[]; for(let i=0;i<letters.length;i+=size) parts.push(letters.slice(i,i+size).join(''));
+    const pool=parts.map((p,i)=>({p,i}));
+    if(lvl==='hard'){ const abc=toKz?'аеіоұүқғңәө':'aeiouksnrt'; for(let k=0;k<2;k++) pool.push({p:abc[Math.random()*abc.length|0],i:-1}); }
+    pool.sort(()=>Math.random()-.5);
+    let el=$('wgame'); if(!el){ el=document.createElement('div'); el.id='wgame'; document.body.appendChild(el); }
+    el.innerHTML=`<div class="sheet"><div class="wg-src">${escapeHtml(where||'Блокнот Асана')}</div>
+      <div class="wg-q">${toKz?'Как это по-казахски':'Как это звучит по-русски'}: <b>«${escapeHtml(hint)}»</b></div>
+      <div class="wg-line" id="wgLine"></div>
+      <div class="wg-tiles">${pool.map((t,k)=>`<button class="wg-t" data-k="${k}">${escapeHtml(t.p)}</button>`).join('')}</div>
+      <button class="wg-skip" id="wgSkip">Пропустить</button></div>`;
+    el.style.display='flex';
+    let next=0; const line=$('wgLine');
+    const finish=()=>{ el.querySelector('.wg-tiles').style.visibility='hidden'; $('wgSkip').style.display='none'; line.textContent=target; line.classList.add('done');
+      const w=el.querySelector('.sheet'); w.insertAdjacentHTML('beforeend',`<div class="wg-ok">${toKz?'':escapeHtml(ru)+' — '}записал в блокнот</div>`);
+      tone({f:660,dur:.12,gain:.04,bus:'voice'}); tone({f:990,dur:.2,gain:.03,delay:.1,bus:'voice'});
+      setTimeout(()=>{ el.style.display='none'; res(); }, 1300); };
+    el.querySelectorAll('.wg-t').forEach(b=>b.onclick=e=>{ e.stopPropagation(); const t=pool[+b.dataset.k];
+      if(t.i===next || (t.i>=0 && parts[t.i]===parts[next])){ b.disabled=true; b.classList.add('used'); line.textContent+=parts[next]; next++;
+        noiseBurst({dur:.07,freq:3200,q:.7,gain:.05,type:'bandpass',bus:'voice'}); if(next>=parts.length) finish(); }
+      else { b.classList.remove('bad'); void b.offsetWidth; b.classList.add('bad'); tone({f:180,dur:.15,type:'triangle',gain:.04,bus:'voice'}); } });
+    $('wgSkip').onclick=e=>{ e.stopPropagation(); finish(); };
   });
 }

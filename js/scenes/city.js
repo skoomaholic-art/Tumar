@@ -209,7 +209,18 @@ function sceneCity(){
   listen(canvas,'wheel', e=>{ S.zoom=clamp(S.zoom+Math.sign(e.deltaY)*.1,.6,1.5); }, {passive:true});
 
   // ---------- сценарий ----------
+  // письмо домой: лист лежит в кадре, строки проступают почерком, в пропуски игрок выбирает слова
+  function letterEl(){ let el=$('letterLive'); if(!el){ el=document.createElement('div'); el.id='letterLive'; document.body.appendChild(el); } el.style.display='block'; return el; }
+  async function writeRow(text){ const el=letterEl(), p=document.createElement('div'); el.appendChild(p);
+    for(let i=1;i<=text.length;i++){ p.textContent=text.slice(0,i); if(i%3===0) noiseBurst({dur:.05,freq:3000,q:.7,gain:.03,type:'bandpass',bus:'voice'}); await wait(30); } }
+  const letterHooks = {
+    letterLine(k){ return writeRow(k==='head' ? DAT.letter.head : DAT.letter.lines[k]); },
+    letterBlank(slot){ const el=letterEl(), p=document.createElement('div'); p.className='blankRow'; p.innerHTML=escapeHtml(DAT.letter.blanks[slot]).replace(/_{3,}/,'<span class="blank">&nbsp;</span>'); el.appendChild(p); sfx.paper(); },
+    async letterFill(k){ const el=letterEl(), b=el.querySelector('.blankRow:last-of-type'); if(b) b.remove(); if(k && k!=='none' && DAT.letter.lines[k]) await writeRow(DAT.letter.lines[k]); },
+    async letterClose(){ await wait(1100); const el=$('letterLive'); if(el){ el.style.display='none'; el.innerHTML=''; } }
+  };
   const run = makeRunner({
+    ...letterHooks,
     // блиндаж
     async boom(){ S.boomT=0; await gwait(1.4); },
     async writing(){ S.shot='dugHand'; S.shotT=0; S.writing=true; await gwait(3.2); S.writing=false; S.shot='dugout'; S.shotT=0; },

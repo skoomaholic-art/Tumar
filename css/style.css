@@ -203,3 +203,23 @@ body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate
 #diff .dOpts .btn b{display:block;font-weight:normal;font-size:18px}
 #diff .dOpts .btn span{display:block;font-size:13px;color:var(--ink2);margin-top:3px;line-height:1.4}
 @media (max-height:500px){#diff .dOpts .btn{padding:7px 12px}#diff .dOpts .btn span{font-size:12px}}
+
+/* мини-игра «запиши слово» */
+#wgame{position:fixed;inset:0;z-index:19;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);padding:12px}
+#wgame .sheet{width:min(480px,92vw);background:#d9cdb0;color:#2b241a;padding:18px 20px 14px 46px;transform:rotate(-.6deg);box-shadow:0 10px 40px #000;position:relative;
+  background-image:repeating-linear-gradient(transparent 0 31px,rgba(70,90,120,.28) 31px 32px),linear-gradient(90deg,transparent 34px,rgba(140,40,30,.35) 34px 35px,transparent 35px)}
+#wgame .wg-src{font-size:12px;color:#5e5444;font-style:italic}
+#wgame .wg-q{font-size:16px;margin:6px 0 4px}
+#wgame .wg-line{font-family:'Caveat','Courier New',cursive;font-size:34px;min-height:44px;border-bottom:1.5px solid #3a3026;color:#22263a;letter-spacing:.04em}
+#wgame .wg-line.done{color:#1d2a4a}
+#wgame .wg-tiles{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+#wgame .wg-t{font:inherit;font-size:18px;min-width:44px;padding:8px 12px;background:#efe6d0;color:#2b241a;border:1px solid #8a7a5a;cursor:pointer;box-shadow:1px 2px 0 rgba(0,0,0,.25)}
+#wgame .wg-t.used{opacity:.25}
+#wgame .wg-t.bad{animation:wgBad .35s}
+@keyframes wgBad{25%{transform:translateX(-5px);border-color:#a03a2a}75%{transform:translateX(5px);border-color:#a03a2a}}
+#wgame .wg-skip{margin-top:10px;font:inherit;font-size:12px;background:none;border:none;color:#7a6a50;text-decoration:underline;cursor:pointer}
+#wgame .wg-ok{margin-top:8px;font-size:13px;color:#4a6a3a}
+/* письмо домой: лист с пропусками */
+#letterLive{position:fixed;left:50%;top:calc(6vh + env(safe-area-inset-top,0px));transform:translateX(-50%) rotate(-.8deg);width:min(560px,88vw);max-height:56vh;overflow:hidden;z-index:14;display:none;
+  background:#d8ccae;color:#22263a;padding:16px 22px;box-shadow:0 10px 40px #000;font-family:'Caveat','Courier New',cursive;font-size:clamp(17px,2.6vw,24px);line-height:1.35}
+#letterLive .blank{display:inline-block;min-width:5em;border-bottom:2px dashed #8e1f1a;color:#8e1f1a}
