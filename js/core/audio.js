@@ -56,7 +56,7 @@ function setRing(on){
 }
 
 // ---------- настройки: звук по каналам, гамма; хранятся в браузере ----------
-const SETTINGS = Object.assign({ music:.7, sfx:.8, voice:.8, gamma:1 }, (()=>{ try{ return JSON.parse(localStorage.getItem('tumar-settings')||'{}'); }catch(_){ return {}; } })());
+const SETTINGS = Object.assign({ music:.7, sfx:.8, voice:.8, gamma:1, lang:'ru' }, (()=>{ try{ return JSON.parse(localStorage.getItem('tumar-settings')||'{}'); }catch(_){ return {}; } })());
 function applySettings(){
   if(AC) for(const k of ['music','sfx','voice']) BUS[k] && BUS[k].gain.setTargetAtTime(SETTINGS[k], AC.currentTime, .05);
   document.documentElement.style.setProperty('--gam', SETTINGS.gamma);

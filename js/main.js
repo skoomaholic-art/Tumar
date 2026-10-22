@@ -6,10 +6,13 @@ const CHAPTERS = { ch1: startAul, ch1b: startDeparture, ch2: startDon, ch3: star
 async function endChapter1(){ await chapterSummary(1,'ch2'); startDon(); }
 
 // итог главы: только решения этой главы (если предыдущая глава кончилась без итога — и её тоже)
-function chapterSummary(n, next){
+async function chapterSummary(n, next){
   const from = memory.logMark||0, first = (memory.lastSummary||0)+1;
   const items = memory.log.slice(from);
-  memory.logMark = memory.log.length; memory.lastSummary = n;
+  const words = memory.notebook.slice(memory.wordMark||0);
+  memory.logMark = memory.log.length; memory.lastSummary = n; memory.wordMark = memory.notebook.length;
+  // короткий тест по словам этой главы: учим казахский (игра на русском) или русский (игра на казахском)
+  if(words.length>=2) await wordQuiz(words, memory.notebook);
   saveGame(next);
   const lines = items.length ? items.map(l=>'· '+escapeHtml(l)).join('<br>') : '<span class="small">В этой главе никто ничего не запомнил.</span>';
   return showCard(first<n ? `Конец глав ${first}–${n}` : 'Конец главы '+n, 'Что запомнили', `<span style="text-align:left;display:inline-block">${lines}</span><br><br><span class="small">Игра сохранена.</span>`, 'Дальше');
@@ -81,7 +84,7 @@ function lockLandscape(){
   active=sceneMenu(); active.begin(); fadeTo(0,1800);
   // перед новой игрой — один раз: вымысел, источники, предупреждение
   const disclaimer=()=>showCard('', '', `<span style="display:block;max-width:560px;margin:0 auto;font-size:18px;line-height:1.6;color:var(--ink)">Художественный вымысел по мотивам воспоминаний ветеранов и бывших военнопленных из открытых источников. Все совпадения имён и судеб случайны.</span><br><span class="small">Игра содержит сцены жестокости, смерти и голода. 18+. Звук рекомендуется.</span>`, 'Понятно');
-  const newGame=async(full)=>{ initAudio(); lockLandscape(); $('title').style.display='none'; await disclaimer(); if(full===true) memory.fullDialogs=true; toGame(); startAul(); };
+  const newGame=async(full)=>{ initAudio(); lockLandscape(); $('title').style.display='none'; await disclaimer(); if(full===true) memory.fullDialogs=true; else await chooseDifficulty(); toGame(); startAul(); };
   // режим без шифровок открывается после прохождения
   let unlocked=false; try{ unlocked = localStorage.getItem('tumar-unlock-full')==='1'; }catch(_){}
   if(unlocked){ $('fullStart').hidden=false; $('fullStart').onclick=()=>{ deleteSave(); newGame(true); }; }
@@ -115,6 +118,10 @@ window.__dbg = { get memory(){ return memory; }, DATA, get active(){ return acti
   const map=[['sMusic','vMusic','music',v=>Math.round(v*100)+'%'],['sSfx','vSfx','sfx',v=>Math.round(v*100)+'%'],['sVoice','vVoice','voice',v=>Math.round(v*100)+'%'],['sGamma','vGamma','gamma',v=>(+v).toFixed(2)]];
   for(const [inp,out,key,fmt] of map){ const el=$(inp); el.value=SETTINGS[key]; $(out).textContent=fmt(SETTINGS[key]);
     el.oninput=()=>{ SETTINGS[key]=+el.value; $(out).textContent=fmt(el.value); saveSettings(); if(key==='voice') tone({f:1700,dur:.03,type:'triangle',gain:.02,bus:'voice'}); if(key==='sfx') sfx.wood(); }; }
+  const langMark=()=>{ $('langRu').classList.toggle('on',SETTINGS.lang!=='kz'); $('langKz').classList.toggle('on',SETTINGS.lang==='kz'); };
+  $('langRu').onclick=e=>{ e.stopPropagation(); SETTINGS.lang='ru'; saveSettings(); langMark(); };
+  $('langKz').onclick=e=>{ e.stopPropagation(); SETTINGS.lang='kz'; saveSettings(); langMark(); };
+  langMark();
   const fsLabel=()=>{ $('fsBtn').textContent = document.fullscreenElement ? 'Выйти из полного экрана' : 'Полный экран'; };
   $('fsBtn').onclick=e=>{ e.stopPropagation(); const d=document; (d.fullscreenElement ? d.exitFullscreen() : d.documentElement.requestFullscreen({navigationUI:'hide'})).catch(()=>{}).finally(()=>setTimeout(fsLabel,200)); };
   document.addEventListener('fullscreenchange', fsLabel);

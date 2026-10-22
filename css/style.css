@@ -190,3 +190,16 @@ body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate
 #settings .btn{margin-top:8px;font-size:14px;padding:8px 18px}
 #gearBtn{position:fixed;right:calc(150px + env(safe-area-inset-right,0px));bottom:calc(14px + var(--ub));z-index:5;font:inherit;font-size:14px;padding:8px 12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer;display:none}
 #title .btn{margin-top:12px}
+
+/* тест по словам */
+#quiz .qOpts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(520px,90vw);margin-top:14px}
+#quiz .qo{margin-top:0;width:100%}
+#quiz .qRight{border-color:#8ab06a;background:rgba(110,150,80,.25)}
+#quiz .qWrong{border-color:#b05a4a;background:rgba(150,60,50,.25)}
+#settings .langRow .btn.on{background:#2a231b;border-color:var(--ink)}
+
+#diff .dOpts{display:flex;flex-direction:column;gap:10px;width:min(560px,92vw);margin-top:16px}
+#diff .dOpts .btn{margin-top:0;text-align:left;padding:12px 16px}
+#diff .dOpts .btn b{display:block;font-weight:normal;font-size:18px}
+#diff .dOpts .btn span{display:block;font-size:13px;color:var(--ink2);margin-top:3px;line-height:1.4}
+@media (max-height:500px){#diff .dOpts .btn{padding:7px 12px}#diff .dOpts .btn span{font-size:12px}}

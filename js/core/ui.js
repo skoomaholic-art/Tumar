@@ -233,3 +233,58 @@ function signaturePad(head, hint, prev){
   const upd=()=>{ const H=innerHeight, W=innerWidth; const bar=Math.max(H*.035, (H - W/2.39)/2); document.documentElement.style.setProperty('--lbh', Math.round(bar)+'px'); };
   addEventListener('resize', upd); upd();
 })();
+
+// ---------- тест по словам в конце главы ----------
+// Игра на русском — учим казахский: показываем казахское слово, выбираем русское значение. Игра на казахском — наоборот.
+const kzClean = s => String(s).replace(/\s*\(.*?\)/g,'').replace(/\s*—.*$/,'').trim();
+const QUIZ_EXTRA = [['вода','су'],['хлеб','нан'],['мать','ана'],['дом','үй'],['конь','ат'],['степь','дала'],['отец','әке'],['утро','таң'],['ночь','түн'],['брат','аға']];
+function wordQuiz(words, pool){
+  const toKz = SETTINGS.lang==='kz'; // играем на казахском — спрашиваем русские слова
+  const uniq=[]; words.forEach(w=>{ if(!uniq.some(u=>u.ru===w.ru)) uniq.push(w); });
+  const lvl = memory.difficulty||'normal';
+  const qs = uniq.slice(lvl==='easy'?-3 : lvl==='hard'?-10 : -6);
+  const all = [...pool.map(w=>[w.ru,kzClean(w.kz)]), ...QUIZ_EXTRA];
+  return new Promise(res=>{
+    let el=$('quiz'); if(!el){ el=document.createElement('div'); el.id='quiz'; el.className='screen'; document.body.appendChild(el); }
+    el.style.display='flex'; let i=0, right=0;
+    const ask=()=>{
+      if(i>=qs.length){ el.innerHTML=`<p class="small">${toKz?'Орыс сөздері':'Казахские слова'}</p><h1 style="font-size:clamp(26px,5vw,40px)">${right} из ${qs.length}</h1>
+        <p>${right===qs.length?'Все слова узнал.':'Ошибки не страшны: слова останутся в блокноте.'}</p><button class="btn" id="qDone">Дальше</button>`;
+        $('qDone').onclick=()=>{ el.style.display='none'; memory.quiz=(memory.quiz||[]).concat([{right,total:qs.length}]); res(); }; return; }
+      const w=qs[i], ru=w.ru, kz=kzClean(w.kz);
+      const q=toKz?ru:kz, ans=toKz?kz:ru;
+      const wrong=[...new Set(all.map(p=>toKz?p[1]:p[0]).filter(x=>x && x!==ans))].sort(()=>Math.random()-.5).slice(0,3);
+      const opts=[ans,...wrong].sort(()=>Math.random()-.5);
+      el.innerHTML=`<p class="small">${toKz?'Сөзді тексер':'Проверь слово'} · ${i+1} / ${qs.length}</p>
+        <h1 style="font-size:clamp(28px,6vw,48px);letter-spacing:.04em">${escapeHtml(q)}</h1>
+        <p class="small">${toKz?'Қазақша мағынасы?':'Что это значит по-русски?'}</p>
+        <div class="qOpts">${opts.map(o=>`<button class="btn qo">${escapeHtml(o)}</button>`).join('')}</div>
+        <p class="small" style="opacity:.6">${escapeHtml(w.where||'')}</p>`;
+      el.querySelectorAll('.qo').forEach(b=>b.onclick=()=>{ const ok=b.textContent===ans; if(ok) right++;
+        // на трудном ошибка возвращает слово в шум — его придётся выучить заново
+        else if(lvl==='hard'){ memory.knownWords.delete(ru); }
+        el.querySelectorAll('.qo').forEach(x=>{ x.disabled=true; if(x.textContent===ans) x.classList.add('qRight'); else if(x===b) x.classList.add('qWrong'); });
+        tone(ok?{f:880,dur:.15,gain:.05,bus:'voice'}:{f:220,dur:.25,type:'triangle',gain:.05,bus:'voice'});
+        setTimeout(()=>{ i++; ask(); }, ok?700:1300); });
+    };
+    ask();
+  });
+}
+
+// ---------- уровень сложности: сколько слов Асан знает с начала и сколько нужно выучить ----------
+const EASY_WORDS=['да','нет','давай','иди','стой','сюда','назад','вперёд','тихо','хлеб','вода','живой','немцы','немец','ложись','огонь','пулемёт','товарищ','ну','кто','что','где','вот','здесь','ладно','быстро','свои','война','мама','спасибо'];
+function chooseDifficulty(){
+  return new Promise(res=>{
+    let el=$('diff'); if(!el){ el=document.createElement('div'); el.id='diff'; el.className='screen'; document.body.appendChild(el); }
+    el.innerHTML=`<p class="small">Уровень сложности</p><h1 style="font-size:clamp(26px,5vw,40px)">Сколько Асан понимает</h1>
+      <div class="dOpts">
+        <button class="btn" data-l="easy"><b>Лёгкий</b><span>Асан с начала знает три десятка русских слов. В тесте главы — три слова.</span></button>
+        <button class="btn" data-l="normal"><b>Обычный</b><span>Асан почти не знает русского. В тесте главы — шесть слов.</span></button>
+        <button class="btn" data-l="hard"><b>Трудный</b><span>Каждое слово надо выучить. В тесте — все слова главы, ошибка возвращает слово в шум.</span></button>
+      </div>`;
+    el.style.display='flex';
+    el.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{ const l=b.dataset.l; memory.difficulty=l;
+      if(l==='easy') EASY_WORDS.forEach(w=>memory.knownWords.add(w));
+      el.style.display='none'; res(l); });
+  });
+}
