@@ -409,8 +409,11 @@ function sceneDeparture(){
     setObj(CH, isTouch?DAT.objectives.marchTouch:DAT.objectives.march); staminaBar();
     S.marching=true;
     listen(canvas,'pointerdown', ()=>{ S.pHold=true; }); listen(canvas,'pointerup', ()=>{ S.pHold=false; }); listen(canvas,'pointerleave', ()=>{ S.pHold=false; });
-    let barkCD=0; const t0=S.clock;
+    let barkCD=0; const t0=S.clock; const evs=(DAT.marchEvents||[]).slice();
     while(S.clock-t0 < 42){ await gwait(.5); barkCD-=.5;
+      // по дороге: мысли, разговоры, команды — без остановки марша
+      while(evs.length && S.clock-t0 >= evs[0].t){ const e=evs.shift();
+        if(e.caption) caption(e.caption); else if(e.think) think(e.think); else if(e.bark){ bark(e.bark[0], e.bark[1], e.bark[2]||'kz'); barkCD=Math.max(barkCD,3); } }
       if(world.gap>7 && barkCD<=0){ bark('Жумабай', DAT.marchBarks.help); barkCD=6; }
       else if(world.gap>3.5 && barkCD<=0){ bark('Колесников', DAT.marchBarks.lag, 'ru'); barkCD=6; } }
     S.marching=false; S.tHold=S.pHold=false; memory.flags.marchLagged = world.lagT > 12;
