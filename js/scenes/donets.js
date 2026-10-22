@@ -395,7 +395,7 @@ function sceneDonets(){
     for(const h of [huts[2],huts[4]]) for(let i=0;i<3;i++) S.fires=(S.fires||[]).concat([h.position.clone().add(tmp.set(rand(-1.5,1.5),3,rand(-1,1)))]); }
   // перебежка: встаёт и бежит к меже, пока держишь W / кнопку; hit — очередь на середине пути
   async function dash(to, script, hit){
-    S.phase='dash'; S.firing=false; battleHud(false); setObj(CH,'');
+    S.busy=true; S.dashFrom=null; S.phase='dash'; S.firing=false; battleHud(false); setObj(CH,'');
     enemies.forEach(e=>{ if(e.alive){ e.alive=false; scene.remove(e.p); } });
     await run(script); closeDlg();
     asan.position.set(LIE.x,0,LIE.z); asan.rotation.set(0,Math.atan2(to.x-LIE.x,to.z-LIE.z),0); dp.visible=false;
@@ -517,7 +517,7 @@ function sceneDonets(){
       if(S.crickets && Math.random()<dt*3) tone({f:rand(4200,4800),dur:.05,type:'sine',gain:.012});
       if(S.phase==='battle' || S.phase==='iron') battleUpdate(dt,t);
       if(S.phase==='encircle') encircleUpdate(dt,t);
-      if(S.phase==='dash' && !S.busy){ const go = keys.KeyW||keys.ArrowUp||keys.Space||S.holding;
+      if(S.phase==='dash' && !S.busy && S.dashFrom){ const go = keys.KeyW||keys.ArrowUp||keys.Space||S.holding;
         if(go){ const L=S.dashFrom.distanceTo(S.dashTo); S.dashK=Math.min(1,S.dashK+dt*3.4/L); asan.position.lerpVectors(S.dashFrom,S.dashTo,S.dashK); asan.position.y=0; animWalk(asan,1.5,dt);
           if(Math.random()<dt*5){ tracer(tmp.set(LIE.x+rand(-14,14),1,LIE.z-rand(14,22)), tmp2.copy(asan.position).add(tmp2.set(rand(-1.5,1.5),rand(.3,1.6),rand(-1,2))), enemyTracerM); noiseBurst({dur:.05,freq:2200,gain:.05}); }
           if(Math.random()<dt*3) sfx.step(); }
