@@ -196,3 +196,34 @@ function bark(who, text, lang='kz'){
   const upd = ()=>{ const hidden = Math.max(0, window.innerHeight - vv.height - vv.offsetTop); document.documentElement.style.setProperty('--vvb', Math.round(hidden)+'px'); };
   vv.addEventListener('resize', upd); vv.addEventListener('scroll', upd); addEventListener('resize', upd); upd();
 })();
+
+// Подпись своей рукой: игрок сам ведёт пальцем или мышью по строке — крестик или имя; линия ложится карандашом.
+// Рисунок сохраняется (memory.signature) и потом встречается на других бумагах.
+function signaturePad(head, hint, prev){
+  return new Promise(res=>{
+    const W=480, H=130;
+    $('paper').innerHTML = `<div style="font-size:15px;opacity:.8">${head}</div>
+      ${prev?`<div style="font-size:12px;opacity:.6;margin-top:8px">Подпись на повестке, март 1942:</div><img src="${prev}" alt="" style="height:44px;opacity:.75;display:block">`:''}
+      <canvas id="sigPad" width="${W}" height="${H}" style="width:100%;max-width:${W}px;height:auto;display:block;margin:8px auto 0;touch-action:none;cursor:crosshair"></canvas>
+      <div class="hint" id="sigHint">${hint}</div>
+      <button class="btn" id="sigDone" style="visibility:hidden;margin-top:10px;color:#2b241a;border-color:#2b241a">Готово</button>`;
+    $('doc').style.display='flex'; $('doc').onclick=null;
+    const cv=$('sigPad'), g=cv.getContext('2d');
+    g.strokeStyle='#3a3026'; g.lineWidth=1.5; g.beginPath(); g.moveTo(14,H-26); g.lineTo(W-14,H-26); g.stroke();
+    let down=false, last=null, ink=0, scratchT=0;
+    const pos=e=>{ const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)*W/r.width, y:(e.clientY-r.top)*H/r.height}; };
+    cv.onpointerdown=e=>{ e.stopPropagation(); e.preventDefault(); down=true; last=pos(e); cv.setPointerCapture(e.pointerId); };
+    cv.onpointermove=e=>{ if(!down) return; e.stopPropagation(); const p=pos(e), d=Math.hypot(p.x-last.x,p.y-last.y); if(d<1.2) return;
+      // карандаш: тёмно-серый, неровный нажим, лёгкая дрожь
+      g.strokeStyle=`rgba(38,36,46,${.72+Math.random()*.25})`; g.lineWidth=1.6+Math.random()*1.3; g.lineCap='round';
+      g.beginPath(); g.moveTo(last.x,last.y); g.lineTo(p.x+(Math.random()-.5)*.6, p.y+(Math.random()-.5)*.6); g.stroke();
+      ink+=d; last=p;
+      const now=performance.now(); if(now-scratchT>90 && typeof noiseBurst==='function' && AC){ scratchT=now; noiseBurst({dur:.08,freq:3200+Math.random()*1200,q:.7,gain:.05,type:'bandpass'}); }
+      if(ink>70) $('sigDone').style.visibility='visible'; };
+    cv.onpointerup=cv.onpointercancel=e=>{ down=false; };
+    $('sigDone').onclick=e=>{ e.stopPropagation();
+      const sm=document.createElement('canvas'); sm.width=240; sm.height=65; sm.getContext('2d').drawImage(cv,0,0,240,65);
+      try{ memory.signature = sm.toDataURL('image/png'); }catch(_){}
+      $('doc').style.display='none'; res(memory.signature); };
+  });
+}

@@ -219,7 +219,7 @@ function sceneStalag(){
     async tumarBack(){ ibray.userData.armR.rotation.x=-1.2; await gwait(1.6); ibray.userData.armR.rotation.x=0; },
     async officeReveal(){ setShot('oWide'); await gwait(2.6); setShot('oHaidar'); await gwait(1.4); },
     async formOnTable(){ form.visible=true; pen.visible=true; setShot('oForm'); S.lampSwing=1; await gwait(2); setShot('oAsan'); },
-    async signForm(){ setShot('oForm'); asanO.userData.armR.rotation.x=-1.1; for(let i=0;i<4;i++){ noiseBurst({dur:.25,freq:3000,q:.8,gain:.05,type:'bandpass'}); await gwait(.3); } asanO.userData.armR.rotation.x=0; await gwait(.8); setShot('oHaidar'); },
+    async signForm(){ setShot('oForm'); asanO.userData.armR.rotation.x=-1.1; closeDlg(); await signaturePad(renderLang('Turkestanische Legion. Unterschrift:','de'), 'Распишись — так же, как когда-то на повестке.', memory.signature); asanO.userData.armR.rotation.x=0; await gwait(.6); setShot('oHaidar'); },
     async formAway(){ setShot('oForm'); await gwait(1.4); form.visible=false; pen.visible=false; await gwait(.6); setShot('oHaidar'); },
     async doctorWalk(){ doctor.visible=true; haidar.visible=false; asanO.position.set(OX-2.2,0,1.6); asanO.userData.legL.rotation.x=asanO.userData.legR.rotation.x=0; asanO.rotation.y=Math.PI/2;
       S.limpTo=new THREE.Vector3(OX+1.4,0,1.6); setShot('oWide'); await until(()=>!S.limpTo); await gwait(.6); },

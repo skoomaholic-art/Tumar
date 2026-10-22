@@ -201,6 +201,14 @@ function sceneAul(){
   const stones = new THREE.Group(); for(let i=0;i<7;i++){ const st=new THREE.Mesh(new THREE.DodecahedronGeometry(.09),M(0x3a3632)); st.position.set(Math.cos(i*.9)*.3,.06,Math.sin(i*.9)*.3); stones.add(st); }
   const embers = new THREE.Mesh(new THREE.SphereGeometry(.16,8,4,0,Math.PI*2,0,Math.PI/2), new THREE.MeshBasicMaterial({color:0xd8602a})); embers.scale.y=.3; stones.add(embers); stones.position.set(YC.x,0,YC.z);
   yurtIn.add(wallIn, roofIn, shanyrak, overDoor, rug, leafL, leafR, spill, juk, dombra, bag, stones);
+  // утро: мать у очага, чайник, кесе; сквозь шаңырақ падает столб света
+  const mother = makePerson({coat:0x4a3226, hat:'scarf', scarf:0xe2dccb}); mother.position.set(YC.x+.15,-.45,YC.z+.8); mother.userData.legL.rotation.x=mother.userData.legR.rotation.x=-1.45; mother.rotation.y=Math.PI*.9;
+  const kettle = new THREE.Mesh(new THREE.CylinderGeometry(.09,.12,.2,10), M(0x5a4a3a)); kettle.position.set(YC.x+.32,.1,YC.z+.2);
+  const kese = new THREE.Mesh(new THREE.CylinderGeometry(.05,.035,.05,10), M(0xe8e0d0)); kese.position.set(0,-.42,.1); kese.visible=false; mother.userData.armR.add(kese);
+  const dastarkhan = new THREE.Mesh(new THREE.CircleGeometry(.55,20), M(0xb83a2a)); dastarkhan.rotation.x=-Math.PI/2; dastarkhan.position.set(YC.x-.1,.025,YC.z-.15);
+  const bed = new THREE.Mesh(new THREE.BoxGeometry(1.9,.12,.8), M(0x2a4a6a)); bed.position.set(YC.x-.3,.06,YC.z-1.55);
+  const sunBeam = new THREE.Mesh(new THREE.CylinderGeometry(.3,.75,2.8,14,1,true), new THREE.MeshBasicMaterial({color:0xfff2d0, transparent:true, opacity:.07, depthWrite:false, side:THREE.DoubleSide})); sunBeam.position.set(YC.x+.15,1.45,YC.z-.25); sunBeam.rotation.z=.08;
+  yurtIn.add(mother, kettle, dastarkhan, bed, sunBeam);
   const hearth = new THREE.PointLight(0xff8a44, 0, 4.5, 2); hearth.position.set(YC.x,.5,YC.z); scene.add(hearth);
 
   // люди
@@ -256,6 +264,12 @@ function sceneAul(){
     showDoc,
     async kulashRuns(){ setShot('kulashRun'); S.look.asan=kulash; S.look.father=kulash; S.kulashGo=true; await until(()=>!S.kulashGo); S.look.kulash=asan; setShot('three'); },
     cut(name){ setShot(name); },
+    async sleep(){ mShot('sleep'); await gwait(2.4); },
+    async teaOffer(){ mShot('mother'); mother.userData.armR.rotation.x=-1.2; kese.visible=true; sfx.wood && tone({f:520,dur:.1,gain:.03}); await gwait(1.6); },
+    async sitTea(){ asan.rotation.set(0,Math.atan2(mother.position.x-(YC.x-.25),mother.position.z-(YC.z-.75)),0); asan.position.set(YC.x-.25,-.45,YC.z-.75); asan.userData.legL.rotation.x=asan.userData.legR.rotation.x=-1.45;
+      kese.visible=false; asan.userData.armR.rotation.x=asan.userData.armL.rotation.x=-1.1; mother.userData.armR.rotation.x=0; mShot('tea'); await gwait(2.2); },
+    async teaLeft(){ mother.userData.armR.rotation.x=-.4; await gwait(1.4); },
+    async doorCall(){ mShot('door'); asan.userData.armR.rotation.x=asan.userData.armL.rotation.x=0; asan.userData.legL.rotation.x=asan.userData.legR.rotation.x=0; await gwait(1.8); },
     // ремарки — показать, а не рассказать
     async holdShot(sec=2.4){ closeDlg(); await gwait(sec); },
     async fatherLooksAway(){ closeDlg(); father.lookAt(40,0,30); await gwait(2.2); },
@@ -358,7 +372,7 @@ function sceneAul(){
       return k>=1; });
     sfx.step(); S.rmanWalk = new THREE.Vector3().copy(asan.position).lerp(father.position,.25).add(new THREE.Vector3(-1.1,0,1.25));
     await until(()=>!S.rmanWalk); turnToNow(rman, asan);
-    S.look.asan=rman; S.look.father=rman; await gwait(.7);
+    S.look.asan=rman; S.look.father=rman; setShot('call'); await gwait(.7);
   }
   function turnToNow(o, b){ o.rotation.y=Math.atan2(b.position.x-o.position.x, b.position.z-o.position.z); }
   async function reachBag(){
@@ -398,6 +412,9 @@ function sceneAul(){
     wide(k){ camera.fov=34; camera.position.set(-5.5,1.0,16.5); return rider.position.clone().lerp(H,.45).setY(1.1); },
     // сквозь жерди загона: нарочный слезает с коня
     fence(k){ camera.fov=40; camera.position.set(8.5,1.3,3.7); return wp(rman).lerp(H,.35).setY(1.25); },
+    // окрик: из-за спин отца и сына, нарочный во весь рост лицом к нам; голова — в верхней трети, над репликой
+    call(k){ const p=wp(rman), mid=asan.position.clone().lerp(father.position,.5), d=flat(mid.clone().sub(p));
+      camera.fov=30; camera.position.copy(mid).addScaledVector(d,4.2-Math.min(.4,k*.06)).setY(2.45); return p.setY(.95); },
     // рука к поясу — крупнее, с того же места
     hand(k){ const p=wp(rman), d=flat(asan.position.clone().sub(p)), sd=sideOf(d);
       camera.fov=32; camera.position.copy(p).addScaledVector(d,.8).addScaledVector(sd,2.6).setY(1.15); return p.setY(1.05); },
@@ -467,15 +484,7 @@ function sceneAul(){
   }
   // вставка крупным планом: строка на повестке, и Асан выводит своё имя латиницей — как учили до новых букв
   function signatureInsert(){
-    return new Promise(res=>{
-      $('paper').innerHTML = `<div style="font-size:15px;opacity:.75">${renderLang('Получил. Подпись:','ru')}</div>
-        <svg viewBox="0 0 320 90" style="width:100%;max-width:420px;display:block;margin:10px auto 0"><line x1="10" y1="72" x2="310" y2="72" stroke="#3a3026" stroke-width="1.5"/>
-        <text x="40" y="62" font-family="Caveat,cursive" font-size="54" fill="#1d2a4a" stroke="#1d2a4a" stroke-width=".6" style="stroke-dasharray:900;stroke-dashoffset:900;fill-opacity:0;animation:sig 1.8s ease forwards">Asan</text></svg>
-        <style>@keyframes sig{60%{fill-opacity:0}100%{stroke-dashoffset:0;fill-opacity:1}}</style>`;
-      $('doc').style.display='flex';
-      let done=false; const fin=()=>{ if(done) return; done=true; $('doc').style.display='none'; res(); };
-      $('doc').onclick=fin; gwait(3.2).then(fin);
-    });
+    return signaturePad(renderLang('Получил. Подпись:','ru'), 'Распишись сам: проведи пальцем или мышью по строке. Можно крестик, можно имя.');
   }
   function showDoc(known){
     return new Promise(res=>{
@@ -511,8 +520,30 @@ function sceneAul(){
     await fadeTo(1,900); $('panels').style.display='none';
     startDeparture(); // дальше в той же главе: проводы, Акмолинск, эшелон
   }
+  // утро: Асан спит в юрте, мать будит и зовёт пить чай; снаружи кричит отец
+  async function morningYurt(){
+    S.morning={shot:'sleep'}; mShot('sleep'); cine(true);
+    asan.position.set(YC.x-.3,.2,YC.z-1.55); asan.rotation.set(-Math.PI/2,0,Math.PI/2);
+    await fadeTo(0,2600);
+    await run(DAT.scripts.morning); closeDlg();
+    // встаёт и выходит: силуэт в светлом проёме
+    asan.rotation.set(0,Math.PI/2,0); asan.position.set(YC.x-.2,0,YC.z); mShot('door'); mother.userData.armR.rotation.x=0; kese.visible=false;
+    const from=asan.position.clone(), to=new THREE.Vector3(DX+.9,0,YC.z), t0=S.clock||0;
+    await until(()=>{ const k=Math.min(1,((S.clock||0)-t0)/2.4); asan.position.lerpVectors(from,to,k); animWalk(asan,1,.016); return k>=1; });
+    await wipe(1200,'right'); S.morning=null; animWalk(asan,0,.016);
+  }
   function faceEach(a,b){ a.lookAt(b.position.x,0,b.position.z); }
   // долгий план в начале главы: горы и далёкий всадник справа, потом взгляд медленно уходит к двору
+  // утро в юрте: планы внутри, мягкий свет из шаңырақ и от очага
+  const MORNING = {
+    sleep(k){ camera.fov=42; camera.position.set(YC.x+.9,1.45-Math.min(.15,k*.02),YC.z-.35); return tmp.set(YC.x-.4,.15,YC.z-1.55); },
+    mother(k){ camera.fov=42; camera.position.set(YC.x-.55,.42,YC.z-1.45); return tmp.set(mother.position.x,1.0,mother.position.z); },
+    tea(k){ camera.fov=52; camera.position.set(YC.x-1.85,1.1,YC.z+.05); return tmp.set(YC.x-.05,.6,YC.z); },
+    door(k){ camera.fov=44; camera.position.set(YC.x-1.7,1.0,YC.z+.15); return tmp.set(DX,.95,YC.z); }
+  };
+  function morningShot(dt,t){ const M2=S.morning; M2.k=(M2.k||0)+dt; const look=MORNING[M2.shot](M2.k); camera.position.y+=Math.sin(t*.5)*.006; camera.updateProjectionMatrix();
+    if(M2.fresh||!M2.look){ M2.look=look.clone(); M2.fresh=false; } else M2.look.lerp(look,1-Math.pow(.2,dt)); camera.lookAt(M2.look); }
+  function mShot(n){ S.morning.shot=n; S.morning.k=0; S.morning.fresh=true; }
   function introShot(dt){
     const I=S.intro; I.t+=dt; const k=Math.min(1,I.t/9), e=k*k*(3-2*k);
     camera.position.copy(OBS.pos); camera.fov = lerp(20, 38, e); camera.updateProjectionMatrix();
@@ -584,9 +615,11 @@ function sceneAul(){
       S.zoneT = (inYurtZone === (S.shot==='yurt')) ? 0 : (S.zoneT||0)+dt;
       if(S.zoneT > (inYurtZone ? .35 : .6) || !S.shot){ S.shot = inYurtZone ? 'yurt' : 'obs'; S.cut=true; S.zoneT=0; }
       yurtIn.visible = S.shot==='yurt' && !S.seq; hearth.intensity = yurtIn.visible ? 1.1+Math.sin(t*9)*.12+Math.sin(t*23)*.06 : 0;
+      if(S.morning){ yurtIn.visible=true; hearth.intensity=1.1+Math.sin(t*9)*.12+Math.sin(t*23)*.06; fg.visible=false; }
       clothWind(t);
-      if(!S.seq || !DIR.shot) fg.visible = S.shot!=='yurt';
-      if(S.intro){ introShot(dt); }
+      if(!S.seq || !DIR.shot) fg.visible = S.shot!=='yurt' && !S.morning;
+      if(S.morning){ morningShot(dt,t); }
+      else if(S.intro){ introShot(dt); }
       else if(S.seq && DIR.shot){ directCamera(dt,t); }
       else if(S.shot==='yurt'){
         camera.position.copy(YURT_SHOT.pos); camera.position.y += Math.sin(t*.4)*.015;
@@ -633,6 +666,7 @@ function sceneAul(){
     async begin(){
       setObj(CH,'');
       await showCard(DAT.card.small, DAT.card.big, DAT.card.text, 'Начать');
+      await morningYurt();
       S.intro={t:0}; cine(true);
       await fadeTo(0,2600); await wait(7200);
       S.intro=null; S.lookAt=null; cine(false);
