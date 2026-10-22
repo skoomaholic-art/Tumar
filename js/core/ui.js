@@ -79,7 +79,7 @@ const PORTRAITS = {
   'Семён': {bg:'#2c2820', hat:'<rect x="23" y="14" width="30" height="10" rx="3" fill="#3e3428"/>', face:'#c8a07e'},
   'Сашко': {bg:'#2b2820', hat:'<rect x="22" y="15" width="32" height="8" rx="2" fill="#5e5a38"/>', face:'#c09676'},
   'Мать': {bg:'#30281e', hat:'<path d="M16 34 Q38 0 60 34 L60 46 L16 46 Z" fill="#e2dccb"/>', face:'#9a7656'},
-  'Габдулла': {bg:'#2a251c', hat:'<path d="M22 20 Q38 8 54 20 Z" fill="#3a5a3a"/>', face:'#8e6c50', beard:true},
+  'Мударис': {bg:'#2a251c', hat:'<path d="M22 20 Q38 8 54 20 Z" fill="#3a5a3a"/>', face:'#8e6c50', beard:true},
   'Синицын': {bg:'#22241f', hat:'<rect x="26" y="30" width="10" height="5" rx="2" fill="none" stroke="#222" stroke-width="1.5"/><rect x="40" y="30" width="10" height="5" rx="2" fill="none" stroke="#222" stroke-width="1.5"/>', face:'#b39072'},
   'Сосед': {bg:'#24211b', hat:'', face:'#8a6a50'},
   'Немец': {bg:'#1f2220', hat:'<path d="M20 24 Q38 6 56 24 L58 28 L18 28 Z" fill="#5a5e54"/><rect x="18" y="26" width="40" height="3" fill="#3a3e36"/>', face:'#c4a084'},
@@ -292,20 +292,20 @@ function chooseDifficulty(){
 // ---------- мини-игра «запиши слово»: собрать слово из кусочков по порядку ----------
 // Играем на русском — учим казахский: по русскому смыслу собираем казахское слово.
 // Играем на казахском — учим русский: по казахскому смыслу собираем русское слово латиницей, как писал Асан.
-function wordWriteGame(ru, kz, where){
+function wordWriteGame(ru, kz, where, opt){
   return new Promise(res=>{
     const toKz = SETTINGS.lang!=='kz';
-    const target = toKz ? kzClean(kz) : toLat(ru), hint = toKz ? ru : kzClean(kz);
+    const target = opt&&opt.target ? opt.target : toKz ? kzClean(kz) : toLat(ru), hint = toKz ? ru : kzClean(kz);
     const lvl = memory.difficulty||'normal';
     let size = lvl==='easy'?3 : lvl==='hard'?1 : 2; const letters=[...target];
     while(Math.ceil(letters.length/size)>9) size++;
     const parts=[]; for(let i=0;i<letters.length;i+=size) parts.push(letters.slice(i,i+size).join(''));
     const pool=parts.map((p,i)=>({p,i}));
-    if(lvl==='hard'){ const abc=toKz?'аеіоұүқғңәө':'aeiouksnrt'; for(let k=0;k<2;k++) pool.push({p:abc[Math.random()*abc.length|0],i:-1}); }
+    if(lvl==='hard'){ const abc=opt&&opt.target?'aeinrstl':toKz?'аеіоұүқғңәө':'aeiouksnrt'; for(let k=0;k<2;k++) pool.push({p:abc[Math.random()*abc.length|0],i:-1}); }
     pool.sort(()=>Math.random()-.5);
     let el=$('wgame'); if(!el){ el=document.createElement('div'); el.id='wgame'; document.body.appendChild(el); }
     el.innerHTML=`<div class="sheet"><div class="wg-src">${escapeHtml(where||'Блокнот Асана')}</div>
-      <div class="wg-q">${toKz?'Как это по-казахски':'Как это звучит по-русски'}: <b>«${escapeHtml(hint)}»</b></div>
+      <div class="wg-q">${opt&&opt.target ? (toKz?'Как это по-немецки':'Немісше қалай') : toKz?'Как это по-казахски':'Как это звучит по-русски'}: <b>«${escapeHtml(hint)}»</b></div>
       <div class="wg-line" id="wgLine"></div>
       <div class="wg-tiles">${pool.map((t,k)=>`<button class="wg-t" data-k="${k}">${escapeHtml(t.p)}</button>`).join('')}</div>
       <button class="wg-skip" id="wgSkip">Пропустить</button></div>`;

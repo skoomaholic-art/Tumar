@@ -49,6 +49,7 @@ function createRunner(api){
       else if('later' in st) api.later(st.later);
       else if('toast' in st) api.toast(st.toast);
       else if('word' in st) await api.word(...st.word);
+      else if('deWord' in st) await api.deWord(...st.deWord);
       else if('testify' in st) api.testify(st.testify[0], st.testify[1], st.where||'');
       else if('once' in st){ if(!mem.once[st.once]){ mem.once[st.once]=true; await run(st.then); } }
       else if('call' in st){ const fn=api.hooks && api.hooks[st.call]; if(!fn) throw new Error('Нет крючка сценария: '+st.call); await fn(...(st.args||[])); }

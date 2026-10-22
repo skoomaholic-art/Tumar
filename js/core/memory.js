@@ -17,6 +17,15 @@ async function noteWord(ru, kz, where, tier='base'){
   memory.notebook.push({ru, lat:toLat(ru), kz, where}); memory.knownWords.add(ru);
   $('nbBtn').style.display='block';
 }
+// немецкое слово: собрать его по-немецки; дальше в речи охраны оно читается
+async function noteDe(de, ru, kz, where, tier='base'){
+  const key=de.toLowerCase();
+  if(memory.notebook.some(n=>n.de===key)) return;
+  if((WORD_TIER[tier]||0) > (LEVEL_RANK[memory.difficulty||'normal']||0)) return;
+  if(!memory.knownWords.has(key) && typeof wordWriteGame==='function') await wordWriteGame(ru, kz, where, {target:de});
+  memory.notebook.push({ru:de+' — '+ru, de:key, lat:de, kz, where}); key.split(/\s+/).forEach(w=>memory.knownWords.add(w));
+  $('nbBtn').style.display='block';
+}
 function diary(text){ memory.diary.push(text); $('nbBtn').style.display='block'; }
 // раненый не пишет: эти записи появятся позже, когда будет спокойно
 function later(text){ memory.later.push(text); }
@@ -43,6 +52,6 @@ async function loadData(){
 }
 // Сценарий главы, подключённый к интерфейсу; hooks — крючки в код сцены
 function makeRunner(hooks){
-  return createRunner({ say, choose, close:closeDlg, memory, remember, diary, later, toast, word:noteWord, testify, hooks, wait, think, caption, beat });
+  return createRunner({ say, choose, close:closeDlg, memory, remember, diary, later, toast, word:noteWord, deWord:noteDe, testify, hooks, wait, think, caption, beat });
 }
 function fillObj(tpl, vars){ return String(tpl).replace(/\{(\w+)\}/g, (_,k)=>vars[k]); }

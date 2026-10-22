@@ -10,7 +10,7 @@ function mock(picks){
   out.api = { memory: out.memory,
     say: async (who,text)=>{ out.said.push(who+': '+text); }, choose: async ()=>picks.shift(),
     close: ()=>{}, wait: async ()=>{}, think: async ()=>{}, caption: ()=>{}, beat: ()=>{},
-    remember: t=>out.log.push(t), diary: ()=>{}, later: t=>out.later.push(t), toast: ()=>{}, word: ()=>{},
+    remember: t=>out.log.push(t), diary: ()=>{}, later: t=>out.later.push(t), toast: ()=>{}, word: ()=>{}, deWord: ()=>{},
     testify: (topic,value)=>out.testimony.push([topic,value]),
     hooks: new Proxy({}, { get:(_,name)=> (...a)=>{ out.calls.push(name+(a.length?':'+a[0]:'')); } }) };
   return out;
@@ -46,10 +46,10 @@ test('палатка: хромота, тумар забран, раненый н
   assert.deepStrictEqual(m.calls.filter(c=>!c.startsWith('crossArms')), ['dragIn','feldWalk','beltsDown','neighbourDrip','bread','sinKneel','guardWalk','tearTumar']);
 });
 
-test('немецкая речь — шумом, а слово «Jude» понятно: его переводит Габдулла', ()=>{
+test('немецкая речь — шумом, а слово «Jude» понятно: его переводит Мударис', ()=>{
   const de = [];
   for(const list of Object.values(D.scripts)) for(const s of list) if(['Фельдфебель','Санитар','Охранник'].includes(s.say)) de.push(s.lang);
   assert.ok(de.length>=4 && de.every(l=>l==='de'));
   assert.ok(D.panels.point.some(p=>/Jude.*еврей/.test(p.text)));
-  assert.ok(D.scripts.point_choice.some(s=>s.say==='Габдулла' && /еврей/.test(s.text)));
+  assert.ok(D.scripts.point_choice.some(s=>s.say==='Мударис' && /еврей/.test(s.text)));
 });

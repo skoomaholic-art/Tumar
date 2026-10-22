@@ -6,7 +6,7 @@ const D = JSON.parse(require('fs').readFileSync(__dirname+'/../data/ch06.json','
 async function play(flags, picks){
   const out={ memory:{ flags:{...flags} }, said:[], log:[], testimony:[], calls:[] };
   const api={ memory:out.memory, say:async(w,t)=>out.said.push(w+': '+t), choose:async()=>picks.shift(), close(){}, wait:async()=>{}, think:async()=>{}, caption(){}, beat(){},
-    remember:t=>out.log.push(t), diary(){}, later(){}, toast(){}, word(){}, testify:(k,v)=>out.testimony.push([k,v]),
+    remember:t=>out.log.push(t), diary(){}, later(){}, toast(){}, word(){}, deWord:(de)=>out.calls.push('de:'+de), testify:(k,v)=>out.testimony.push([k,v]),
     hooks:new Proxy({}, { get:(_,n)=>(...a)=>{ out.calls.push(n); } }) };
   const run=createRunner(api);
   for(const k of ['wagon','arrive','rings_intro','trade','rollcall_dead','barrack','informer','letter','night','ibray','recruiter']) await run(D.scripts[k]);
@@ -32,4 +32,10 @@ test('курт своим → у двери; сдал Василия; письм
 test('голос из дыма: Семён во сне повторяет ту же фразу, что в главе 4', async ()=>{
   const m=await play({grishaPhrase:'qoryqpady'}, [1,1,1]);
   assert.ok(m.said.includes('Семён: Ол… корыкпаты…'));
+});
+
+test('в плену охрана кричит по-немецки, Мударис объясняет слова', async ()=>{
+  const m=await play({}, [1,1,1]);
+  ['de:schnell','de:Schwein','de:Arbeit','de:Gefangene'].forEach(w=>assert.ok(m.calls.includes(w), w));
+  assert.ok(D.deBarks.some(b=>/Russisches Schwein/.test(b)) && D.deBarks.some(b=>/Untermensch/.test(b)));
 });

@@ -175,7 +175,7 @@ function sceneStalag(){
     finger(k){ camera.fov=30; camera.position.set(asan.position.x+.6,1.7,asan.position.z-2.4); return tmp.set(asan.position.x,1.55,asan.position.z); },
     // шестеро уходят к воротам: со спины строя
     leave(k){ camera.fov=36; camera.position.set(1,2.4,5.5); return tmp.set(0,1,-14); },
-    // мёртвый Габдулла на нарах, иней на бороде
+    // мёртвый Мударис на нарах, иней на бороде
     gab(k){ camera.fov=34; const g=gabB.position; camera.position.set(g.x+.5,1.9-Math.min(.3,k*.05),g.z+1.0); return tmp.set(g.x,.15,g.z); }
   };
 
@@ -298,7 +298,7 @@ function sceneStalag(){
     S.phase='winter'; placeAsanB(); setShot('barrackTop'); await fadeTo(0,1400);
     await run(DAT.scripts.gabdulla_dies); closeDlg();
     await fadeTo(1,1000);
-    // перекличка зимой: Асан держит Габдуллу
+    // перекличка зимой: Асан держит Мудариса
     snow.visible=true; rows.forEach(r=>{ r.visible=true; r.userData.armR.rotation.x=0; }); asan.visible=true; asan.position.set(rows[6].position.x,0,rows[6].position.z); asan.rotation.set(0,Math.PI,0); rows[6].visible=false;
     deadP.visible=true; deadP.position.set(rows[7].position.x,0,rows[7].position.z); deadP.rotation.set(0,Math.PI,-.18); scene.remove(gab);
     const frost=new THREE.Mesh(new THREE.ConeGeometry(.12,.22,6),M(0xe8eeee)); frost.position.set(0,1.66,.12); frost.rotation.x=Math.PI; deadP.add(frost);
@@ -330,6 +330,8 @@ function sceneStalag(){
       // вагон: поля плывут, вагон покачивается, стук колёс
       if(S.phase==='wagon'){ outside.children.forEach(o=>{ o.position.x-=dt*6; if(o.position.x<WX-44) o.position.x+=84; }); wagon.position.y=Math.sin(t*9)*.012; camera.position.y+=Math.sin(t*9)*.006;
         if(S.rumble){ breathT-=dt; if(breathT<=0){ breathT=.42; noiseBurst({dur:.09,freq:180,q:1,gain:.22,type:'lowpass'}); noiseBurst({dur:.09,freq:180,q:1,gain:.18,type:'lowpass',delay:.12}); } } }
+      // охрана кричит: одни и те же окрики; выученные слова читаются, остальное — шум
+      if(['arrive','polish','fence','traded','raise','selection'].includes(S.phase) && !dlgOpen){ S.yellT=(S.yellT??4)-dt; if(S.yellT<=0){ S.yellT=rand(6,11); const l=DAT.deBarks; bark('Охранник', l[Math.random()*l.length|0], 'de'); } }
       // ветер над лагерем
       windT-=dt; if(windT<=0 && S.phase!=='wagon' && S.phase!=='office'){ windT=rand(2.5,5); noiseBurst({dur:2.2,freq:420,q:.4,gain:.05,type:'bandpass'}); }
       walkers.forEach(w=>{ if(!w.visible) return; if(walkTo(w,w.userData.to,w.userData.v,dt)) w.userData.to.set(rand(-20,20),0,rand(-6,6)); });
