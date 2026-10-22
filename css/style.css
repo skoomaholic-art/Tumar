@@ -66,9 +66,9 @@ html,body{margin:0;height:100%;background:#0d0b09;color:var(--ink);font-family:"
 #compass{position:fixed;left:50%;bottom:calc(150px + var(--ub));transform:translateX(-50%);display:none;font-size:15px;padding:6px 14px;background:var(--panel);border:1px solid var(--line);z-index:5;letter-spacing:.04em}
 #panels .next{position:fixed;bottom:calc(34px + var(--ub));left:0;right:0;text-align:center;font-size:14px;color:var(--ink2)}
 #panels{cursor:pointer}
-.lb{position:fixed;left:0;right:0;height:0;background:#000;z-index:8;transition:height .9s ease}
+.lb{position:fixed;left:0;right:0;height:0;background:#000;z-index:8;transition:height 1.1s cubic-bezier(.65,0,.35,1)}
 #lbT{top:0}#lbB{bottom:0}
-body.cine .lb{height:11vh}
+body.cine .lb{height:var(--lbh,11vh)}
 body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s}
 #nbBtn{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(14px + var(--ub));z-index:5;font:inherit;font-size:14px;padding:8px 14px;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer;display:none}
 #nbBtn:focus-visible,#camBtn:focus-visible{outline:1px solid var(--ink)}
@@ -164,7 +164,7 @@ body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate
 @media (pointer:coarse) and (orientation:landscape) and (max-height:560px){
   :root{--ub:max(env(safe-area-inset-bottom,0px), var(--vvb,0px), 15vh)}
   #dlg{min-height:0;padding:8px 12px 8px 76px}#dlg .por{width:54px;height:54px;top:8px;left:10px}#dlg .txt{font-size:15px}
-  body.cine .lb{height:7vh}
+  body.cine .lb{height:var(--lbh,7vh)}
 }
 
 /* финал: все решения за игру */

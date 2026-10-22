@@ -227,3 +227,9 @@ function signaturePad(head, hint, prev){
       $('doc').style.display='none'; res(memory.signature); };
   });
 }
+
+// Каше, как в кинорежиме RDR2: в сценах-кино кадр сужается до 2.39:1 на любом экране
+(function letterbox(){
+  const upd=()=>{ const H=innerHeight, W=innerWidth; const bar=Math.max(H*.035, (H - W/2.39)/2); document.documentElement.style.setProperty('--lbh', Math.round(bar)+'px'); };
+  addEventListener('resize', upd); upd();
+})();
