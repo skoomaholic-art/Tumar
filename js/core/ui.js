@@ -54,7 +54,7 @@ setHelp(isTouch ? 'Слева — джойстик · касание — идт�
 // Язык: незнакомые русские слова превращаются в шум, известные — читаются
 function scramble(word){ return word.replace(/[а-яёa-zäöüß]/gi, ch => '▒░▓'[Math.random()*3|0]).replace(/[▒░▓]{2,}/g, m => m.slice(0, Math.max(2, m.length))); }
 function renderLang(text, lang){
-  if(lang!=='ru' && lang!=='de') return escapeHtml(text);
+  if((lang!=='ru' && lang!=='de') || memory.fullDialogs) return escapeHtml(text);
   return text.split(/(\s+|[.,!?—:])/).map(w => {
     const k = w.toLowerCase();
     if(!/[а-яёa-zäöüß]/i.test(w)) return escapeHtml(w);
@@ -112,7 +112,7 @@ function say(who, text, lang='kz'){
     clearInterval(typing);
     if(lang==='ru'||lang==='de'){ el.innerHTML = html; dlgResolve = res; return; }
     let i=0; el.textContent='';
-    typing = setInterval(()=>{ i+=2; el.textContent = text.slice(0,i); if(i>=text.length){ clearInterval(typing); typing=null; } }, 22);
+    typing = setInterval(()=>{ i+=2; el.textContent = text.slice(0,i); if(i%6===0) tone({f:1500+Math.random()*500,dur:.03,type:'triangle',gain:.02,bus:'voice'}); if(i>=text.length){ clearInterval(typing); typing=null; } }, 22);
     dlgResolve = () => { if(typing){ clearInterval(typing); typing=null; el.textContent=text; return false; } res(); return true; };
   });
 }

@@ -59,6 +59,7 @@ function sceneMenu(){
   let gust=0;
   const sc={
     update(dt,t){
+      playTune(dt); // мотив меню, когда звук уже включён
       // ветер: порывы, тумар качается и чуть поворачивается
       gust=lerp(gust, .5+.5*Math.sin(t*.37)*Math.sin(t*.13+1), dt*.8);
       pivot.rotation.z = Math.sin(t*1.25)*(.05+.12*gust) + .05*gust;

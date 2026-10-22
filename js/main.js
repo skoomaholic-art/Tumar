@@ -37,6 +37,7 @@ async function finale(){
   $('bars').style.display='none'; $('touch').style.display='none'; setObj('','');
   const lines = decisionLines();
   const later = memory.later.length ? `<br><br><span class="small">Весной 1945-го, на хуторе, он запишет в блокнот:</span><br><span style="text-align:left;display:inline-block;font-family:'Courier New',monospace;font-size:14px">${memory.later.map(l=>'· '+escapeHtml(l)).join('<br>')}</span>` : '';
+  try{ localStorage.setItem('tumar-unlock-full','1'); }catch(_){}
   await showCard('Конец прототипа','TUMAR',
     `Дальше — хутор в Австрии, освобождение и фильтрация.<div class="decs">${lines}</div>${later}<br><br><span class="small">История и персонажи вымышлены. Сцены написаны по мотивам опубликованных воспоминаний фронтовиков и бывших военнопленных.</span>`,
     'Сыграть снова');
@@ -80,8 +81,11 @@ function lockLandscape(){
   active=sceneMenu(); active.begin(); fadeTo(0,1800);
   // перед новой игрой — один раз: вымысел, источники, предупреждение
   const disclaimer=()=>showCard('', '', `<span style="display:block;max-width:560px;margin:0 auto;font-size:18px;line-height:1.6;color:var(--ink)">Художественный вымысел по мотивам воспоминаний ветеранов и бывших военнопленных из открытых источников. Все совпадения имён и судеб случайны.</span><br><span class="small">Игра содержит сцены жестокости, смерти и голода. 18+. Звук рекомендуется.</span>`, 'Понятно');
-  const newGame=async()=>{ initAudio(); lockLandscape(); $('title').style.display='none'; await disclaimer(); toGame(); startAul(); };
-  const toGame=()=>{ $('help').style.visibility=''; $('hud').style.visibility=''; const f=$('fade'); f.style.transitionDuration='0ms'; f.style.opacity=1; };
+  const newGame=async(full)=>{ initAudio(); lockLandscape(); $('title').style.display='none'; await disclaimer(); if(full===true) memory.fullDialogs=true; toGame(); startAul(); };
+  // режим без шифровок открывается после прохождения
+  let unlocked=false; try{ unlocked = localStorage.getItem('tumar-unlock-full')==='1'; }catch(_){}
+  if(unlocked){ $('fullStart').hidden=false; $('fullStart').onclick=()=>{ deleteSave(); newGame(true); }; }
+  const toGame=()=>{ $('gearBtn').style.display='block'; $('help').style.visibility=''; $('hud').style.visibility=''; const f=$('fade'); f.style.transitionDuration='0ms'; f.style.opacity=1; };
   const saved = loadGame();
   if(saved && CHAPTERS[saved.chapter]){
     $('continue').hidden=false;
@@ -91,7 +95,7 @@ function lockLandscape(){
     let armed=false;
     $('start').onclick=()=>{ if(!armed){ armed=true; $('start').textContent='Сохранение сотрётся. Нажми ещё раз'; return; } deleteSave(); newGame(); };
   } else {
-    $('start').onclick=newGame;
+    $('start').onclick=()=>newGame();
   }
 })();
 
@@ -105,3 +109,18 @@ tCrawl.addEventListener('pointerup',()=>{ active.crawl && active.crawl(false); }
 $('prompt').style.pointerEvents='auto';
 $('prompt').addEventListener('pointerdown',e=>{ e.stopPropagation(); active && active.act && active.act(); });
 window.__dbg = { get memory(){ return memory; }, DATA, get active(){ return active; } };
+
+// ---------- настройки ----------
+(function settingsUI(){
+  const map=[['sMusic','vMusic','music',v=>Math.round(v*100)+'%'],['sSfx','vSfx','sfx',v=>Math.round(v*100)+'%'],['sVoice','vVoice','voice',v=>Math.round(v*100)+'%'],['sGamma','vGamma','gamma',v=>(+v).toFixed(2)]];
+  for(const [inp,out,key,fmt] of map){ const el=$(inp); el.value=SETTINGS[key]; $(out).textContent=fmt(SETTINGS[key]);
+    el.oninput=()=>{ SETTINGS[key]=+el.value; $(out).textContent=fmt(el.value); saveSettings(); if(key==='voice') tone({f:1700,dur:.03,type:'triangle',gain:.02,bus:'voice'}); if(key==='sfx') sfx.wood(); }; }
+  const fsLabel=()=>{ $('fsBtn').textContent = document.fullscreenElement ? 'Выйти из полного экрана' : 'Полный экран'; };
+  $('fsBtn').onclick=e=>{ e.stopPropagation(); const d=document; (d.fullscreenElement ? d.exitFullscreen() : d.documentElement.requestFullscreen({navigationUI:'hide'})).catch(()=>{}).finally(()=>setTimeout(fsLabel,200)); };
+  document.addEventListener('fullscreenchange', fsLabel);
+  const open=e=>{ if(e) e.stopPropagation(); initAudio(); fsLabel(); $('settings').style.display='flex'; };
+  $('setBtn').onclick=open; $('gearBtn').onclick=open;
+  $('setClose').onclick=e=>{ e.stopPropagation(); $('settings').style.display='none'; };
+  $('settings').onclick=e=>{ if(e.target.id==='settings') $('settings').style.display='none'; };
+  addEventListener('keydown',e=>{ if(e.code==='Escape'){ const st=$('settings'); st.style.display = st.style.display==='flex' ? 'none' : (($('title').style.display==='none') ? 'flex' : st.style.display); } });
+})();

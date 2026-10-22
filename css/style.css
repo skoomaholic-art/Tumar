@@ -1,7 +1,7 @@
 :root{color-scheme:dark;--ink:#e9dfc9;--ink2:#b9ab8e;--paper:#1b1712;--accent:#8e1f1a;--panel:rgba(20,16,12,.92);--line:#5a4c38}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:#0d0b09;color:var(--ink);font-family:"PT Serif",Georgia,"Times New Roman",serif;overflow:hidden;user-select:none}
-#c{position:fixed;inset:0;width:100%;height:100%;display:block;filter:sepia(.28) contrast(1.06) saturate(.85)}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;filter:sepia(.28) contrast(1.06) saturate(.85) brightness(var(--gam,1))}
 #wipe{position:fixed;inset:0;display:none;pointer-events:none;background-size:100% 100%;filter:sepia(.28) contrast(1.06) saturate(.85)}
 #grain{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;opacity:.13;mix-blend-mode:overlay}
 #vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.75) 100%);transition:background .3s}
@@ -152,7 +152,7 @@ body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s
 #think.on span{animation:thinkW .7s forwards}
 @keyframes thinkW{to{opacity:1;transform:none;filter:none}}
 body.thinking #vig{background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,.82) 100%)!important}
-body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate(.6) brightness(.85)}
+body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate(.6) brightness(calc(.85 * var(--gam,1)))}
 /* титр места и времени */
 #caption{position:fixed;left:calc(22px + env(safe-area-inset-left,0px));bottom:calc(13vh + var(--ub));z-index:12;pointer-events:none;
   font-family:'Old Standard TT','PT Serif',serif;font-size:clamp(14px,1.6vw,19px);letter-spacing:.22em;text-transform:uppercase;color:#efe6d2;text-shadow:0 1px 6px rgba(0,0,0,.9);opacity:0;transition:opacity 1s}
@@ -178,3 +178,15 @@ body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate
 #title h1{letter-spacing:.22em}
 #title p{max-width:min(460px,46vw)}
 @media (max-height:500px){#title p{font-size:13px;margin:4px 0}#title .btn{margin-top:10px}}
+
+/* настройки */
+#settings{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.72);padding:16px}
+#settings .panel{width:min(440px,92vw);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--line);padding:20px 22px}
+#settings h2{font-family:"Old Standard TT","PT Serif",serif;font-weight:normal;font-size:22px;margin:0 0 12px;letter-spacing:.08em}
+#settings label{display:grid;grid-template-columns:110px 1fr 42px;align-items:center;gap:10px;margin:12px 0;font-size:15px}
+#settings input[type=range]{width:100%;accent-color:#c9a46a}
+#settings .val{font-size:13px;color:var(--ink2);text-align:right;font-variant-numeric:tabular-nums}
+#settings .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+#settings .btn{margin-top:8px;font-size:14px;padding:8px 18px}
+#gearBtn{position:fixed;right:calc(150px + env(safe-area-inset-right,0px));bottom:calc(14px + var(--ub));z-index:5;font:inherit;font-size:14px;padding:8px 12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer;display:none}
+#title .btn{margin-top:12px}
