@@ -92,7 +92,18 @@ function lockLandscape(){
   const saved = loadGame();
   if(saved && CHAPTERS[saved.chapter]){
     $('continue').hidden=false;
-    $('continue').onclick=()=>{ initAudio(); lockLandscape(); memory=saved.memory; if(memory.notebook.length||memory.diary.length) $('nbBtn').style.display='block'; $('title').style.display='none'; toGame(); CHAPTERS[saved.chapter](); };
+    const go=(sv)=>{ initAudio(); lockLandscape(); memory=sv.memory; if(memory.notebook.length||memory.diary.length) $('nbBtn').style.display='block'; $('title').style.display='none'; toGame(); CHAPTERS[sv.chapter](); };
+    // «Продолжить» — выбор: любая из пройденных глав, последняя отмечена
+    $('continue').onclick=()=>{
+      const all=loadChapters(), order=Object.keys(CHAPTERS).filter(k=>all[k]);
+      if(order.length<2){ go(saved); return; }
+      let el=$('chapSel'); if(!el){ el=document.createElement('div'); el.id='chapSel'; el.className='screen'; document.body.appendChild(el); }
+      const EXTRA={ch1b:'Глава 1 · Эшелон', ch5b:'Глава 5 · Сборный пункт'}; const name=k=>{ const c=DATA[k]&&DATA[k].card; return EXTRA[k] || (c ? `${c.small} · ${c.big}` : k); };
+      el.innerHTML=`<h2>Откуда продолжить</h2><div class="dOpts">${order.map(k=>`<button class="btn${k===saved.chapter?' last':''}" data-k="${k}" type="button"><b>${escapeHtml(name(k))}</b><span>${k===saved.chapter?'последнее сохранение':'начало главы'}</span></button>`).join('')}</div><button class="btn back" type="button">Назад</button>`;
+      el.style.display='flex';
+      el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ el.style.display='none'; go(all[b.dataset.k]); });
+      el.querySelector('.back').onclick=()=>{ el.style.display='none'; };
+    };
     $('start').textContent='К истории';
     // новая игра поверх сохранения — только со второго нажатия
     let armed=false;

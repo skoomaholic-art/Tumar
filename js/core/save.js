@@ -13,11 +13,22 @@ function deserializeMemory(o){
   m.knownWords = new Set(m.knownWords);
   return m;
 }
+// кроме последнего сохранения — снимок начала каждой пройденной главы: можно начать с любой
+const CH_KEY = 'tumar-chapters';
 function saveGame(chapter){
   try{
-    localStorage.setItem(SAVE_KEY, JSON.stringify({ v:SAVE_VERSION, chapter, at:Date.now(), memory:serializeMemory(memory) }));
+    const snap = { v:SAVE_VERSION, chapter, at:Date.now(), memory:serializeMemory(memory) };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(snap));
+    let all={}; try{ all=JSON.parse(localStorage.getItem(CH_KEY)||'{}')||{}; }catch(_){}
+    all[chapter]=snap; localStorage.setItem(CH_KEY, JSON.stringify(all));
     return true;
   }catch(e){ return false; }
+}
+function loadChapters(){
+  const out={};
+  try{ const all=JSON.parse(localStorage.getItem(CH_KEY)||'{}')||{}; for(const [k,s] of Object.entries(all)) if(s && s.memory) out[k]={ chapter:k, at:s.at, memory:deserializeMemory(s.memory) }; }catch(_){}
+  const last=loadGame(); if(last && !out[last.chapter]) out[last.chapter]=last;
+  return out;
 }
 function loadGame(){
   try{
@@ -27,4 +38,4 @@ function loadGame(){
     return { chapter:s.chapter, memory:deserializeMemory(s.memory) };
   }catch(e){ return null; }
 }
-function deleteSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+function deleteSave(){ try{ localStorage.removeItem(SAVE_KEY); localStorage.removeItem(CH_KEY); }catch(e){} }

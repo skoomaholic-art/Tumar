@@ -282,3 +282,14 @@ body.cine #dlg #choices{text-align:left}
 body.cine #bark{background:transparent;border:none;color:#fff;text-shadow:0 1px 3px #000,0 0 2px #000;bottom:calc(var(--lbh,11vh) + 10px + var(--ub))}
 body.cine #bark .bw{color:#d8cfb8}
 @media (max-height:500px){ body.cine #dlg .txt{font-size:15px} }
+
+/* выбор главы при «Продолжить» */
+#chapSel{display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,8,6,.94);overflow:auto;padding:16px}
+#chapSel h2{font-weight:normal;letter-spacing:.12em;margin:0 0 6px}
+#chapSel .dOpts{display:flex;flex-direction:column;gap:8px;width:min(560px,92vw);margin-top:10px}
+#chapSel .dOpts .btn{margin-top:0;text-align:left;padding:10px 16px}
+#chapSel .dOpts .btn b{display:block;font-weight:normal;font-size:17px}
+#chapSel .dOpts .btn span{display:block;font-size:12px;color:var(--ink2);margin-top:2px}
+#chapSel .dOpts .btn.last{border-color:var(--ink)}
+#chapSel .back{margin-top:14px}
+@media (max-height:500px){#chapSel .dOpts .btn{padding:6px 12px}#chapSel .dOpts .btn b{font-size:15px}}
