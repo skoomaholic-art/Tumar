@@ -49,14 +49,13 @@ test('под танком: приказ запоминается, Гриша п�
 });
 
 test('ранение показано в кадре и попадает в показания', async ()=>{
-  const m = mock([], {grishaPhrase:'sagyndy'});
-  await createRunner(m.api)(ch4.scripts.thigh);
-  await createRunner(m.api)(ch4.scripts.chest);
-  assert.deepStrictEqual(m.shows, ['hitThigh','hitChest']);
+  const m = mock([], {grishaPhrase:'sagyndy', father:'told'});
+  await createRunner(m.api)(ch4.scripts.fall);
+  assert.deepStrictEqual(m.shows, ['burstHit','seeLeg','hitChest']);
   // голос в дыму коверкает слова так же, как Семён ночью — улика к главе 6
   assert.ok(m.said.includes('Кто-то в дыму: Ол… сыздерды… сагында…'));
   const w = m.testimony.find(t=>t[0]==='wounded_1943');
-  assert.ok(w && /бедро/.test(w[1]) && /грудь/.test(w[1]) && /6 июля 1943/.test(w[1]));
+  assert.ok(w && /перелом/.test(w[1]) && /грудь/.test(w[1]) && /6 июля 1943/.test(w[1]));
 });
 
 test('командир в окружении зависит от переправы во 2-й главе', ()=>{

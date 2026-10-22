@@ -148,7 +148,8 @@ function sceneDonets(){
     async showEncircled(){ villageGermans(); villageFG.visible=true; for(let i=0;i<10;i++){ const f=pick(S.fires); puff(tmp.copy(f).setY(4+i*.6),smokeTex,rand(5,8),6,1.6,2,false,1.4); } cut(shotVillage); await gwait(4.5); villageFG.visible=false; },
     // Семён в темноте повторяет за Гришей казахские слова — себе под нос, с ошибкой
     async semyonMutters(){ cut(shotSem); semyon.userData.armR.rotation.x=-.5; await gwait(2.2); semyon.userData.armR.rotation.x=0; cut(shotTwo); },
-    async hitThigh(){ await hitThigh(); },
+    async burstHit(){ await burstHit(); },
+    async seeLeg(){ await seeLeg(); },
     async hitChest(){ await hitChest(); }
   });
   const pick = a => a[(Math.random()*a.length)|0];
@@ -235,6 +236,10 @@ function sceneDonets(){
   // окружение сверху: за Асаном, лежащим в подсолнухах
   const shotEnc = () => { const z=S.zoom; tmp2.set(LIE.x+(S.aim.x-LIE.x)*.08, 16*z, LIE.z+9*z); if(S.fresh) camera.position.copy(tmp2); else camera.position.lerp(tmp2,.06); camera.fov=50; camera.lookAt(LIE.x+(S.aim.x-LIE.x)*.2, 0, LIE.z-9); };
   // ранен: у самой земли, сквозь стебли
+  // перебежка: за спиной, низко, через стебли; камера бежит следом
+  const shotDash = k => { const p=asan.position; camera.fov=46; tmp2.set(p.x-1.6,1.35+Math.sin(k*9)*.05,p.z-3.4); if(S.fresh) camera.position.copy(tmp2); else camera.position.lerp(tmp2,.12); camera.lookAt(p.x+.6,1.0,p.z+6); };
+  // нога: сверху и сбоку, кадр дрожит
+  const shotLeg = k => { camera.fov=38; camera.position.set(LIE.x+1.4,1.5,LIE.z+1.9); camera.lookAt(LIE.x+.2,.15,LIE.z+.6); };
   const shotLow = k => { camera.fov=40; camera.position.set(LIE.x+3.2,.45,LIE.z+2.4); camera.lookAt(LIE.x,.3,LIE.z-.6); };
   // отход: из-за плеча Асана — люди уходят в подсолнухи
   const shotRetreat = k => { camera.fov=34; camera.position.set(LIE.x-1.2,1.6,LIE.z-3.5); camera.lookAt(LIE.x+6,1,LIE.z+30); };
@@ -365,16 +370,18 @@ function sceneDonets(){
     semyon.visible=true; semyon.userData.legL.rotation.x=semyon.userData.legR.rotation.x=0; semyon.position.set(LIE.x-2.4,0,LIE.z+1.2); runners.push({p:semyon, go:false, out:false, glance:1.1, to:new THREE.Vector3(22,0,74)});
     S.sent=0; S.sendT=1.5;
     bark(memory.flags.raft==='wounded'?'Волков':'Старшина', pick(DAT.barks.encircle));
-    await until(()=>runners.every(r=>r.out) || S.encT>48);
-    // пуля в бедро: всё дальше — лёжа, медленнее
-    battleHud(false); cine(true);
-    await run(DAT.scripts.thigh); closeDlg();
-    cine(false); cut(shotEnc); battleHud(true);
-    for(let i=0;i<4;i++){ const e=spawnEnemy(LIE.x+rand(-12,12),LIE.z-rand(14,20)); e.speed=1.4; }
-    await gwait(9);
-    // вторая — в грудь. Небо, потом темнота.
-    battleHud(false); S.phase='down';
-    await run(DAT.scripts.chest); closeDlg();
+    S.stage=1;
+    await until(()=>runners.every(r=>r.out) || S.encT>40);
+    // перебежка ко второму рубежу — и снова огонь
+    await dash(new THREE.Vector3(LIE.x+3,0,LIE.z+11), DAT.scripts.dash1, false);
+    S.stage=2; S.phase='encircle'; S.encT=0; S.ammo=Math.max(S.ammo,30); battleHud(true); cut(shotEnc); S.busy=false;
+    await run(DAT.scripts.cover2); closeDlg(); setObj(CH, DAT.objectives.cover2);
+    for(let i=0;i<5;i++){ const e=spawnEnemy(LIE.x+rand(-12,12),LIE.z-rand(12,18)); e.speed=1.5; }
+    await gwait(16);
+    // третья перебежка: очередь прошивает на бегу
+    await dash(new THREE.Vector3(LIE.x+3,0,LIE.z+10), DAT.scripts.dash2, true);
+    S.phase='down'; battleHud(false); cine(true);
+    await run(DAT.scripts.fall); closeDlg();
     $('fade').style.transitionDuration='2200ms'; $('fade').style.opacity=1;
     await gwait(2.6); setRing(false); setHeart(0); cine(false); setObj('','');
     cleanup();
@@ -386,21 +393,44 @@ function sceneDonets(){
       g.position.copy(VCAM).addScaledVector(f,fw).addScaledVector(r,sd).setY(0); g.scale.setScalar(sc); g.rotation.y=Math.atan2(-f.x,-f.z)+rand(-.5,.5); villageFG.add(g); } }
   function villageGermans(){ if(S.vg) return; S.vg=true; for(const [x,z] of [[-14,24],[-10,28],[-20,31],[-6,30],[-16,36]]){ const g=makePerson({coat:FELD,hat:'helmet'}); g.position.set(x,0,z); g.rotation.y=rand(-1,1); scene.add(g); }
     for(const h of [huts[2],huts[4]]) for(let i=0;i<3;i++) S.fires=(S.fires||[]).concat([h.position.clone().add(tmp.set(rand(-1.5,1.5),3,rand(-1,1)))]); }
-  async function hitThigh(){
-    S.wounded=true; cut(shotLow); setHeart(140);
-    await gwait(.6);
-    // удар: тело дёргается, нога подламывается, на штанине кровь
-    hitFlash(); shake=1; tone({f:180,dur:.4,type:'sawtooth',gain:.08,slide:-120}); noiseBurst({dur:.08,freq:400,gain:.4});
-    asan.userData.legR.rotation.x=.75; asan.position.y=.26; asan.rotation.z=.12;
-    const b=decal(LIE.x+.25,LIE.z+.55,.35,bloodM); S.thighBlood=b;
-    await gwait(1.6); asan.rotation.z=.05; asan.position.y=.2;
-    await gwait(.8);
+  // перебежка: встаёт и бежит к меже, пока держишь W / кнопку; hit — очередь на середине пути
+  async function dash(to, script, hit){
+    S.phase='dash'; S.firing=false; battleHud(false); setObj(CH,'');
+    enemies.forEach(e=>{ if(e.alive){ e.alive=false; scene.remove(e.p); } });
+    await run(script); closeDlg();
+    asan.position.set(LIE.x,0,LIE.z); asan.rotation.set(0,Math.atan2(to.x-LIE.x,to.z-LIE.z),0); dp.visible=false;
+    asan.userData.carry=true; asan.userData.armL.rotation.x=asan.userData.armR.rotation.x=-1.2;
+    S.dashFrom=LIE.clone(); S.dashTo=to.clone(); S.dashK=0; cut(shotDash);
+    setObj(CH, isTouch?DAT.objectives.dashTouch:DAT.objectives.dash); S.busy=false;
+    await until(()=> S.dashK>=1 || (hit && S.dashK>=.55));
+    S.busy=true; setObj(CH,''); asan.userData.carry=false;
+    if(hit){ LIE.copy(asan.position).setY(0); return; }
+    LIE.copy(to); asan.position.set(LIE.x,.2,LIE.z); asan.rotation.set(-Math.PI/2,Math.PI,0); animWalk(asan,0,.016);
+    dp.visible=true; dp.position.set(LIE.x,.25,LIE.z-1.15); dp.rotation.set(0,0,0); S.gun.set(LIE.x,.35,LIE.z-1.4); S.aim.set(LIE.x,0,LIE.z-20);
+    noiseBurst({dur:.2,freq:300,gain:.2,type:'lowpass'});
+  }
+  async function burstHit(){
+    // пулемёт с фланга: трассы прошивают стебли, три удара подряд, он падает лицом вниз
+    const from=tmp.set(LIE.x+30,1,LIE.z-6);
+    for(let i=0;i<12;i++) tracer(from, tmp2.set(LIE.x+rand(-2,2),rand(.3,1.4),LIE.z+rand(-2,2)), enemyTracerM);
+    noiseBurst({dur:.9,freq:1300,gain:.12});
+    for(let i=0;i<3;i++){ hitFlash(); shake=1.1; tone({f:160-i*20,dur:.3,type:'sawtooth',gain:.08,slide:-100}); await gwait(.18); }
+    asan.rotation.set(-Math.PI/2,asan.rotation.y,0); asan.position.y=.2; animWalk(asan,0,.016); S.wounded=true; setHeart(150);
+    cut(shotLow); await gwait(1.4);
+  }
+  async function seeLeg(){
+    // на спину; нога вывернута, кость, кровь
+    asan.rotation.set(Math.PI/2,Math.PI,0); asan.position.y=.22;
+    asan.userData.legR.rotation.set(.9,0,.75);
+    const bone=new THREE.Mesh(new THREE.CylinderGeometry(.025,.03,.16,6),M(0xe8e0d0)); bone.position.set(.05,-.32,.05); bone.rotation.z=.6; asan.userData.legR.add(bone);
+    decal(LIE.x+.35,LIE.z+.6,.5,bloodM); setHeart(132);
+    cut(shotLeg); await gwait(2.4);
   }
   async function hitChest(){
     setObj(CH,''); cut(shotLow); await gwait(.5);
     hitFlash(); shake=1.3; tone({f:120,dur:.6,type:'sawtooth',gain:.08,slide:-80}); noiseBurst({dur:.1,freq:350,gain:.45});
     // его переворачивает на спину; ДП падает рядом
-    asan.rotation.set(Math.PI/2,Math.PI,0); asan.position.y=.22; decal(LIE.x,LIE.z-.2,.6,bloodM); dp.rotation.set(0,1.2,.4); dp.position.set(LIE.x+.9,.12,LIE.z-.6);
+    decal(LIE.x,LIE.z-.2,.6,bloodM); decal(LIE.x-.3,LIE.z-.5,.35,bloodM);
     setHeart(54); await gwait(1.4);
     // и мы — его глазами: подсолнухи качаются над головой, небо
     asan.visible=false; cut(shotSky); setRing(true); setObj(CH,''); cine(true);
@@ -456,7 +486,7 @@ function sceneDonets(){
     S.sendT-=dt; if(S.sendT<=0 && S.sent<runners.length){ runners[S.sent].go=true; S.sent++; S.sendT=rand(2.6,4.2); if(Math.random()<.4) bark('Сосед',pick(DAT.barks.encircle)); }
     let out=0; runners.forEach(r=>{ if(r.out){ out++; return; } if(!r.go) return; r.p.visible=true; if(r.glance>0){ r.glance-=dt; r.p.rotation.y=Math.atan2(asan.position.x-r.p.position.x, asan.position.z-r.p.position.z); animWalk(r.p,0,dt); return; } const dx=r.to.x-r.p.position.x, dz=r.to.z-r.p.position.z, d=Math.hypot(dx,dz);
       if(d<1){ r.out=true; r.p.visible=false; } else { r.p.position.x+=dx/d*3.6*dt; r.p.position.z+=dz/d*3.6*dt; r.p.rotation.y=Math.atan2(dx,dz); animWalk(r.p,1.3,dt); } });
-    setObj(CH, fillObj(DAT.objectives.encircle,{n:out,m:runners.length}));
+    if(S.stage===1) setObj(CH, fillObj(DAT.objectives.encircle,{n:out,m:runners.length}));
     // немцы: с севера, от наших бывших окопов, и с востока; ложатся и бьют по нему
     S.encSpawn-=dt; if(S.encSpawn<=0){ S.encSpawn=rand(1.4,2.6); const east=Math.random()<.3; spawnEnemy(east?LIE.x+rand(26,32):LIE.x+rand(-14,16), east?LIE.z+rand(-6,10):LIE.z-rand(18,26)); }
     for(const e of enemies){ if(!e.alive) continue; const p=e.p; const dx=LIE.x-p.position.x, dz=LIE.z-p.position.z, d=Math.hypot(dx,dz);
@@ -487,6 +517,11 @@ function sceneDonets(){
       if(S.crickets && Math.random()<dt*3) tone({f:rand(4200,4800),dur:.05,type:'sine',gain:.012});
       if(S.phase==='battle' || S.phase==='iron') battleUpdate(dt,t);
       if(S.phase==='encircle') encircleUpdate(dt,t);
+      if(S.phase==='dash' && !S.busy){ const go = keys.KeyW||keys.ArrowUp||keys.Space||S.holding;
+        if(go){ const L=S.dashFrom.distanceTo(S.dashTo); S.dashK=Math.min(1,S.dashK+dt*3.4/L); asan.position.lerpVectors(S.dashFrom,S.dashTo,S.dashK); asan.position.y=0; animWalk(asan,1.5,dt);
+          if(Math.random()<dt*5){ tracer(tmp.set(LIE.x+rand(-14,14),1,LIE.z-rand(14,22)), tmp2.copy(asan.position).add(tmp2.set(rand(-1.5,1.5),rand(.3,1.6),rand(-1,2))), enemyTracerM); noiseBurst({dur:.05,freq:2200,gain:.05}); }
+          if(Math.random()<dt*3) sfx.step(); }
+        else animWalk(asan,0,dt); }
       // танк, утюжащий окоп, проходит прямо над камерой
       if(S.ironRolling){ const tz=S.ironTank.g.position.z; shake=Math.max(shake,.35);
         if(Math.abs(tz)<3.4 && Math.random()<dt*28) puff(tmp.set(S.crushX-1.35+rand(-1,1.2),rand(1,2.2),.75+rand(-1.2,.3)),dustTex,rand(.25,.5),rand(.6,1),-2.2,.4);
@@ -505,10 +540,10 @@ function sceneDonets(){
       if(code==='Space'){ if(fighting()) S.firing=true; else if(S.phase==='dig') dig(); }
     },
     act(){ if(fighting()) reload(); else if(S.phase==='dig') dig(); },
-    holdStart(){}, holdEnd(){},
+    holdStart(){ S.holding=true; }, holdEnd(){ S.holding=false; },
     // по этой главе не ходят: джойстик не нужен; кнопка действия — по обстановке
     wantsJoy(){ return false; },
-    touchAction(){ if(fighting()) return 'Диск'; if(S.phase==='dig') return 'Рыть'; return null; },
+    touchAction(){ if(S.phase==='dash' && !S.busy) return 'Бежать'; if(fighting()) return 'Диск'; if(S.phase==='dig') return 'Рыть'; return null; },
     async begin(){
       setObj(CH,'');
       await showCard(DAT.card.small, DAT.card.big, DAT.card.text, 'Начать');
