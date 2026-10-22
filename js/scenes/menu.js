@@ -15,7 +15,7 @@ function sceneMenu(){
   for(let i=0;i<260;i++){ const t=new THREE.Mesh(new THREE.ConeGeometry(rand(.05,.12),rand(.2,.5),4), tuftM[i%3]); const r=rand(2,70), a=rand(0,Math.PI*2); t.position.set(Math.cos(a)*r, .12, Math.sin(a)*r-10); scene.add(t); }
   // горы на горизонте: синеватые, со снегом на вершинах
   const mtM=new THREE.MeshLambertMaterial({color:0x6e7480}), snowM=new THREE.MeshLambertMaterial({color:0xece8e0});
-  for(let i=0;i<22;i++){ const h=rand(42,80), r=h*rand(.8,1.25), x=-520+i*48+rand(-14,14), z=-330-rand(0,50);
+  for(let i=0;i<30;i++){ const h=rand(42,80), r=h*rand(.8,1.25), th=(140+i*4.2+rand(-1.5,1.5))*Math.PI/180, R=rand(340,400), x=Math.cos(th)*R, z=Math.sin(th)*R; // дугой по горизонту, куда смотрит камера
     const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,4+(i%2)), mtM); m.position.set(x,h/2-2,z); m.rotation.y=rand(0,3); scene.add(m);
     const c=new THREE.Mesh(new THREE.ConeGeometry(r*.28,h*.28,6), snowM); c.position.set(x,h-2-h*.14+.4,z); c.rotation.y=m.rotation.y; scene.add(c); }
 
@@ -28,8 +28,8 @@ function sceneMenu(){
     const n=Math.round(Math.hypot(x1-x0,z1-z0)/2); for(let i=0;i<=n;i++) post(lerp(x0,x1,i/n),lerp(z0,z1,i/n));
     for(const y of [.32,.66,1.52]) rail(x0,z0,x1,z1,y+rand(-.03,.03)); }
   // сено
-  const hay=new THREE.Mesh(new THREE.SphereGeometry(1.1,12,6,0,Math.PI*2,0,Math.PI/2), M(0xd2b464)); hay.scale.set(1.3,.55,1); hay.position.set(-4.3,0,-4.6); scene.add(shadowAll(hay));
-  for(let i=0;i<30;i++){ const s=new THREE.Mesh(new THREE.BoxGeometry(rand(.2,.5),.02,.03),M(0xd8bc6a)); s.position.set(-4.3+rand(-1.8,1.8),.02,-4.6+rand(-1.3,1.3)); s.rotation.y=rand(0,3); scene.add(s); }
+  const hay=new THREE.Mesh(new THREE.SphereGeometry(1.1,12,6,0,Math.PI*2,0,Math.PI/2), M(0xd2b464)); hay.scale.set(1.3,.55,1); hay.position.set(-1.2,0,-4.8); scene.add(shadowAll(hay));
+  for(let i=0;i<30;i++){ const s=new THREE.Mesh(new THREE.BoxGeometry(rand(.2,.5),.02,.03),M(0xd8bc6a)); s.position.set(-1.2+rand(-1.8,1.8),.02,-4.8+rand(-1.3,1.3)); s.rotation.y=rand(0,3); scene.add(s); }
 
   // барашки
   const woolM=[M(0xe8dcc4),M(0xd8ccb0),M(0xc8b896)], headM=M(0x2e2620);
@@ -42,12 +42,12 @@ function sceneMenu(){
     const head=new THREE.Mesh(new THREE.BoxGeometry(.3,.2,.18), headM); head.position.set(.14,0,0); neck.add(head);
     const earL=new THREE.Mesh(new THREE.BoxGeometry(.05,.03,.14),headM); earL.position.set(.06,.04,.12); const earR=earL.clone(); earR.position.z=-.12; neck.add(earL,earR);
     const legs=[]; for(const [x,z] of [[.28,.16],[.28,-.16],[-.28,.16],[-.28,-.16]]){ const l=new THREE.Mesh(new THREE.BoxGeometry(.07,.42,.07),headM); l.geometry.translate(0,-.21,0); l.position.set(x,.42,z); g.add(l); legs.push(l); }
-    g.position.set(rand(PEN.x0+1,PEN.x1-1),0,rand(PEN.z0+.8,-3.6)); g.rotation.y=rand(0,6);
+    g.position.set(rand(-2.5,1.3),0,rand(-6.2,-2.2)); g.rotation.y=rand(0,6);
     g.userData={neck,legs,to:null,graze:rand(1,4),ph:rand(0,6)}; scene.add(shadowAll(g)); sheep.push(g);
   }
 
   // тумар на шнурке под верхней жердью, на переднем плане
-  const pivot=new THREE.Group(); pivot.position.set(-1.7,1.52,-6.92); pivot.scale.setScalar(2.2); scene.add(pivot);
+  const pivot=new THREE.Group(); pivot.position.set(1.15,1.52,-.92); pivot.scale.setScalar(2.2); scene.add(pivot);
   const cord=new THREE.Mesh(new THREE.CylinderGeometry(.006,.006,.14,4), M(0x2a1c12)); cord.position.y=-.07; pivot.add(cord);
   const tri=new THREE.Shape(); tri.moveTo(0,0); tri.lineTo(-.085,-.16); tri.lineTo(.085,-.16); tri.closePath();
   const tumar=new THREE.Mesh(new THREE.ExtrudeGeometry(tri,{depth:.025,bevelEnabled:true,bevelThickness:.006,bevelSize:.006,bevelSegments:1}), new THREE.MeshLambertMaterial({color:0x7a3a22}));
@@ -67,15 +67,15 @@ function sceneMenu(){
       // барашки: бредут, останавливаются у сена, щиплют
       sheep.forEach(s=>{ const u=s.userData;
         if(u.graze>0){ u.graze-=dt; u.neck.rotation.z=lerp(u.neck.rotation.z,-1.0+Math.sin(t*3+u.ph)*.12,dt*3); u.legs.forEach(l=>l.rotation.z=0);
-          if(u.graze<=0){ const toHay=Math.random()<.55; u.to=toHay? new THREE.Vector3(-4.3+rand(-1.4,1.4),0,-4.6+rand(-1.1,1.1)) : new THREE.Vector3(rand(PEN.x0+.8,PEN.x1-.8),0,rand(PEN.z0+.8,-3.6)); } }
+          if(u.graze<=0){ const toHay=Math.random()<.55; u.to=toHay? new THREE.Vector3(-1.2+rand(-1.3,1.3),0,-4.8+rand(-1,1)) : new THREE.Vector3(rand(-2.5,1.3),0,rand(-6.2,-2.2)); } }
         else if(u.to){ const dx=u.to.x-s.position.x, dz=u.to.z-s.position.z, d=Math.hypot(dx,dz);
           u.neck.rotation.z=lerp(u.neck.rotation.z,.15,dt*3);
           if(d<.1){ u.to=null; u.graze=rand(3,8); }
           else { const st=Math.min(d,.45*dt); s.position.x+=dx/d*st; s.position.z+=dz/d*st; const ry=Math.atan2(-dz,dx); s.rotation.y+= (((ry-s.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI)*Math.min(1,dt*3);
             u.legs.forEach((l,i)=>l.rotation.z=Math.sin(t*8+u.ph+(i%2?Math.PI:0))*.35); } } });
       // камера: у самого тумара, медленно дышит
-      camera.fov=40; camera.position.set(-1.2+Math.sin(t*.11)*.05, 2.0+Math.sin(t*.17)*.03, .6); camera.updateProjectionMatrix();
-      camera.lookAt(-1.6, 1.45, -7);
+      camera.fov=30; camera.position.set(6.5+Math.sin(t*.11)*.06, 1.2+Math.sin(t*.17)*.03, 3.5); camera.updateProjectionMatrix();
+      camera.lookAt(-29.4, 3.6, -14.1); // низко, длинный объектив, по диагонали мимо угла загона в степь
     },
     begin(){ $('help').style.visibility='hidden'; $('hud').style.visibility='hidden'; }
   };
