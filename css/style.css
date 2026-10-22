@@ -172,3 +172,9 @@ body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate
 .decs{text-align:left;max-width:640px;margin:14px auto 0}
 .decs .dec{margin:0 0 .7em;line-height:1.45;font-size:15px;color:var(--ink)}
 .decs .decCh{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+
+/* меню поверх живой сцены: текст слева, справа виден тумар на жерди */
+#title{background:linear-gradient(90deg,rgba(10,8,6,.88) 0,rgba(10,8,6,.62) 38%,rgba(10,8,6,0) 66%);align-items:flex-start;text-align:left;padding-left:calc(6vw + env(safe-area-inset-left,0px))}
+#title h1{letter-spacing:.22em}
+#title p{max-width:min(460px,46vw)}
+@media (max-height:500px){#title p{font-size:13px;margin:4px 0}#title .btn{margin-top:10px}}

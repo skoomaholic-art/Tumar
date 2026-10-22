@@ -76,16 +76,19 @@ function lockLandscape(){
 (async function boot(){
   try{ await loadData(); }
   catch(e){ $('start').disabled=true; $('bootErr').textContent='Не удалось загрузить данные игры. Обновите страницу.'; return; }
+  // меню — живая сцена: тумар на жерди загона, барашки, степь
+  active=sceneMenu(); active.begin(); fadeTo(0,1800);
+  const toGame=()=>{ $('help').style.visibility=''; $('hud').style.visibility=''; const f=$('fade'); f.style.transitionDuration='0ms'; f.style.opacity=1; };
   const saved = loadGame();
   if(saved && CHAPTERS[saved.chapter]){
     $('continue').hidden=false;
-    $('continue').onclick=()=>{ initAudio(); lockLandscape(); memory=saved.memory; if(memory.notebook.length||memory.diary.length) $('nbBtn').style.display='block'; $('title').style.display='none'; CHAPTERS[saved.chapter](); };
+    $('continue').onclick=()=>{ initAudio(); lockLandscape(); memory=saved.memory; if(memory.notebook.length||memory.diary.length) $('nbBtn').style.display='block'; $('title').style.display='none'; toGame(); CHAPTERS[saved.chapter](); };
     $('start').textContent='Новая игра';
     // новая игра поверх сохранения — только со второго нажатия
     let armed=false;
-    $('start').onclick=()=>{ if(!armed){ armed=true; $('start').textContent='Сохранение сотрётся. Нажми ещё раз'; return; } deleteSave(); initAudio(); lockLandscape(); $('title').style.display='none'; startAul(); };
+    $('start').onclick=()=>{ if(!armed){ armed=true; $('start').textContent='Сохранение сотрётся. Нажми ещё раз'; return; } deleteSave(); initAudio(); lockLandscape(); $('title').style.display='none'; toGame(); startAul(); };
   } else {
-    $('start').onclick=()=>{ initAudio(); lockLandscape(); $('title').style.display='none'; startAul(); };
+    $('start').onclick=()=>{ initAudio(); lockLandscape(); $('title').style.display='none'; toGame(); startAul(); };
   }
 })();
 
