@@ -1,7 +1,7 @@
 'use strict';
 // Порядок глав, сохранения, финал, главный цикл и запуск
 
-const CHAPTERS = { ch1: startAul, ch1b: startDeparture, ch2: startDon, ch3: startCity, ch4: startDonets, ch5: startField, ch5b: startCamp };
+const CHAPTERS = { ch1: startAul, ch1b: startDeparture, ch2: startDon, ch3: startCity, ch4: startDonets, ch5: startField, ch5b: startCamp, ch6: startStalag };
 
 async function endChapter1(){ saveGame('ch2'); await chapterSummary(1); startDon(); }
 
@@ -13,6 +13,8 @@ function chapterSummary(n){
 async function endChapter2(){ saveGame('ch3'); await chapterSummary(2); startCity(); }
 async function endChapter3(){ saveGame('ch4'); await chapterSummary(3); startDonets(); }
 // глава 4 кончается ранением — в поле переходим без итоговой карточки, прямо из темноты
+async function endChapter5(){ saveGame('ch6'); await chapterSummary(5); startStalag(); }
+async function endChapter6(){ saveGame('ch6'); await chapterSummary(6); finale(); }
 async function endChapter4(){ saveGame('ch5'); startField(); }
 
 async function finale(){
@@ -20,7 +22,7 @@ async function finale(){
   const lines = memory.log.map(l=>'· '+escapeHtml(l)).join('<br>');
   const later = memory.later.length ? `<br><br><span class="small">Весной 1945-го, на хуторе, он запишет в блокнот:</span><br><span style="text-align:left;display:inline-block;font-family:'Courier New',monospace;font-size:14px">${memory.later.map(l=>'· '+escapeHtml(l)).join('<br>')}</span>` : '';
   await showCard('Конец прототипа','Тумар',
-    `Дальше — плен, шталаг, хутор в Австрии и фильтрация.<br><br><span style="text-align:left;display:inline-block">${lines}</span>${later}<br><br><span class="small">История и персонажи вымышлены. Сцены написаны по мотивам опубликованных воспоминаний фронтовиков и бывших военнопленных.</span>`,
+    `Дальше — хутор в Австрии, освобождение и фильтрация.<br><br><span style="text-align:left;display:inline-block">${lines}</span>${later}<br><br><span class="small">История и персонажи вымышлены. Сцены написаны по мотивам опубликованных воспоминаний фронтовиков и бывших военнопленных.</span>`,
     'Сыграть снова');
   deleteSave();
   location.reload();
@@ -40,6 +42,7 @@ requestAnimationFrame(loop);
 async function startAul(){ saveGame('ch1'); active=sceneAul(); await active.begin(); }
 async function startDon(){ $('fade').style.opacity=1; await showChronicle('ch2'); active=sceneDon(); await active.begin(); }
 async function startDeparture(){ saveGame('ch1b'); $('fade').style.opacity=1; active=sceneDeparture(); await active.begin(); }
+async function startStalag(){ saveGame('ch6'); $('fade').style.opacity=1; active=sceneStalag(); await active.begin(); }
 async function startCamp(){ saveGame('ch5b'); $('fade').style.opacity=1; active=sceneCamp(); await active.begin(); }
 async function startCity(){ $('fade').style.opacity=1; await showChronicle('ch3'); active=sceneCity(); await active.begin(); }
 async function startDonets(){ $('fade').style.opacity=1; await showChronicle('ch4'); active=sceneDonets(); await active.begin(); }

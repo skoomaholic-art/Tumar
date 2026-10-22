@@ -257,7 +257,7 @@ function sceneCamp(){
       await point();
       await tentPhase();
       await search();
-      finale();
+      endChapter5();
     }
   };
   return sc;

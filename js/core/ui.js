@@ -88,6 +88,11 @@ const PORTRAITS = {
   'Санитар': {bg:'#1f2220', hat:'<path d="M22 22 L28 12 L50 12 L54 22 Z" fill="#6a6e64"/><rect x="20" y="20" width="36" height="4" fill="#4a4e44"/>', face:'#d0b090'},
   'Охранник': {bg:'#1f2220', hat:'<path d="M20 24 Q38 6 56 24 L58 28 L18 28 Z" fill="#5a5e54"/><rect x="18" y="26" width="40" height="3" fill="#3a3e36"/>', face:'#c4a084'},
   'Конвойный': {bg:'#1f2220', hat:'<path d="M20 24 Q38 6 56 24 L58 28 L18 28 Z" fill="#5a5e54"/><rect x="18" y="26" width="40" height="3" fill="#3a3e36"/>', face:'#c4a084'},
+  'Ибрай-ага': {bg:'#2a251c', hat:'<rect x="24" y="14" width="28" height="9" rx="3" fill="#3c3026"/>', face:'#8e6c50', beard:true},
+  'Хайдар-бек': {bg:'#1f2220', hat:'<path d="M22 22 L28 12 L50 12 L54 22 Z" fill="#5e6252"/><rect x="20" y="20" width="36" height="4" fill="#3e4236"/>', face:'#9c7a58'},
+  'Василий': {bg:'#2b2820', hat:'', face:'#b8927a'},
+  'Полицай': {bg:'#1e1c18', hat:'<rect x="22" y="15" width="32" height="8" rx="2" fill="#2e2c28"/>', face:'#a8825e'},
+  'Врач': {bg:'#24261f', hat:'', face:'#d0b090'},
   'Кто-то в дыму': {bg:'#121010', hat:'', face:'#1e1914'},
   'Голос': {bg:'#1a1612', hat:'', face:'#2a231b'},
 };
