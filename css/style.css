@@ -293,3 +293,11 @@ body.cine #bark .bw{color:#d8cfb8}
 #chapSel .dOpts .btn.last{border-color:var(--ink)}
 #chapSel .back{margin-top:14px}
 @media (max-height:500px){#chapSel .dOpts .btn{padding:6px 12px}#chapSel .dOpts .btn b{font-size:15px}}
+
+/* имена: свои — зелёным, враги — красным, остальные — белым */
+#dlg .who[data-f=ally],#bark .bw[data-f=ally]{color:#7fc27a}
+#dlg .who[data-f=enemy],#bark .bw[data-f=enemy]{color:#e0645a}
+#dlg .who[data-f=neutral],#bark .bw[data-f=neutral]{color:#f2ede2}
+body.cine #dlg .who{font-size:13px;letter-spacing:.14em;font-weight:600;text-shadow:0 1px 3px #000,0 0 2px #000}
+body.cine #bark .bw{font-size:12px;font-weight:600}
+body:has(#dlg[style*="block"]) #prompt{opacity:0;pointer-events:none}

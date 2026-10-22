@@ -107,7 +107,7 @@ let dlgResolve=null, typing=null, dlgOpen=false;
 function say(who, text, lang='kz'){
   return new Promise(res=>{
     dlgOpen=true; $('help').style.visibility='hidden'; $('dlg').style.display='block'; $('choices').innerHTML=''; $('more').style.display='block';
-    $('who').textContent = who; $('por').innerHTML = portrait(who);
+    $('who').textContent = who; $('who').dataset.f=factionOf(who); $('por').innerHTML = portrait(who);
     const html = renderLang(text, lang); const el=$('txt');
     // печать по символам для обычного текста; шумный текст выводим сразу
     clearInterval(typing);
@@ -126,7 +126,7 @@ function closeDlg(){ dlgOpen=false; $('dlg').style.display='none'; $('help').sty
 function choose(who, text, options, seconds=0, silentIndex=-1){
   return new Promise(res=>{
     dlgOpen=true; $('help').style.visibility='hidden'; $('dlg').style.display='block'; $('more').style.display='none';
-    $('who').textContent=who; $('por').innerHTML=portrait(who); $('txt').textContent=text;
+    $('who').textContent=who; $('who').dataset.f=factionOf(who); $('por').innerHTML=portrait(who); $('txt').textContent=text;
     const box=$('choices'); box.innerHTML='';
     let done=false; const finish=i=>{ if(done) return; done=true; box.innerHTML=''; choose.slots=null; res(i); };
     // варианты расходятся влево и вправо, стороны каждый раз случайны: нет «верхнего правильного»
@@ -187,7 +187,7 @@ function showCard(small, big, text, btn='Дальше'){
 // Короткие реплики в бою: не останавливают игру, висят пару секунд
 let barkT=null;
 function bark(who, text, lang='kz'){
-  const b=$('bark'); b.innerHTML=`<span class="bw">${escapeHtml(who)}</span> ${renderLang(text, lang)}`; b.classList.add('on');
+  const b=$('bark'); b.innerHTML=`<span class="bw" data-f="${factionOf(who)}">${escapeHtml(who)}</span> ${renderLang(text, lang)}`; b.classList.add('on');
   clearTimeout(barkT); barkT=setTimeout(()=>b.classList.remove('on'), 2600);
 }
 
@@ -293,6 +293,10 @@ function chooseDifficulty(){
 // ---------- мини-игра «запиши слово»: собрать слово из кусочков по порядку ----------
 // Играем на русском — учим казахский: по русскому смыслу собираем казахское слово.
 // Играем на казахском — учим русский: по казахскому смыслу собираем русское слово латиницей, как писал Асан.
+// кто говорит: свои и доброжелатели — зелёным, враги — красным, остальные — белым
+const ALLIES=new Set(['Отец','Мать','Күләш','Ибрай-ага','Колесников','Жумабай','Гриша','Семён','Сашко','Волков','Старшина','Мударис','Синицын','Василий','Тадеуш','Лизль','Марта','Дубровин','Ковальски','Американец','Пожилой немец','Солдат']);
+const ENEMIES=new Set(['Немец','Немецкая речь','Охранник','Фельдфебель','Эсэсовец','Штайнер','Молодой немец','Санитар','Полицай','Хайдар-бек','Врач']);
+function factionOf(who){ return ALLIES.has(who)?'ally' : ENEMIES.has(who)?'enemy' : 'neutral'; }
 function wordWriteGame(ru, kz, where, opt){
   return new Promise(res=>{
     const toKz = SETTINGS.lang!=='kz';
@@ -305,7 +309,7 @@ function wordWriteGame(ru, kz, where, opt){
     if(lvl==='hard'){ const abc=opt&&opt.target?'aeinrstl':toKz?'аеіоұүқғңәө':'aeiouksnrt'; for(let k=0;k<2;k++) pool.push({p:abc[Math.random()*abc.length|0],i:-1}); }
     pool.sort(()=>Math.random()-.5);
     let el=$('wgame'); if(!el){ el=document.createElement('div'); el.id='wgame'; document.body.appendChild(el); }
-    el.innerHTML=`<div class="sheet"><div class="wg-src">${escapeHtml(where||'Блокнот Асана')}</div>
+    el.innerHTML=`<div class="sheet"><div class="wg-src">Позже Асан запишет новое слово в блокнот</div>
       <div class="wg-q">${opt&&opt.target ? (toKz?'Как это по-немецки':'Немісше қалай') : toKz?'Как это по-казахски':'Как это звучит по-русски'}: <b>«${escapeHtml(hint)}»</b></div>
       <div class="wg-line" id="wgLine"></div>
       <div class="wg-tiles">${pool.map((t,k)=>`<button class="wg-t" data-k="${k}">${escapeHtml(t.p)}</button>`).join('')}</div>
