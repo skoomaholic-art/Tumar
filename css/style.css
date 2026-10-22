@@ -304,3 +304,13 @@ body:has(#dlg[style*="block"]) #prompt{opacity:0;pointer-events:none}
 
 #title .btn:disabled{opacity:.35;cursor:default;pointer-events:none}
 #settings .gameRow{display:flex;gap:10px;flex-wrap:wrap}
+
+/* телефон: страница не ездит и не оттягивается (pull-to-refresh, «резинка», прокрутка внешней страницы в iframe).
+   Листаются только длинные окна: блокнот, настройки, текст карточки, выбор главы */
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;width:100%;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+canvas,#c{touch-action:none}
+#joyZone,#touch,#touch button,#hold,#buried,#buried #digBtn,.digOnly button,#gearBtn,#nbBtn,#prompt{touch-action:none;user-select:none;-webkit-user-select:none}
+#nb .sheet,#nb .sheet *,#settings .panel,#settings .panel *,#cardText,#cardText *,#chapSel,#chapSel *{touch-action:pan-y}
+#nb .sheet,#settings .panel,#cardText,#chapSel{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#settings input[type=range]{touch-action:pan-x}

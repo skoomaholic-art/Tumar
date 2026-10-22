@@ -36,3 +36,14 @@ function moveInput(){
   let mx = fx*(-iz) + (-fz)*ix, mz = fz*(-iz) + fx*ix; const l=Math.hypot(mx,mz)||1;
   return [mx/l, mz/l];
 }
+
+// iOS Safari иногда не слушается touch-action: отменяем движение пальца везде,
+// кроме блоков, которые действительно листаются (overflow auto/scroll и есть что листать)
+document.addEventListener('touchmove', e => {
+  for (let el = e.target; el && el !== document.body; el = el.parentElement) {
+    const oy = getComputedStyle(el).overflowY;
+    if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight + 1) return;
+    if (el.tagName === 'INPUT' && el.type === 'range') return; // ползунки настроек
+  }
+  if (e.cancelable) e.preventDefault();
+}, { passive: false });
