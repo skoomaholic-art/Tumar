@@ -64,7 +64,8 @@ function sceneStalag(){
   // ---------- вагон (x=200) ----------
   const WX=200;
   const wagon=new THREE.Group(); scene.add(wagon);
-  const wIn=new THREE.Mesh(new THREE.BoxGeometry(8,2.5,2.9), new THREE.MeshLambertMaterial({color:0x2a2218, side:THREE.BackSide})); wIn.position.set(WX,1.25,0); wagon.add(wIn);
+  const wInM=new THREE.MeshLambertMaterial({color:0x2a2218, side:THREE.BackSide}), noM=new THREE.MeshBasicMaterial({visible:false});
+  const wIn=new THREE.Mesh(new THREE.BoxGeometry(8,2.5,2.9), [wInM,wInM,wInM,wInM,noM,wInM]); // стенка с дверью — только доски с щелями wIn.position.set(WX,1.25,0); wagon.add(wIn);
   // стенка с дверью — доски с щелями, сквозь щели бьёт день
   const plankM=M(0x3a2c20);
   const slatWall=new THREE.Group(); for(let i=0;i<30;i++){ const pl=new THREE.Mesh(new THREE.BoxGeometry(.19,2.5,.06),plankM); pl.position.set(WX-3.6+i*.26,1.25,1.42); slatWall.add(pl); } wagon.add(slatWall);
@@ -96,7 +97,7 @@ function sceneStalag(){
   const semyon=sitDown(makePerson({coat:0x9a9068, hat:'pilotka'})); semyon.position.set(BX+.9,-.45,.5); semyon.rotation.y=-Math.PI/2; bar.add(semyon);
   const vasily=makePerson({coat:0x55503a, hat:'none'}); vasily.rotation.x=-Math.PI/2; bar.add(vasily);
   const asanB=makePerson({coat:0x5c5a3a, hat:'none'}); asanB.rotation.x=-Math.PI/2; bar.add(asanB);
-  const gabB=makePerson({coat:0x3a3228, hat:'borik', beard:true}); gabB.rotation.x=-Math.PI/2; gabB.position.set(BX-4.3,.48,-2.05); gabB.rotation.z=Math.PI/2; bar.add(gabB);
+  const gabB=makePerson({coat:0x3a3228, hat:'borik', beard:true}); gabB.rotation.x=-Math.PI/2; gabB.position.set(BX-2.6,.1,-.9); gabB.rotation.z=Math.PI/2; gabB.visible=false; bar.add(gabB); // появится зимой, мёртвым
   const polizai=makePerson({coat:0x2e2c28, hat:'pilotka'}); polizai.visible=false; bar.add(polizai);
   const band=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.12,8),M(0xd8d0bc)); band.position.set(0,.15,0); polizai.userData.armL.add(band);
   const potato=new THREE.Mesh(new THREE.SphereGeometry(.07,6,5),M(0x8a6a3a)); potato.visible=false; bar.add(potato);
@@ -115,7 +116,7 @@ function sceneStalag(){
   const lamp=new THREE.Mesh(new THREE.ConeGeometry(.22,.2,10,1,true),M(0x2a2a24,{side:THREE.DoubleSide})); lamp.position.set(OX,2.1,0); office.add(lamp);
   const cord=new THREE.Mesh(new THREE.BoxGeometry(.02,.9,.02),M(0x111111)); cord.position.set(OX,2.6,0); office.add(cord);
   const bulb=new THREE.PointLight(0xffd8a0,1.5,6,1.6); bulb.position.set(OX,1.9,0); office.add(bulb);
-  const form=new THREE.Mesh(new THREE.PlaneGeometry(.3,.4),M(0xb8ae94)); form.rotation.x=-Math.PI/2; form.position.set(OX,.85,.15); form.visible=false; office.add(form);
+  const form=new THREE.Mesh(new THREE.PlaneGeometry(.3,.4),M(0x9a927c)); form.rotation.x=-Math.PI/2; form.position.set(OX,.85,.15); form.visible=false; office.add(form);
   const pen=new THREE.Mesh(new THREE.BoxGeometry(.015,.015,.18),M(0x111111)); pen.position.set(OX+.22,.86,.15); pen.visible=false; office.add(pen);
   const haidar=sitDown(makePerson({coat:0x5e6252, hat:'pilotka'})); haidar.position.set(OX,-.15,-.75); haidar.userData.legL.rotation.x=haidar.userData.legR.rotation.x=-1.4; office.add(haidar);
   const patch=new THREE.Mesh(new THREE.CircleGeometry(.07,10),M(0x2e5a3a)); patch.position.set(-.08,.12,0); patch.rotation.y=-Math.PI/2; haidar.userData.armL.add(patch);
@@ -150,13 +151,13 @@ function sceneStalag(){
     // барак сверху, крыши нет: печка — единственный тёплый свет
     barrackTop(k){ camera.fov=44; const e=Math.min(1,k/12); camera.position.set(BX+lerp(2,1,e), lerp(13,10,e), lerp(6,4.5,e)); return tmp.set(BX,0,0); },
     // крупнее на месте Асана
-    bunk(k){ camera.fov=40; const a=asanB.position; camera.position.set(a.x+.9,2.2,a.z+(a.z>0?-1.4:1.4)); return tmp.set(a.x-.2,.15,a.z); },
+    bunk(k){ camera.fov=42; const a=asanB.position; camera.position.set(a.x+.3,2.4,a.z+(a.z>0?-.6:.6)); return tmp.set(a.x-.2,.1,a.z); },
     // Семён у печки, огонь снизу
-    semyon(k){ camera.fov=32; camera.position.set(BX+3.2,1.2,1.5); return tmp.set(semyon.position.x,1.0,semyon.position.z); },
+    semyon(k){ camera.fov=34; camera.position.set(BX+2.6,1.75,1.1); return tmp.set(semyon.position.x,1.0,semyon.position.z); },
     // полицай идёт между нар
     polizai(k){ camera.fov=40; camera.position.set(BX+7.0,2.2,.6); return wp(polizai).setY(1.3); },
     // Ибрай-ага: двухплановый, учитель и ученик
-    ibray(k){ camera.fov=34; const a=ibray.position; camera.position.set(a.x+1.8,1.5,a.z+1.6); return tmp.set(a.x+.5,1.0,a.z+.2); },
+    ibray(k){ camera.fov=36; const a=ibray.position; camera.position.set(a.x+1.6,1.45,a.z+(a.z>0?-1.5:1.5)); return tmp.set(a.x+.4,.9,a.z); },
     // кабинет: общий, лампа сверху
     oWide(k){ camera.fov=40; camera.position.set(OX+2.8,1.9,2.4); return tmp.set(OX,1.0,0); },
     // через плечо Асана на Хайдара
@@ -174,7 +175,7 @@ function sceneStalag(){
     // шестеро уходят к воротам: со спины строя
     leave(k){ camera.fov=36; camera.position.set(1,2.4,5.5); return tmp.set(0,1,-14); },
     // мёртвый Габдулла на нарах, иней на бороде
-    gab(k){ camera.fov=34; const g=gabB.position; camera.position.set(g.x+.35,.95,g.z+1.6-Math.min(.3,k*.04)); return tmp.set(g.x,.5,g.z); }
+    gab(k){ camera.fov=34; const g=gabB.position; camera.position.set(g.x+.5,1.9-Math.min(.3,k*.05),g.z+1.0); return tmp.set(g.x,.15,g.z); }
   };
 
   // ---------- панели (как в главе 5) ----------
@@ -222,7 +223,7 @@ function sceneStalag(){
     async doctorWalk(){ doctor.visible=true; haidar.visible=false; asanO.position.set(OX-2.2,0,1.6); asanO.userData.legL.rotation.x=asanO.userData.legR.rotation.x=0; asanO.rotation.y=Math.PI/2;
       S.limpTo=new THREE.Vector3(OX+1.4,0,1.6); setShot('oWide'); await until(()=>!S.limpTo); await gwait(.6); },
     async stoneWork(){ asan.position.set(-20,0,-14); stone.visible=true; S.carry=new THREE.Vector3(10,0,-14.5); setShot('stones'); await until(()=>!S.carry, 9000); S.carry=null; },
-    async gabdullaStill(){ setWinter(); fire.intensity=.35; setShot('barrackTop'); DIR.t=12; await gwait(1.4); setShot('gab'); await gwait(2.8); },
+    async gabdullaStill(){ gabB.visible=true; setWinter(); fire.intensity=.35; setShot('barrackTop'); DIR.t=12; await gwait(1.4); setShot('gab'); await gwait(2.8); },
     async raiseHand(){ /* показ делает игрок: E на перекличке */ await gwait(.3); },
     async civilianPoints(){ civ.visible=true; civ.position.set(-11.5,0,-4.2); S.civTo=new THREE.Vector3(rows[13].position.x+.5,0,-4.2); setShot('line'); await until(()=>!S.civTo); },
     async fingerOnAsan(){ civ.lookAt(asan.position.x,0,asan.position.z); civ.userData.armR.rotation.x=-1.6; asan.position.z-=.9; setShot('finger'); tone({f:330,dur:.5,type:'sine',gain:.03}); await gwait(2.2); },
