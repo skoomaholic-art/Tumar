@@ -3,26 +3,42 @@
 
 const CHAPTERS = { ch1: startAul, ch1b: startDeparture, ch2: startDon, ch3: startCity, ch4: startDonets, ch5: startField, ch5b: startCamp, ch6: startStalag };
 
-async function endChapter1(){ saveGame('ch2'); await chapterSummary(1); startDon(); }
+async function endChapter1(){ await chapterSummary(1,'ch2'); startDon(); }
 
-// итог главы: что запомнили персонажи
-function chapterSummary(n){
-  const lines = memory.log.map(l=>'· '+escapeHtml(l)).join('<br>');
-  return showCard('Конец главы '+n, 'Что запомнили', `<span style="text-align:left;display:inline-block">${lines}</span><br><br><span class="small">В полной игре здесь будет доля игроков, сделавших тот же выбор. Игра сохранена.</span>`, 'Дальше');
+// итог главы: только решения этой главы (если предыдущая глава кончилась без итога — и её тоже)
+function chapterSummary(n, next){
+  const from = memory.logMark||0, first = (memory.lastSummary||0)+1;
+  const items = memory.log.slice(from);
+  memory.logMark = memory.log.length; memory.lastSummary = n;
+  saveGame(next);
+  const lines = items.length ? items.map(l=>'· '+escapeHtml(l)).join('<br>') : '<span class="small">В этой главе никто ничего не запомнил.</span>';
+  return showCard(first<n ? `Конец глав ${first}–${n}` : 'Конец главы '+n, 'Что запомнили', `<span style="text-align:left;display:inline-block">${lines}</span><br><br><span class="small">Игра сохранена.</span>`, 'Дальше');
 }
-async function endChapter2(){ saveGame('ch3'); await chapterSummary(2); startCity(); }
-async function endChapter3(){ saveGame('ch4'); await chapterSummary(3); startDonets(); }
-// глава 4 кончается ранением — в поле переходим без итоговой карточки, прямо из темноты
-async function endChapter5(){ saveGame('ch6'); await chapterSummary(5); startStalag(); }
-async function endChapter6(){ saveGame('ch6'); await chapterSummary(6); finale(); }
+async function endChapter2(){ await chapterSummary(2,'ch3'); startCity(); }
+async function endChapter3(){ await chapterSummary(3,'ch4'); startDonets(); }
+// глава 4 кончается ранением — в поле переходим без итоговой карточки, прямо из темноты; её решения войдут в итог главы 5
 async function endChapter4(){ saveGame('ch5'); startField(); }
+async function endChapter5(){ await chapterSummary(5,'ch6'); startStalag(); }
+async function endChapter6(){ await chapterSummary(6,'ch6'); finale(); }
+
+// все решения за игру: «Когда …, вы …». Доля игроков — когда будет сервер со статистикой (Cloud.stats)
+function decisionLines(){
+  const D = (DATA.decisions && DATA.decisions.list) || [];
+  return D.map(d=>{
+    const v = memory.flags[d.flag];
+    const what = v===undefined ? d.unset : d.values[String(v)];
+    if(!what) return null;
+    const n = window.Cloud && Cloud.choiceCount ? Cloud.choiceCount(d.flag, String(v)) : null;
+    return `<div class="dec"><span class="decCh">Глава ${d.chapter}</span>${escapeHtml(d.when)}, вы${n!=null?` и ещё ${n} игроков`:''} ${escapeHtml(what)}.</div>`;
+  }).filter(Boolean).join('');
+}
 
 async function finale(){
   $('bars').style.display='none'; $('touch').style.display='none'; setObj('','');
-  const lines = memory.log.map(l=>'· '+escapeHtml(l)).join('<br>');
+  const lines = decisionLines();
   const later = memory.later.length ? `<br><br><span class="small">Весной 1945-го, на хуторе, он запишет в блокнот:</span><br><span style="text-align:left;display:inline-block;font-family:'Courier New',monospace;font-size:14px">${memory.later.map(l=>'· '+escapeHtml(l)).join('<br>')}</span>` : '';
   await showCard('Конец прототипа','Тумар',
-    `Дальше — хутор в Австрии, освобождение и фильтрация.<br><br><span style="text-align:left;display:inline-block">${lines}</span>${later}<br><br><span class="small">История и персонажи вымышлены. Сцены написаны по мотивам опубликованных воспоминаний фронтовиков и бывших военнопленных.</span>`,
+    `Дальше — хутор в Австрии, освобождение и фильтрация.<div class="decs">${lines}</div>${later}<br><br><span class="small">История и персонажи вымышлены. Сцены написаны по мотивам опубликованных воспоминаний фронтовиков и бывших военнопленных.</span>`,
     'Сыграть снова');
   deleteSave();
   location.reload();

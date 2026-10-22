@@ -166,3 +166,9 @@ body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate
   #dlg{min-height:0;padding:8px 12px 8px 76px}#dlg .por{width:54px;height:54px;top:8px;left:10px}#dlg .txt{font-size:15px}
   body.cine .lb{height:7vh}
 }
+
+/* финал: все решения за игру */
+#cardText{max-height:62vh;overflow:auto}
+.decs{text-align:left;max-width:640px;margin:14px auto 0}
+.decs .dec{margin:0 0 .7em;line-height:1.45;font-size:15px;color:var(--ink)}
+.decs .decCh{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
