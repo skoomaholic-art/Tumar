@@ -97,6 +97,8 @@ function sceneField(){
   flask.visible=false; scene.add(flask);
   // второй — конвоир: тень над лицом
   const convoy = makePerson({coat:0x4e5246, hat:'helmet'}); convoy.visible=false; scene.add(convoy);
+  // у молодого — винтовка в правой руке
+  const rifle=new THREE.Mesh(new THREE.BoxGeometry(.06,.06,1.1),M(0x2a2018)); rifle.position.set(0,-.3,.45); convoy.userData.armR.add(rifle);
   // свои ноги: бедро в крови, ремень-жгут выше раны
   const myLegs=new THREE.Group(); myLegs.visible=false; scene.add(myLegs);
   { const khaki=M(0x5c5a3a);
@@ -206,6 +208,7 @@ function sceneField(){
     touchAction(){ return F.drinking ? 'Пить' : null; },
     holdStart(){ F.holding=true; }, holdEnd(){ F.holding=false; },
     crawl(on){ F.touchCrawl=on; },
+    debugDrink(){ $('card').style.display='none'; F.step=5; drink(); },
     async begin(){
       $('bars').style.display='block';
       setHelp(isTouch ? 'Слева — джойстик: вперёд ползти, вбок поворот · справа тяни — осмотреться' : 'W — ползти · A/D или мышь — повернуться · Пробел/E — действие');
@@ -262,9 +265,29 @@ function sceneField(){
       await untilG(()=>{ const d=sit.clone().sub(dog.position); d.y=0; const L=d.length(); if(L<.06) return true; dog.position.addScaledVector(d.normalize(), Math.min(L,2*F.dt)); dog.lookAt(sit.x+d.x*9, 0, sit.z+d.z*9); return false; });
       F.dogRun=false; dog.lookAt(camera.position.x,0,camera.position.z); },
     // сапоги в кадре; пожилой унтер-офицер присаживается рядом
+    // молодой выходит из стеблей и целится в лицо
+    async youngAims(){ closeDlg(); const fw=fwdOf(F.yaw), rt=rightOf(F.yaw), c=camera.position;
+      convoy.visible=true; convoy.position.copy(c).addScaledVector(fw,4.5).addScaledVector(rt,-1.2); convoy.position.y=0;
+      const spot=c.clone().addScaledVector(fw,1.7).addScaledVector(rt,-.3); spot.y=0;
+      await untilG(()=>{ const d=spot.clone().sub(convoy.position); d.y=0; const L=d.length(); if(L<.05) return true; convoy.position.addScaledVector(d.normalize(), Math.min(L,1.4*F.dt)); convoy.lookAt(spot.x+d.x*9,0,spot.z+d.z*9); animWalk(convoy,1,F.dt); return false; });
+      animWalk(convoy,0,.016); convoy.lookAt(c.x,0,c.z);
+      F.yawTo=Math.atan2(-(convoy.position.x-c.x),-(convoy.position.z-c.z)); F.pitchTo=.3;
+      const t0=F.clock; await untilG(()=>{ const k=Math.min(1,(F.clock-t0)/.7); convoy.userData.armR.rotation.x=lerp(0,-1.25,k); convoy.userData.armL.rotation.x=lerp(0,-1.1,k); return k>=1; });
+      noiseBurst({dur:.06,freq:2600,q:3,gain:.15}); await gwait(1.4); },
+    // старший подбегает, отводит ствол и отталкивает молодого
+    async pushRifle(){ closeDlg(); const c=camera.position, fw=fwdOf(F.yaw), rt=rightOf(F.yaw);
+      unter.visible=true; unter.position.copy(c).addScaledVector(fw,4).addScaledVector(rt,2.4); unter.position.y=0;
+      const spot=convoy.position.clone().addScaledVector(rt,.75); spot.y=0;
+      await untilG(()=>{ const d=spot.clone().sub(unter.position); d.y=0; const L=d.length(); if(L<.05) return true; unter.position.addScaledVector(d.normalize(), Math.min(L,2.6*F.dt)); unter.lookAt(spot.x+d.x*9,0,spot.z+d.z*9); animWalk(unter,1.4,F.dt); return false; });
+      animWalk(unter,0,.016); unter.lookAt(convoy.position.x,0,convoy.position.z); unter.userData.armR.rotation.x=-1.4;
+      const t0=F.clock; await untilG(()=>{ const k=Math.min(1,(F.clock-t0)/.5); convoy.userData.armR.rotation.x=lerp(-1.25,-.2,k); convoy.userData.armL.rotation.x=lerp(-1.1,0,k); return k>=1; });
+      unter.userData.armR.rotation.x=0;
+      const back=convoy.position.clone().addScaledVector(fw,1.4).addScaledVector(rt,-1.2); const t1=F.clock;
+      await untilG(()=>{ const k=Math.min(1,(F.clock-t1)/.8); convoy.position.lerp(back,k*.12); return k>=1; });
+      convoy.lookAt(unter.position.x,0,unter.position.z); await gwait(.6); },
     async sergeantSquats(){ closeDlg(); const fw=fwdOf(F.yaw), rt=rightOf(F.yaw), c=camera.position;
       const spot=c.clone().addScaledVector(fw,1.35).addScaledVector(rt,.85); spot.y=0;
-      unter.visible=true; unter.position.copy(c).addScaledVector(fw,4).addScaledVector(rt,2.2); unter.position.y=0;
+      if(!unter.visible){ unter.visible=true; unter.position.copy(c).addScaledVector(fw,4).addScaledVector(rt,2.2); unter.position.y=0; }
       F.yawTo=Math.atan2(-(unter.position.x-c.x),-(unter.position.z-c.z)); F.pitchTo=.05;
       for(let i=0;i<4;i++) sfx.step && setTimeout(()=>sfx.step(), i*420);
       await untilG(()=>{ const d=spot.clone().sub(unter.position); d.y=0; const L=d.length(); if(L<.05) return true; unter.position.addScaledVector(d.normalize(), Math.min(L,1.1*F.dt)); unter.lookAt(spot.x+d.x*9,0,spot.z+d.z*9); animWalk(unter,1,F.dt); F.yawTo=Math.atan2(-(unter.position.x-c.x),-(unter.position.z-c.z)); return false; });
@@ -341,7 +364,8 @@ function sceneField(){
     await run(DAT.scripts.night); closeDlg();
   }
   function flarePop(){ flare.position.set(rand(-20,20),14,rand(-30,-10)); flare.intensity=2.2; sfx.flare(); }
-  function openEyes(){ F.lidNeed=false; F.lidT=0; F.mind=Math.min(1,F.mind+.08); }
+  // каждый раз, разлепив глаза, Асан шепчет молитву дальше
+  function openEyes(){ F.lidNeed=false; F.lidT=0; F.mind=Math.min(1,F.mind+.08); const P=DAT.prayer||[]; if(P.length){ think(P[(F.pray=(F.pray||0))%P.length]); F.pray++; } }
   async function dawn(){
     F.busy=true; F.lidNeed=false; $('eyelid').style.opacity=0; await fadeTo(.9,2000);
     scene.background.setHex(0xe0cfa6); scene.fog.color.setHex(0xd8c49a); scene.fog.density=.04; hemi.intensity=.9; sun.intensity=1.1; sun.color.setHex(0xfff0c8);
@@ -356,6 +380,7 @@ function sceneField(){
     await run(DAT.scripts.dog);
     closeDlg(); setHeart(96); await gwait(.8);
     await fadeTo(1,1800); setHeart(0); setRing(false);
+    convoy.visible=false; await showInterlude('ch5cart');
     startCamp(); // дальше в той же главе: сборный пункт и палатка умирающих
   }
   async function lose(){

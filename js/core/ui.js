@@ -55,6 +55,7 @@ setHelp(isTouch ? 'Слева — джойстик · касание — идт�
 function scramble(word){ return word.replace(/[а-яёa-zäöüß]/gi, ch => '▒░▓'[Math.random()*3|0]).replace(/[▒░▓]{2,}/g, m => m.slice(0, Math.max(2, m.length))); }
 function renderLang(text, lang){
   if((lang!=='ru' && lang!=='de') || memory.fullDialogs) return escapeHtml(text);
+  if(lang==='ru' && ((memory.flags && memory.flags.ruFluent) || (memory.lastSummary||0)>=3)) return escapeHtml(text); // за год на фронте Асан стал понимать по-русски
   return text.split(/(\s+|[.,!?—:])/).map(w => {
     const k = w.toLowerCase();
     if(!/[а-яёa-zäöüß]/i.test(w)) return escapeHtml(w);
@@ -173,7 +174,7 @@ function choose(who, text, options, seconds=0, silentIndex=-1){
 }
 $('dlg').addEventListener('click', advance);
 $('nbBtn').addEventListener('click', e=>{ e.stopPropagation(); openNotebook(); });
-$('nb').addEventListener('click', closeNotebook);
+$('nb').addEventListener('click', e=>{ if(e.target.id==='nb') closeNotebook(); }); // клик мимо листа — закрыть
 
 function showCard(small, big, text, btn='Дальше'){
   return new Promise(res=>{
@@ -350,6 +351,16 @@ const ART = {
     ${[0,1,2,3,4].map(i=>`<circle cx="${40+i*80}" cy="208" r="9" fill="${INK}"/><rect x="${31+i*80}" y="218" width="18" height="42" fill="${INK}"/>`).join('')}`,
   hospital: ()=>`<rect width="400" height="260" fill="#cfc2a2"/>${[0,1,2].map(i=>`<rect x="${20+i*130}" y="150" width="110" height="18" fill="${INK}"/><rect x="${24+i*130}" y="168" width="6" height="40" fill="${INK}"/><rect x="${120+i*130}" y="168" width="6" height="40" fill="${INK}"/>`).join('')}
     <circle cx="200" cy="80" r="12" fill="${INK}"/><rect x="190" y="92" width="20" height="50" fill="${INK}"/><rect x="186" y="142" width="8" height="40" fill="${INK}"/><rect x="204" y="142" width="8" height="40" fill="${INK}" transform="rotate(14 208 142)"/><line x1="228" y1="96" x2="240" y2="186" stroke="${INK}" stroke-width="4"/>`,
+  // телега: раненые вповалку, лошадь, конвоир сбоку
+  cart: ()=>`<rect width="400" height="260" fill="#d2c6a6"/><line x1="0" y1="214" x2="400" y2="214" stroke="${INK}" stroke-width="2"/>
+    <rect x="120" y="140" width="190" height="34" fill="${INK}"/><circle cx="150" cy="196" r="22" fill="none" stroke="${INK}" stroke-width="5"/><circle cx="280" cy="196" r="22" fill="none" stroke="${INK}" stroke-width="5"/>
+    ${[0,1,2,3].map(i=>`<ellipse cx="${150+i*42}" cy="${132-(i%2)*6}" rx="26" ry="9" fill="${INK}"/><circle cx="${126+i*42}" cy="${128-(i%2)*6}" r="8" fill="${INK}"/>`).join('')}
+    <path d="M120 160 L60 150 M60 150 Q40 130 48 112 Q60 100 74 108 L86 150 L80 196 M52 150 L44 196" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="350" cy="96" r="10" fill="${INK}"/><path d="M340 92 Q350 78 360 92" fill="${INK}"/><rect x="342" y="106" width="16" height="50" fill="${INK}"/><line x1="346" y1="156" x2="342" y2="210" stroke="${INK}" stroke-width="6"/><line x1="356" y1="156" x2="360" y2="210" stroke="${INK}" stroke-width="6"/><line x1="364" y1="70" x2="372" y2="160" stroke="${INK}" stroke-width="3"/>`,
+  // построение: ряд фигур, у одного костыль, вдоль строя — сапоги и каска
+  lineup: ()=>`<rect width="400" height="260" fill="#cbc2ac"/><line x1="0" y1="222" x2="400" y2="222" stroke="${INK}" stroke-width="2"/>
+    ${[0,1,2,3,4,5,6].map(i=>{ const x=30+i*44, h=i===2?8:0; return `<circle cx="${x}" cy="${96+h}" r="11" fill="${INK}"/><rect x="${x-10}" y="${108+h}" width="20" height="56" fill="${INK}"/><rect x="${x-9}" y="${164+h}" width="7" height="${56-h}" fill="${INK}"/><rect x="${x+2}" y="${164+h}" width="7" height="${56-h}" fill="${INK}"/>`+(i===2?`<line x1="${x+16}" y1="122" x2="${x+20}" y2="222" stroke="${INK}" stroke-width="3"/>`:''); }).join('')}
+    <path d="M350 92 Q362 76 374 92 Z" fill="${INK}"/><circle cx="362" cy="98" r="10" fill="${INK}"/><rect x="351" y="108" width="22" height="60" fill="${INK}"/><rect x="352" y="168" width="8" height="54" fill="${INK}"/><rect x="364" y="168" width="8" height="54" fill="${INK}"/><line x1="351" y1="118" x2="326" y2="134" stroke="${INK}" stroke-width="5"/>`,
   wire: ()=>`<rect width="400" height="260" fill="#c9c6bc"/>${[30,130,230,330].map(x=>`<line x1="${x}" y1="70" x2="${x}" y2="240" stroke="${INK}" stroke-width="5"/>`).join('')}
     ${[90,120,150,180,210].map(y=>`<path d="M0 ${y} ${Array.from({length:20},(_,k)=>`L${k*20+10} ${y+(k%2?4:-4)}`).join(' ')}" fill="none" stroke="${INK}" stroke-width="1.5"/>`).join('')}
     <rect x="300" y="10" width="60" height="30" fill="${INK}"/><line x1="310" y1="40" x2="305" y2="240" stroke="${INK}" stroke-width="4"/><line x1="350" y1="40" x2="355" y2="240" stroke="${INK}" stroke-width="4"/>`
@@ -361,6 +372,7 @@ async function showInterlude(key){
   const learnt = (D.learn||[]).slice(0, Math.max(1, Math.round((D.learn||[]).length*share)));
   learnt.forEach(([ru,kz])=>{ const base=ru.replace(/\s*\(.*\)/,''); memory.knownWords.add(base); if(!memory.notebook.some(n=>n.ru===ru)) memory.notebook.push({ru, lat:toLat(base), kz, where:D.title}); });
   (D.learnDe||[]).slice(0, Math.max(1, Math.round((D.learnDe||[]).length*share))).forEach(w=>memory.knownWords.add(w));
+  if(D.ruFluent) memory.flags.ruFluent=true;
   const page=$('page'); page.innerHTML='';
   D.panels.forEach(p=>{ const d=document.createElement('div'); d.className='pn';
     const words = p.art==='notebook' ? learnt : null;
@@ -372,4 +384,19 @@ async function showInterlude(key){
   const cells=[...page.children];
   for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); sfx.paper(); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await click(); }
   await fadeTo(1,600); $('panels').style.display='none'; page.classList.remove('four');
+}
+
+// кнопка «Копать»: рывками, мышью/пальцем или Пробелом/E. Возвращает промис после n нажатий (n=0 — без счёта, onPress сам решает)
+function digPrompt(n, label='Копать', onPress=null){
+  return new Promise(res=>{
+    const el=document.createElement('div'); el.className='digOnly';
+    el.innerHTML=`<button type="button">${escapeHtml(label)}</button><div class="bBar"><i></i></div><div class="bHint">жми быстро · Пробел или E</div>`;
+    document.body.appendChild(el); let k=0, done=false;
+    const fin=()=>{ if(done) return; done=true; removeEventListener('keydown',kd,true); el.classList.remove('on'); setTimeout(()=>el.remove(),300); res(); };
+    const press=()=>{ if(done) return; k++; if(onPress && onPress()===true) return fin(); if(n){ el.querySelector('.bBar i').style.width=Math.min(100,k/n*100)+'%'; noiseBurst({dur:.14,freq:300+Math.random()*200,q:.6,gain:.25,type:'lowpass'}); if(k>=n) fin(); } };
+    const kd=e=>{ if(PAUSED) return; if(e.code==='Space'||e.code==='KeyE'){ e.preventDefault(); e.stopPropagation(); if(!e.repeat) press(); } };
+    el.querySelector('button').addEventListener('pointerdown',e=>{ e.stopPropagation(); e.preventDefault(); press(); });
+    addEventListener('keydown',kd,true); requestAnimationFrame(()=>el.classList.add('on'));
+    digPrompt.close=fin;
+  });
 }

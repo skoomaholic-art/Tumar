@@ -37,12 +37,13 @@ test('ночь: Гриша учит две фразы, Асан — одно с�
   assert.ok(m.diary[0].startsWith('4 июля 1943'));
 });
 
-test('под танком: приказ запоминается, Гриша пропадает в любом случае', async ()=>{
+test('под танком: «лежать» спасает Гришу, иначе он пропадает', async ()=>{
   for(const [pick, order] of [[0,'disks'],[1,'stay'],[2,'none']]){
     const m = mock([pick]);
     await createRunner(m.api)(ch4.scripts.iron_choice);
     assert.strictEqual(m.memory.flags.grishaOrder, order);
     await createRunner(m.api)(ch4.scripts.crater_find);
+    if(order==='stay'){ assert.strictEqual(m.memory.flags.grishaAlive, true); assert.ok(!m.memory.flags.grishaLost); assert.ok(m.shows.includes('lookHand')); continue; }
     assert.strictEqual(m.memory.flags.grishaLost, true);
     assert.ok(m.shows.includes(order==='disks' ? 'lookCommTrench' : 'lookCap'));
   }

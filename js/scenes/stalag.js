@@ -50,6 +50,8 @@ function sceneStalag(){
   const sitters=[]; for(let i=0;i<8;i++){ const z=i%2?7.4:-7.4; const p=sitDown(makePerson({coat:coats[(i+2)%6], hat:'none'})); p.position.x=-18+i*5; p.position.z=z; p.rotation.y= z>0?Math.PI:0; scene.add(p); sitters.push(p); }
   // Асан: хромает (короче на два пальца)
   const asan = makePerson({coat:0x5c5a3a, hat:'none'}); asan.position.set(-3,0,6.6); scene.add(asan);
+  // во дворе лежит умерший ночью; мимо ходят, не глядя. Сапог на нём уже нет
+  const yardDead = makePerson({coat:0x55523e, hat:'none'}); yardDead.rotation.set(-Math.PI/2,0,.25); yardDead.position.set(4.5,.22,3.2); yardDead.userData.legL.material=yardDead.userData.legR.material=M(0x9a8a76); scene.add(yardDead);
   const rings=new THREE.Group(); for(let i=0;i<3;i++){ const r=new THREE.Mesh(new THREE.TorusGeometry(.035,.012,6,10),new THREE.MeshLambertMaterial({color:0xa0703a, emissive:0x000000})); r.position.set(i*.09-.09,0,0); r.rotation.x=Math.PI/2; rings.add(r); }
   rings.position.set(0,-.4,.12); asan.userData.armR.add(rings); rings.visible=false;
   const gab = makePerson({coat:0x3a3228, hat:'borik', beard:true}); gab.position.set(-4.1,0,6.9); scene.add(gab);
@@ -342,12 +344,15 @@ function sceneStalag(){
       if(S.phase==='fence' && !S.busy && !dlgOpen){ const [mx,mz]=moveInput(); if(mx||mz){ asan.position.x+=mx*1.6*dt; asan.position.z+=mz*1.6*dt; asan.rotation.y=Math.atan2(mx,mz); animWalk(asan,1,dt); asan.rotation.z=Math.sin(S.clock*6)*.07; }
         else { animWalk(asan,0,dt); asan.rotation.z=0; }
         asan.position.x=Math.max(-24,Math.min(24,asan.position.x)); asan.position.z=Math.max(-16,Math.min(17,asan.position.z));
+        // мимо мёртвого — мысли, по одной, пока стоишь рядом
+        if(asan.position.distanceTo(yardDead.position)<2.4){ S.deadT=(S.deadT||0)-dt; const L=DAT.deadThoughts||[]; if(S.deadT<=0 && (S.deadI||0)<L.length){ think(L[S.deadI||0]); S.deadI=(S.deadI||0)+1; S.deadT=3.6; } }
+        else if(asan.position.distanceTo(sitters[2].position)<1.8 && !S.sitterSeen){ S.sitterSeen=true; think(DAT.sitterThought); }
         S.near = asan.position.distanceTo(TRADE)<1.6; const pr=$('prompt');
         if(S.near){ const v=asan.position.clone().setY(2.3).project(camera); pr.style.display='block'; pr.style.left=((v.x+1)/2*innerWidth)+'px'; pr.style.top=((1-v.y)/2*innerHeight)+'px'; pr.textContent=isTouch?'Отдать кольца':'E — отдать кольца'; } else pr.style.display='none'; }
       else if(S.phase!=='fence') $('prompt').style.display='none';
       if(S.poliTo){ if(walkTo(polizai,S.poliTo,1.3,dt)) S.poliTo=null; if(S.dragV){ vasily.position.x=polizai.position.x-.6; vasily.position.z=polizai.position.z; animWalk(vasily,1,dt); } }
       if(S.potRoll>0){ potato.position.x+=dt*S.potRoll; S.potRoll=Math.max(0,S.potRoll-dt*1.5); }
-      if(S.limpTo && walkTo(asanO,S.limpTo,.9,dt,true)) S.limpTo=null;
+      if(S.limpTo && walkTo(asanO,S.limpTo,memory.flags.limpBad?.6:.9,dt,true)) S.limpTo=null;
       if(S.carry){ if(walkTo(asan,S.carry,.7,dt,true)) S.carry=null; asan.userData.armL.rotation.x=asan.userData.armR.rotation.x=-1.1; stone.position.copy(asan.position).add(tmp.set(0,1.05,0).applyAxisAngle(new THREE.Vector3(0,1,0),0)).addScaledVector(new THREE.Vector3(Math.sin(asan.rotation.y),0,Math.cos(asan.rotation.y)),.35); }
       if(S.civTo){ if(walkTo(civ,S.civTo,.8,dt)) S.civTo=null; const near=S.six.find(p=>p!==asan && Math.abs(p.position.x-civ.position.x)<.3 && !p.userData.picked); if(near){ near.userData.picked=true; civ.userData.armR.rotation.x=-1.5; setTimeout(()=>civ.userData.armR.rotation.x=0,500); near.position.z-=.9; } }
       if(S.sixGo) S.six.forEach(p=>walkTo(p,p.userData.to,1,dt,p===asan));

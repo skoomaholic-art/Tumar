@@ -33,19 +33,51 @@ function diary(text){ memory.diary.push(text); $('nbBtn').style.display='block';
 // раненый не пишет: эти записи появятся позже, когда будет спокойно
 function later(text){ memory.later.push(text); }
 function testify(topic, value, where){ addTestimony(memory.testimony, topic, value, where); }
-function openNotebook(){
-  const byWhere={}; memory.notebook.forEach(n=>{ (byWhere[n.where]=byWhere[n.where]||[]).push(n); });
-  let html='';
-  if(memory.diary.length) html+='<h2>Записи</h2><div class="diary">'+memory.diary.map(d=>`<div>${escapeHtml(d)}</div>`).join('')+'</div>';
-  html+='<h2>Слова, которые я знаю</h2>';
-  if(!memory.notebook.length) html+='<div class="empty">Пока ни одного.</div>';
-  for(const [where,list] of Object.entries(byWhere)){
-    html+=`<div class="src">${escapeHtml(where)}</div><div class="w">`+list.map(n=>`<span class="lat">${escapeHtml(n.lat)}</span><span class="kz">${escapeHtml(n.kz)}</span>`).join('')+'</div>';
+// Блокнот листается: обложка, записи вперемешку со всякой всячиной (счёт, рисунки, прописи), потом слова
+const NB_JUNK = [
+  {after:0, html:`<div class="hand">Курт — 14<br>Баурсак — 9<br>Талқан — бір қап<br><s>Шай — 2</s> шай — 1<br><br>Жүмекеңе — 3 курт</div><div class="doodle">${'<svg viewBox="0 0 160 90" width="160"><path d="M20 70 Q30 40 55 42 Q70 30 90 38 Q120 34 128 50 L140 46 L136 58 Q130 66 120 66 L118 84 M112 66 L110 84 M60 64 L58 84 M48 62 L44 84 M24 66 Q14 70 12 60" fill="none" stroke="#3a3024" stroke-width="2" stroke-linecap="round"/><path d="M128 50 Q134 40 140 46" fill="none" stroke="#3a3024" stroke-width="2"/></svg>'}<div class="sm">Сары — отцовский. Не похож.</div></div>`},
+  {after:1, html:`<div class="hand big">А Б В Г Д Е Ж З И Й К<br><s>Л М Н</s> Л М Н О П Р С Т<br>У Ф Х Ц Ч Ш Щ Ъ Ы Ь Э Ю Я</div><div class="hand">мама мама мама<br>хлеб хлеп хлеб<br>Нурбеков Нурбеков Нурбеков</div>`},
+  {after:2, html:`<div class="hand">|||| |||| |||| |||| ||||<br>|||| |||| |||| ||</div><div class="sm">дни. Потом сбился.</div><div class="hand">Ақмола облысы, ауыл…<br>Нұрбеков Сапарға</div>`},
+  {after:3, html:`<div class="doodle"><svg viewBox="0 0 160 110" width="150"><path d="M80 10 L30 100 L130 100 Z" fill="none" stroke="#3a3024" stroke-width="2"/><path d="M80 24 L42 92 L118 92 Z" fill="none" stroke="#3a3024" stroke-width="1" stroke-dasharray="3 3"/><circle cx="80" cy="66" r="6" fill="none" stroke="#3a3024"/></svg></div><div class="hand">тумар. апа шила 3 дня.</div><div class="hand"><s>Ертең хат жазам</s></div>`},
+  {after:5, ch:5, html:`<div class="hand">eins zwei drei vier<br>fünf sechs sieben acht<br>Brot = нан<br>Wasser = су<br>Schnell = тез</div><div class="sm">Мударис говорит: не учи слишком хорошо — заметят.</div>`}
+];
+let nbPage=0;
+function nbPages(){
+  const pages=[];
+  pages.push(`<div class="cover"><div class="t">Блокнот</div><div class="hand">Асан Нұрбеков</div><div class="sm">1942</div></div>`);
+  const D=memory.diary, chunk=5; let ji=0;
+  for(let i=0;i<D.length;i+=chunk){
+    pages.push('<h2>Записи</h2><div class="diary">'+D.slice(i,i+chunk).map(d=>`<div>${escapeHtml(d)}</div>`).join('')+'</div>');
+    const idx=i/chunk; while(ji<NB_JUNK.length && NB_JUNK[ji].after<=idx){ if((NB_JUNK[ji].ch||0)<=(memory.lastSummary||0)) pages.push(NB_JUNK[ji].html); ji++; }
   }
-  html+='<div class="close">Асан записывает русские слова школьной латиницей, как слышит, а рядом — смысл по-казахски. Нажми, чтобы закрыть.</div>';
-  $('nbSheet').innerHTML=html; $('nb').style.display='flex';
+  if(!D.length) pages.push(NB_JUNK[0].html);
+  const byWhere={}; memory.notebook.forEach(n=>{ (byWhere[n.where]=byWhere[n.where]||[]).push(n); });
+  let page='<h2>Слова, которые я знаю</h2>', lines=1;
+  if(!memory.notebook.length) page+='<div class="empty">Пока ни одного.</div>';
+  for(const [where,list] of Object.entries(byWhere)){
+    const need=1+Math.ceil(list.length/2);
+    if(lines+need>11){ pages.push(page); page='<h2>Слова</h2>'; lines=1; }
+    page+=`<div class="src">${escapeHtml(where)}</div><div class="w">`+list.map(n=>`<span class="lat">${escapeHtml(n.lat)}</span><span class="kz">${escapeHtml(n.kz)}</span>`).join('')+'</div>'; lines+=need;
+  }
+  pages.push(page+'<div class="close">Русские слова Асан пишет школьной латиницей, как слышит, а рядом — смысл по-казахски.</div>');
+  return pages;
 }
+function renderNb(dir){
+  const P=nbPages(); nbPage=Math.max(0,Math.min(P.length-1,nbPage));
+  const sh=$('nbSheet'); sh.classList.remove('turnL','turnR'); void sh.offsetWidth; if(dir) sh.classList.add(dir>0?'turnL':'turnR');
+  sh.innerHTML=`<div class="pg">${P[nbPage]}</div><div class="nbNav"><button type="button" class="nbPrev"${nbPage?'':' disabled'}>‹</button><span>${nbPage+1} / ${P.length}</span><button type="button" class="nbNext"${nbPage<P.length-1?'':' disabled'}>›</button><button type="button" class="nbX">Закрыть</button></div>`;
+  sh.querySelector('.nbPrev').onclick=e=>{ e.stopPropagation(); nbFlip(-1); };
+  sh.querySelector('.nbNext').onclick=e=>{ e.stopPropagation(); nbFlip(1); };
+  sh.querySelector('.nbX').onclick=e=>{ e.stopPropagation(); closeNotebook(); };
+}
+function nbFlip(d){ const n=nbPages().length; const to=Math.max(0,Math.min(n-1,nbPage+d)); if(to===nbPage) return; nbPage=to; if(typeof sfx!=='undefined' && sfx.paper) sfx.paper(); renderNb(d); }
+function openNotebook(){ $('nb').style.display='flex'; renderNb(0); }
 function closeNotebook(){ $('nb').style.display='none'; }
+if(typeof window!=='undefined' && typeof document!=='undefined'){
+  addEventListener('keydown',e=>{ const nb=document.getElementById('nb'); if(!nb || nb.style.display!=='flex') return; if(e.code==='ArrowRight'||e.code==='KeyD'){ e.stopPropagation(); nbFlip(1); } else if(e.code==='ArrowLeft'||e.code==='KeyA'){ e.stopPropagation(); nbFlip(-1); } }, true);
+  let sx=null; addEventListener('pointerdown',e=>{ if(e.target.closest && e.target.closest('#nbSheet')) sx=e.clientX; },true);
+  addEventListener('pointerup',e=>{ if(sx===null) return; const dx=e.clientX-sx; sx=null; if(Math.abs(dx)>50) nbFlip(dx<0?1:-1); },true);
+}
 
 // Данные глав: тексты и сценарии лежат в data/*.json
 const DATA = {};

@@ -149,7 +149,7 @@ function sceneDon(){
   const onMove = ev=>{ if(S.phase==='battle'){ screenToGround(ev, S.aim); const a=$('aim'); a.style.left=ev.clientX+'px'; a.style.top=ev.clientY+'px'; } };
   const onDown = ev=>{
     if(dlgOpen) return;
-    if(S.phase==='battle'){ screenToGround(ev, S.aim); S.firing=true; onMove(ev); return; }
+    if(S.phase==='battle'){ if(S.buried) return; screenToGround(ev, S.aim); S.firing=true; onMove(ev); return; }
     if(!S.busy && (S.phase==='train' || S.phase==='riverWalk')){ const p=screenToGround(ev, tmp2); if(p) S.target={x:p.x, z:p.z}; }
   };
   const onUp = ()=>{ S.firing=false; };
@@ -315,11 +315,11 @@ function sceneDon(){
     await showCard('','Асан погиб у Дона','Не подпускай пехоту к окопу и меняй диск, пока они лежат.','Попробовать снова');
     // заново только бой: враги и танк убираются
     enemies.forEach(e=>scene.remove(e.p)); enemies.length=0; if(tank){ scene.remove(tank.g); tank=null; }
-    S.wave=0; S.zhumWait=false; S.zhumRun=0; S.hp=100; S.ammo=47; S.disks=3; S.reload=0; zhum.visible=true; zhum.position.set(1.2,-.45,.2);
+    S.wave=0; S.buried=false; S.buriedOnce=false; if($('buried')) $('buried').style.display='none'; S.zhumWait=false; S.zhumRun=0; S.hp=100; S.ammo=47; S.disks=3; S.reload=0; zhum.visible=true; zhum.position.set(1.2,-.45,.2);
     await fadeTo(0,1000); phaseBattle();
   }
   async function battleWon(){
-    S.phase='retreat'; S.firing=false; $('aim').style.display='none'; canvas.style.cursor=''; $('ammo').style.display='none'; $('touch').style.display='none';
+    S.phase='retreat'; S.firing=false; S.buried=false; if($('buried')) $('buried').style.display='none'; $('aim').style.display='none'; canvas.style.cursor=''; $('ammo').style.display='none'; $('touch').style.display='none';
     setObj(CH, DAT.objectives.retreat);
     await run(DAT.scripts.retreat); closeDlg();
     setHeart(0);
@@ -423,10 +423,11 @@ function sceneDon(){
     },
     onKey(code,down){ if(!down) return;
       if(code==='KeyR' && S.phase==='battle') reload();
+      if(S.phase==='battle' && S.buried && (code==='Space'||code==='KeyE')){ dig(); return; }
       if(S.phase==='battle' && code==='Space') S.firing=true;
       if(S.phase==='train' && code==='KeyE') pullZhum();
     },
-    act(){ if(S.phase==='battle') reload(); else if(S.phase==='train') pullZhum(); },
+    act(){ if(S.phase==='battle'){ if(S.buried) dig(); else reload(); } else if(S.phase==='train') pullZhum(); },
     holdStart(){}, holdEnd(){},
     async begin(){
       setObj(CH,'');
@@ -435,10 +436,28 @@ function sceneDon(){
     },
     // для автопроверки: закончить бой сразу
     debugZhum(){ zhumabaiRun(); },
+    debugBattle(){ S.busy=true; asan.position.set(0,-.45,0); asan.rotation.y=Math.PI; zhum.position.set(1.2,-.45,.2); zhum.rotation.y=Math.PI; kol.position.set(-2.4,-.45,.1); phaseBattle(); },
     debugWin(){ enemies.forEach(e=>e.alive&&killEnemy(e)); S.wave=3; S.spawnLeft=0; }
   };
   listen(window,'keyup', e=>{ if(e.code==='Space' && S.phase==='battle') S.firing=false; });
 
+  // засыпало: земля сверху, пулемёт не стреляет, пока не откопаешься
+  function bury(){
+    S.buried=true; S.digs=0; S.lastBury=S.battleT; S.firing=false; shake=Math.max(shake,1);
+    let el=$('buried'); if(!el){ el=document.createElement('div'); el.id='buried'; document.body.appendChild(el);
+      el.innerHTML='<div class="bText">Засыпало землёй</div><button type="button" id="digBtn">Копать</button><div class="bBar"><i></i></div><div class="bHint">жми быстро · Пробел или E</div>';
+      el.querySelector('#digBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); e.preventDefault(); dig(); }); }
+    el.querySelector('.bBar i').style.width='0%'; el.style.display='flex'; void el.offsetWidth; el.classList.add('on');
+    noiseBurst({dur:1.4,freq:180,q:.4,gain:.3,type:'lowpass'});
+    if(!S.buriedThink){ S.buriedThink=true; setTimeout(()=>think('Темно. Земля во рту. Дышать нечем — копай!'),400); }
+  }
+  function dig(){
+    if(!S.buried) return;
+    S.digs++; noiseBurst({dur:.12,freq:420+Math.random()*200,q:.7,gain:.14}); shake=Math.max(shake,.15);
+    const el=$('buried'); el.querySelector('.bBar i').style.width=Math.min(100,S.digs/9*100)+'%';
+    el.style.setProperty('--dirt', (1-S.digs/9).toFixed(2));
+    if(S.digs>=9){ S.buried=false; el.classList.remove('on'); setTimeout(()=>{ if(!S.buried) el.style.display='none'; },350); bark('Асан','Ххх… Жив!'); }
+  }
   function pullZhum(){ if(!S.zhumFrozen || S.busy || asan.position.distanceTo(zhum.position)>1.8) return; S.zhumFrozen=false; S.zhumPulled=true; S.zhumGo=true; zhum.rotation.x=0; zhum.position.y=0; bark('Асан','Жумабай! Вниз, вниз!'); }
   function reload(){ if(S.reload>0 || S.ammo===47) return; if(S.disks<=0){ if(S.zhumWait) zhumabaiRealize(); else bark('Асан','Дисков нет…'); return; } S.reload=2.2; S.disks--; noiseBurst({dur:.15,freq:600,gain:.15}); setTimeout(()=>noiseBurst({dur:.12,freq:900,gain:.18}),900); }
 
@@ -456,6 +475,9 @@ function sceneDon(){
     // нужен диск, а Жумабая нет — тут и доходит
     if(S.zhumWait){ S.zhumWaitT+=dt; if((S.disks===0 && (S.ammo<12 || S.reload>0)) || S.zhumWaitT>28) zhumabaiRealize(); }
     S.battleT+=dt; S.waveT+=dt;
+    // первый раз засыпает обязательно: снаряд ложится на бруствер
+    if(!S.buriedOnce && S.battleT>14 && !S.cut){ S.buriedOnce=true; explode(rand(-1.5,1.5),-2.6,1); playerHit(8); bury(); }
+    if(S.buried){ S.firing=false; }
     // огонь
     S.fireCd-=dt;
     if(S.reload>0){ S.reload-=dt; if(S.reload<=0){ S.ammo=47; } }
@@ -482,7 +504,7 @@ function sceneDon(){
     if(tank && !tank.alive){ tank.smokeT-=dt; if(tank.smokeT<=0){ tank.smokeT=.25; puff(tmp.copy(tank.g.position).setY(2.2), smokeTex, 2.5, 3, 2, 2.5); } }
     // артиллерия
     S.artT-=dt; if(S.artT<=0){ S.artT=rand(1.8,3.6); let x,z; do{ x=rand(-26,26); z=rand(-22,10); }while(Math.hypot(x,z)<3.5);
-      const d=explode(x,z,1); if(d<5.5){ playerHit(12); setRing(true); setTimeout(()=>setRing(false),3500); }
+      const d=explode(x,z,1); if(d<5.5){ playerHit(12); setRing(true); setTimeout(()=>setRing(false),3500); if(d<4 && !S.buried && S.battleT-(S.lastBury||-99)>25) bury(); }
       comrades.forEach(cm=>{ if(cm.alive && Math.hypot(cm.p.position.x-x, cm.p.position.z-z)<2.2){ cm.alive=false; cm.p.rotation.x=Math.PI/2; cm.p.position.y=-.2; decal(cm.p.position.x, cm.p.position.z, .7, bloodM); } }); }
     // товарищи стреляют
     comrades.forEach(cm=>{ if(!cm.alive) return; cm.t-=dt; if(cm.t<=0){ cm.t=rand(1.2,3); const tg=enemies.find(e=>e.alive && Math.random()<.5); const to = tg ? tmp2.copy(tg.p.position).setY(1) : tmp2.set(rand(-20,20),.5,rand(-60,-30)); tracer(tmp.copy(cm.p.position).setY(.9), to); noiseBurst({dur:.08,freq:900,gain:.05}); if(tg && Math.random()<.12) killEnemy(tg); } });
@@ -490,10 +512,10 @@ function sceneDon(){
     if(S.zhumRun){ zhum.position.x-=3.2*dt; zhum.rotation.y=-Math.PI/2; animWalk(zhum,1,dt); }
     // камера над окопом: видно сектор впереди
     // низкая камера за спиной расчёта: виден и окоп, и всё поле до горизонта
-    const z=S.zoom; tmp2.set(S.aim.x*.12, 14*z, 16*z);
+    const z=S.zoom; tmp2.set(1.6+S.aim.x*.06, 5.2*z, 7.5*z);
     camera.position.lerp(tmp2, 1-Math.pow(.03,dt));
-    camera.fov = lerp(camera.fov, 55, 1-Math.pow(.05,dt)); camera.updateProjectionMatrix();
-    camera.lookAt(S.aim.x*.2, 0, -30);
+    camera.fov = lerp(camera.fov, 50, 1-Math.pow(.05,dt)); camera.updateProjectionMatrix();
+    camera.lookAt(S.aim.x*.3, 0, -24);
     // сердце и сознание: чем меньше здоровья, тем краснее по краям
     $('vig').style.background = `radial-gradient(ellipse at center,transparent ${30+S.hp*.2}%,rgba(${(100-S.hp)*.9|0},0,0,.85) 100%)`;
   }

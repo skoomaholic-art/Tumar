@@ -127,6 +127,7 @@ function sceneDonets(){
   // Семён Кузьмин — с Асаном с акмолинского эшелона; выгоревшая гимнастёрка
   const semyon=makePerson({coat:0x9a9068, hat:'pilotka'});
   scene.add(asan, grisha, officer, semyon); officer.visible=false;
+  const grishaHand=new THREE.Group(); { const sl=new THREE.Mesh(new THREE.BoxGeometry(.13,.36,.13),M(0x7f764c)); sl.position.y=.12; const hd=new THREE.Mesh(new THREE.BoxGeometry(.11,.14,.06),M(0xb08060)); hd.position.y=.35; grishaHand.add(sl,hd); grishaHand.rotation.z=.35; grishaHand.position.set(2.3,0,-.7); grishaHand.visible=false; scene.add(grishaHand); }
   const grishaCap=new THREE.Mesh(new THREE.BoxGeometry(.3,.09,.17),M(0x6a6640)); grishaCap.visible=false; scene.add(grishaCap);
   const comrades=[];
   for(const x of [-18,-12,-7,6,12,18]){ const p=makePerson({coat:KHAKI, hat:'pilotka'}); p.position.set(x,-.45,0); p.rotation.y=Math.PI; scene.add(p); comrades.push({p,alive:true,t:rand(0,3)}); }
@@ -144,6 +145,10 @@ function sceneDonets(){
     async lookCrater(){ await lookTo(new THREE.Vector3(0,.05,-1.3), 2.8); },
     async lookCommTrench(){ await lookTo(new THREE.Vector3(-3,.3,6), 2.4); },
     async lookCap(){ await lookTo(grishaCap.position.clone(), 2.4); },
+    // «лежать рядом» — Гришу засыпало в нише, но он жив: торчит рука
+    async lookHand(){ grishaHand.visible=true; await lookTo(grishaHand.position.clone(), 2.2); },
+    async digGrisha(){ await digPrompt(8,'Откопать Гришу'); grishaHand.visible=false;
+      grisha.visible=true; grisha.position.set(2.5,-.55,-.9); grisha.rotation.set(-.5,-Math.PI*.7,0); await lookTo(new THREE.Vector3(2.4,.7,-.9), 1.2); },
     // общий план назад, на село: хаты горят, по улице идут немцы
     async showEncircled(){ villageGermans(); villageFG.visible=true; for(let i=0;i<10;i++){ const f=pick(S.fires); puff(tmp.copy(f).setY(4+i*.6),smokeTex,rand(5,8),6,1.6,2,false,1.4); } cut(shotVillage); await gwait(4.5); villageFG.visible=false; },
     // Семён в темноте повторяет за Гришей казахские слова — себе под нос, с ошибкой
@@ -309,7 +314,7 @@ function sceneDonets(){
     decal(0,-1.2,2.4,craterM); const rim=new THREE.Mesh(new THREE.TorusGeometry(2.4,.35,6,18),M(0x3a2c1c)); rim.rotation.x=Math.PI/2; rim.position.set(0,.05,-1.2); scene.add(rim);
     dp.position.set(-1.8,.15,-.4); dp.rotation.set(.4,1.2,.9); dpB.scale.set(1,1,.7);
     grisha.visible=false; S.grishaRun=false;
-    if(order!=='disks'){ grishaCap.visible=true; grishaCap.position.set(1.9,.06,-.3); grishaCap.rotation.y=.7; }
+    if(order==='none'){ grishaCap.visible=true; grishaCap.position.set(1.9,.06,-.3); grishaCap.rotation.y=.7; }
     enemies.forEach(e=>scene.remove(e.p)); enemies.length=0; boats.forEach(b=>scene.remove(b.g)); boats.length=0;
     tanks.forEach(t=>{ t.alive=false; t.g.position.z=Math.max(t.g.position.z,6); t.g.children.forEach(m=>m.material=M(0x1e1c1a)); });
     await gwait(2.2); phaseDig();
@@ -325,6 +330,7 @@ function sceneDonets(){
     $('fade').style.transitionDuration='1600ms'; $('fade').style.opacity=0;
     setObj(CH, isTouch?DAT.objectives.digTouch:DAT.objectives.dig);
     setHeart(62); S.busy=false;
+    digPrompt(0,'Копать',()=>{ dig(); return S.dig>=1; });
   }
   function lookTo(v, sec){ S.lookFrom=(S.curLook||S.lookFrom).clone(); S.lookTo=v.clone(); S.lookT=0; return gwait(sec); }
   function dig(){ if(S.phase!=='dig' || S.dig>=1) return;
@@ -352,7 +358,7 @@ function sceneDonets(){
     dp.position.set(LIE.x,.25,LIE.z-1.15); dp.rotation.set(0,0,0); dpB.scale.set(1,1,1);
     S.gun.set(LIE.x,.35,LIE.z-1.4); S.aim.set(LIE.x,0,LIE.z-20);
     officer.position.set(LIE.x-1.6,0,LIE.z+1.5); officer.rotation.y=Math.PI;
-    comrades.forEach(cm=>cm.p.visible=false); grishaCap.visible=false;
+    comrades.forEach(cm=>cm.p.visible=false); grishaCap.visible=false; grisha.visible=false; grishaHand.visible=false;
     // горит село за спиной
     huts[2].children.forEach(m=>m.material=M(0x2a2420)); huts[4].children.forEach(m=>m.material=M(0x2a2420));
     for(let i=0;i<7;i++){ const r=makePerson({coat:KHAKI, hat:"pilotka"}); r.position.set(LIE.x-3+rand(-2,2),0,LIE.z+rand(-1,2)); scene.add(r); runners.push({p:r, go:false, out:false, to:new THREE.Vector3(rand(14,26),0,rand(66,76))}); }
@@ -375,9 +381,14 @@ function sceneDonets(){
     // перебежка ко второму рубежу — и снова огонь
     await dash(new THREE.Vector3(LIE.x+3,0,LIE.z+11), DAT.scripts.dash1, false);
     S.stage=2; S.phase='encircle'; S.encT=0; S.ammo=Math.max(S.ammo,30); battleHud(true); cut(shotEnc); S.busy=false;
-    await run(DAT.scripts.cover2); closeDlg(); setObj(CH, DAT.objectives.cover2);
+    await run(DAT.scripts.cover2); closeDlg();
+    // второй рубеж: ещё одна группа — раненых несут на плащ-палатках — и снова счёт
+    runners.forEach(r=>{ r.p.visible=false; }); runners.length=0;
+    const P2=asan.position;
+    for(let i=0;i<5;i++){ const r=makePerson({coat:KHAKI, hat:"pilotka"}); r.position.set(P2.x-3+rand(-2,2),0,P2.z+rand(-1,2)); scene.add(r); runners.push({p:r, go:false, out:false, to:new THREE.Vector3(rand(14,26),0,rand(66,76))}); }
+    S.sent=0; S.sendT=1.2;
     for(let i=0;i<5;i++){ const e=spawnEnemy(LIE.x+rand(-12,12),LIE.z-rand(12,18)); e.speed=1.5; }
-    await gwait(16);
+    await until(()=>runners.every(r=>r.out) || S.encT>40);
     // третья перебежка: очередь прошивает на бегу
     await dash(new THREE.Vector3(LIE.x+3,0,LIE.z+10), DAT.scripts.dash2, true);
     S.phase='down'; battleHud(false); cine(true);
@@ -486,7 +497,7 @@ function sceneDonets(){
     S.sendT-=dt; if(S.sendT<=0 && S.sent<runners.length){ runners[S.sent].go=true; S.sent++; S.sendT=rand(2.6,4.2); if(Math.random()<.4) bark('Сосед',pick(DAT.barks.encircle)); }
     let out=0; runners.forEach(r=>{ if(r.out){ out++; return; } if(!r.go) return; r.p.visible=true; if(r.glance>0){ r.glance-=dt; r.p.rotation.y=Math.atan2(asan.position.x-r.p.position.x, asan.position.z-r.p.position.z); animWalk(r.p,0,dt); return; } const dx=r.to.x-r.p.position.x, dz=r.to.z-r.p.position.z, d=Math.hypot(dx,dz);
       if(d<1){ r.out=true; r.p.visible=false; } else { r.p.position.x+=dx/d*3.6*dt; r.p.position.z+=dz/d*3.6*dt; r.p.rotation.y=Math.atan2(dx,dz); animWalk(r.p,1.3,dt); } });
-    if(S.stage===1) setObj(CH, fillObj(DAT.objectives.encircle,{n:out,m:runners.length}));
+    if(S.stage===1||S.stage===2) setObj(CH, fillObj(DAT.objectives.encircle,{n:out,m:runners.length}));
     // немцы: с севера, от наших бывших окопов, и с востока; ложатся и бьют по нему
     S.encSpawn-=dt; if(S.encSpawn<=0){ S.encSpawn=rand(1.4,2.6); const east=Math.random()<.3; spawnEnemy(east?LIE.x+rand(26,32):LIE.x+rand(-14,16), east?LIE.z+rand(-6,10):LIE.z-rand(18,26)); }
     for(const e of enemies){ if(!e.alive) continue; const p=e.p; const dx=LIE.x-p.position.x, dz=LIE.z-p.position.z, d=Math.hypot(dx,dz);
@@ -537,19 +548,20 @@ function sceneDonets(){
     },
     onKey(code,down){ if(!down) return;
       if(code==='KeyR' && fighting()) reload();
-      if(code==='Space'){ if(fighting()) S.firing=true; else if(S.phase==='dig') dig(); }
+      if(code==='Space'){ if(fighting()) S.firing=true; }
     },
-    act(){ if(fighting()) reload(); else if(S.phase==='dig') dig(); },
+    act(){ if(fighting()) reload(); },
     holdStart(){ S.holding=true; }, holdEnd(){ S.holding=false; },
     // по этой главе не ходят: джойстик не нужен; кнопка действия — по обстановке
     wantsJoy(){ return false; },
-    touchAction(){ if(S.phase==='dash' && !S.busy) return 'Бежать'; if(fighting()) return 'Диск'; if(S.phase==='dig') return 'Рыть'; return null; },
+    touchAction(){ if(S.phase==='dash' && !S.busy) return 'Бежать'; if(fighting()) return 'Диск'; return null; },
     async begin(){
       setObj(CH,'');
       await showCard(DAT.card.small, DAT.card.big, DAT.card.text, 'Начать');
       phaseNight();
     },
     // для автопроверки: перемотать бой и отход
+    debugDig(order){ memory.flags.grishaOrder=order; S.phase='barrage'; phaseDawnSet(); $('fade').style.opacity=0; phaseDig(); },
     debugSkipBattle(){ S.battleT=Math.max(S.battleT,31.5); enemies.forEach(e=>e.alive&&killEnemy(e)); tanks.forEach(tk=>{ if(tk.iron) tk.g.position.z=Math.max(tk.g.position.z,-8); }); },
     debugDawn(){ S.phase='barrage'; phaseDawnSet(); $('fade').style.opacity=0; phaseDawn(); },
     async debugEncircle(){ S.phase='encOpen'; stars.visible=false; moon.visible=false; nightFG.visible=false; setupEncircle(); $('fade').style.opacity=0; await phaseEncircle(); },
