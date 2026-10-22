@@ -71,6 +71,7 @@ function sceneStalag(){
   const slatWall=new THREE.Group(); for(let i=0;i<30;i++){ const pl=new THREE.Mesh(new THREE.BoxGeometry(.19,2.5,.06),plankM); pl.position.set(WX-3.6+i*.26,1.25,1.42); slatWall.add(pl); } wagon.add(slatWall);
   // мир за щелями: мокрые чёрные поля и столбы, плывут мимо
   const outside=new THREE.Group(); scene.add(outside);
+  const land=new THREE.Mesh(new THREE.PlaneGeometry(120,60),M(0x3a3428)); land.rotation.x=-Math.PI/2; land.position.set(WX,-.45,32); scene.add(land);
   for(let i=0;i<26;i++){ const f=new THREE.Mesh(new THREE.BoxGeometry(rand(3,7),.05,rand(2,6)), M([0x2a2620,0x3a3428,0x4a4434][i%3])); f.position.set(WX-40+i*3.2,-.4,rand(4,18)); outside.add(f); }
   for(let i=0;i<10;i++){ const p=new THREE.Mesh(new THREE.BoxGeometry(.14,4,.14),M(0x2a221a)); p.position.set(WX-40+i*8,1.4,3.4); outside.add(p); }
   const wLight=new THREE.PointLight(0xd8d0c0,.0,9); wLight.position.set(WX,1.6,3.2); scene.add(wLight);
@@ -97,7 +98,7 @@ function sceneStalag(){
   const semyon=sitDown(makePerson({coat:0x9a9068, hat:'pilotka'})); semyon.position.set(BX+.9,-.45,.5); semyon.rotation.y=-Math.PI/2; bar.add(semyon);
   const vasily=makePerson({coat:0x55503a, hat:'none'}); vasily.rotation.x=-Math.PI/2; bar.add(vasily);
   const asanB=makePerson({coat:0x5c5a3a, hat:'none'}); asanB.rotation.x=-Math.PI/2; bar.add(asanB);
-  const gabB=makePerson({coat:0x3a3228, hat:'borik', beard:true}); gabB.rotation.x=-Math.PI/2; gabB.position.set(BX-2.6,.1,-.9); gabB.rotation.z=Math.PI/2; gabB.visible=false; bar.add(gabB); // появится зимой, мёртвым
+  const gabB=makePerson({coat:0x3a3228, hat:'borik', beard:true}); gabB.rotation.x=-Math.PI/2; gabB.position.set(BX-2.6,.1,-.9); gabB.visible=false; bar.add(gabB); // появится зимой, мёртвым
   const polizai=makePerson({coat:0x2e2c28, hat:'pilotka'}); polizai.visible=false; bar.add(polizai);
   const band=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.12,8),M(0xd8d0bc)); band.position.set(0,.15,0); polizai.userData.armL.add(band);
   const potato=new THREE.Mesh(new THREE.SphereGeometry(.07,6,5),M(0x8a6a3a)); potato.visible=false; bar.add(potato);
