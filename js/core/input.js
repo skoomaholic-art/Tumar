@@ -11,7 +11,7 @@ addEventListener('keydown', e=>{
   if(e.code==='Escape') closeNotebook();
   if(e.code==='Space'||e.code==='Enter'){ if(dlgOpen) advance(); else if(thinkSkip) thinkSkip(); }
   if(choose.slots && choose.pick && performance.now()-(choose.shownAt||0) > 450){
-    const pos = ({ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowDown:'bottom',KeyS:'bottom'})[e.code];
+    const pos = ({ArrowLeft:'left',KeyA:'left',Digit1:'left',ArrowRight:'right',KeyD:'right',Digit2:'right',ArrowDown:'bottom',KeyS:'bottom',Digit3:'bottom',KeyW:'extra',ArrowUp:'extra',Digit4:'extra'})[e.code];
     if(pos && choose.slots[pos]!==undefined){ choose.pick(choose.slots[pos]); return; }
   }
   if(active && active.onKey) active.onKey(e.code, true);

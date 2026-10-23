@@ -25,17 +25,6 @@ html,body{margin:0;height:100%;background:#0d0b09;color:var(--ink);font-family:"
 #dlg .txt .noise{display:inline-block;color:#8a7d66;filter:blur(1.5px);user-select:none}
 #dlg .txt .known{color:var(--ink);text-decoration:underline dotted #8a7d66}
 #dlg .more{position:absolute;right:12px;bottom:8px;font-size:12px;color:var(--ink2)}
-#choices{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
-#choices .opt-left{text-align:left}
-#choices .opt-right{text-align:right}
-#choices.timed{grid-template-columns:1fr 76px 1fr}
-#choices .hg{display:flex;align-items:center;justify-content:center}
-#choices .hg svg{width:68px;height:68px;overflow:visible}
-#choices .opt-bottom{grid-column:1/-1;justify-self:center;font-size:13px;color:var(--ink2);padding:5px 14px}
-#choices .key{display:block;font-size:11px;letter-spacing:.1em;color:var(--ink2);margin-bottom:3px}
-#choices .opt-left{grid-column:1}#choices.timed .opt-right{grid-column:3}
-#choices button{font:inherit;font-size:15px;text-align:left;background:#2a231b;color:var(--ink);border:1px solid var(--line);padding:8px 10px;cursor:pointer}
-#choices button:hover,#choices button:focus{border-color:var(--ink2);outline:none}
 #timer{height:3px;background:var(--accent);margin-top:8px;width:100%;transform-origin:left}
 .screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px;background:rgba(8,7,5,.94)}
 .screen h1{font-family:"Old Standard TT","PT Serif",Georgia,serif;text-wrap:balance;font-weight:normal;font-size:clamp(34px,7vw,64px);letter-spacing:.08em;margin:0 0 6px}
@@ -402,3 +391,31 @@ body.dlg:not(.cine) #dlg{background:rgba(6,5,4,.93);padding:8px 22px 10px;border
 #card.ded::before{background:linear-gradient(180deg,rgba(10,8,6,.62),rgba(10,8,6,.25) 45%,rgba(10,8,6,.55))}
 /* титул: рисованная обложка, меню на тёмной левой трети */
 #title{background:linear-gradient(90deg,rgba(10,8,6,.86) 0,rgba(10,8,6,.55) 34%,rgba(10,8,6,0) 58%),url(../img/title.jpg) 70% center/cover no-repeat,#0a0806}
+
+/* ---------- выбор как у Telltale: варианты в ряд, над ними тает полоска ---------- */
+#choices{margin-top:10px}
+#choices .row{display:flex;gap:8px;justify-content:center;align-items:stretch}
+#choices .opt{flex:1 1 0;max-width:280px;font:inherit;font-size:15px;line-height:1.25;text-align:center;background:rgba(10,8,6,.78);color:#fff;border:1px solid rgba(233,223,201,.28);border-radius:3px;padding:9px 10px 10px;cursor:pointer;text-shadow:0 1px 2px #000;transition:background .15s,border-color .15s,transform .15s}
+#choices .opt:hover,#choices .opt:focus{background:rgba(40,32,24,.9);border-color:#e9dfc9;outline:none;transform:translateY(-2px)}
+#choices .opt.silent{flex:0 1 auto;color:#b9ab8e;font-style:italic}
+#choices .opt.picked{background:#e9dfc9;color:#14100c;text-shadow:none}
+#choices .key{display:block;font-size:11px;letter-spacing:.12em;color:#b9ab8e;margin-bottom:3px;font-style:normal}
+#choices .tbar{height:3px;margin:0 auto 9px;width:min(620px,90%);background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden}
+#choices .tbar i{display:block;height:100%;background:#f2ead8;transform-origin:center;transition:background .4s}
+#choices .tbar.late i{background:#c0392b}
+#dlg:has(#choices .row){width:min(980px,calc(100vw - 32px))!important;background:transparent!important;padding:2px 0 4px!important}
+@media (pointer:coarse) and (orientation:landscape) and (max-height:560px){ #choices .opt{font-size:13px;padding:7px 8px} #choices .row{gap:6px} }
+
+/* ---------- крупные планы: Асан справа, собеседник слева ---------- */
+#closeup{position:fixed;inset:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .5s}
+#closeup::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(6,5,4,.75),rgba(6,5,4,.35) 55%,rgba(6,5,4,.2))}
+#closeup.on{opacity:1}
+#closeup img{position:absolute;bottom:0;height:min(88vh,calc(100vh - var(--lbt,0px)));max-width:52vw;object-fit:contain;object-position:bottom;opacity:0;filter:brightness(.45) saturate(.8);transition:opacity .45s,transform .6s cubic-bezier(.2,.7,.2,1),filter .4s}
+#closeup img.left{left:2vw;transform:translateX(-4vw)}
+#closeup img.right{right:2vw;transform:translateX(4vw)}
+#closeup img.on{opacity:.9;transform:none}
+#closeup img.talk{opacity:1;filter:none;animation:breathe 4.5s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.012) translateY(-2px)}}
+body.closeup #caption,body.closeup #hud{opacity:0}
+#dlg:has(#choices .row) .who{display:none}
+#dlg:has(#choices .row) .txt:empty{display:none}

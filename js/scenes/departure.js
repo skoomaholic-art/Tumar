@@ -405,7 +405,7 @@ function sceneDeparture(){
   }
   async function partDrill(){
     const w = wipe(1300); world = buildDrill(); S.phase='drill'; setShot('top'); cine(true); await w;
-    await gwait(1.5); setShot('kol'); await run(DAT.scripts.drill_intro); setShot('top'); cine(false);
+    await gwait(1.5); setShot('kol'); CAST_SET='army'; await run(DAT.scripts.drill_intro); setShot('top'); cine(false);
     setObj(CH, isTouch?DAT.objectives.drillTouch:DAT.objectives.drill); responseButtons();
     const seq=['ложись','ложись','огонь','ложись','огонь','диск','огонь','диск','ложись','диск','огонь','ложись'];
     const right={ложись:0,огонь:0,диск:0}, learned={};

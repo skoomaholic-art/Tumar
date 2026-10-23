@@ -34,7 +34,7 @@ function createRunner(api){
   async function run(steps){
     if(!steps) return;
     for(const st of steps){
-      if('say' in st) await api.say(st.say, st.text, st.lang||'kz');
+      if('say' in st) await api.say(st.say, st.text, st.lang||'kz', st.emo);
       else if('choose' in st){
         // вариант с полем if показывается только при выполнении условия
         const options = st.options.filter(o=>!o.if || evalCond(o.if, mem.flags));

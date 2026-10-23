@@ -112,8 +112,9 @@ function portrait(who){
 
 // Диалоги: очередь реплик + выбор с таймером (молчание — тоже ответ)
 let dlgResolve=null, typing=null, dlgOpen=false;
-function say(who, text, lang='kz'){
+function say(who, text, lang='kz', emo){
   return new Promise(res=>{
+    if(typeof showCloseup==='function') showCloseup(who, emo);
     dlgOpen=true; document.body.classList.add('dlg'); $('help').style.visibility='hidden'; $('dlg').style.display='block'; $('choices').innerHTML=''; $('more').style.display='block';
     $('who').textContent = who; $('who').dataset.f=factionOf(who); $('por').innerHTML = portrait(who);
     const html = renderLang(text, lang); const el=$('txt');
@@ -132,51 +133,31 @@ function advance(){
   const r = dlgResolve(); if(r===false) return;
   dlgResolve=null;
 }
-function closeDlg(){ dlgOpen=false; document.body.classList.remove('dlg'); $('dlg').style.display='none'; $('dlg').style.width=''; $('help').style.visibility='visible'; }
+function closeDlg(){ if(typeof hideCloseup==='function') hideCloseup(); dlgOpen=false; document.body.classList.remove('dlg'); $('dlg').style.display='none'; $('dlg').style.width=''; $('help').style.visibility='visible'; }
 function choose(who, text, options, seconds=0, silentIndex=-1){
   return new Promise(res=>{
+    if(typeof showCloseup==='function' && closeupSide) showCloseup(who==='Асан'||!text?'Асан':who, 'think');
     dlgOpen=true; document.body.classList.add('dlg'); $('help').style.visibility='hidden'; $('dlg').style.display='block'; $('dlg').style.width=''; $('more').style.display='none';
-    $('who').textContent=who; $('who').dataset.f=factionOf(who); $('por').innerHTML=portrait(who); $('txt').textContent=text;
-    const box=$('choices'); box.innerHTML='';
-    let done=false; const finish=i=>{ if(done) return; done=true; box.innerHTML=''; choose.slots=null; res(i); };
-    // варианты расходятся влево и вправо, стороны каждый раз случайны: нет «верхнего правильного»
+    $('who').textContent=who; $('who').dataset.f=factionOf(who); $('por').innerHTML=portrait(who); $('txt').textContent=text||'';
+    const box=$('choices'); box.innerHTML=''; box.className='';
+    let done=false; const finish=i=>{ if(done) return; done=true; box.innerHTML=''; box.className=''; choose.slots=null; res(i); };
+    // как у Telltale: варианты в ряд внизу, порядок случайный (нет «верхнего правильного»), молчание — последним
     const main=options.map((o,i)=>i).filter(i=>i!==silentIndex);
     if(Math.random()<.5) main.reverse();
-    const slots={};
-    const mk=(i,pos,key)=>{ const b=document.createElement('button'); b.className='opt-'+pos; b.innerHTML=`<span class="key">${key}</span>${escapeHtml(options[i])}`; b.onclick=e=>{e.stopPropagation();finish(i);}; box.appendChild(b); slots[pos]=i; };
-    if(main[0]!==undefined) mk(main[0],'left', isTouch?'◀':'◀ A');
-    if(main[1]!==undefined) mk(main[1],'right', isTouch?'▶':'D ▶');
-    if(silentIndex>=0 && options[silentIndex]!==undefined) mk(silentIndex,'bottom', isTouch?'▼':'▼ S');
-    else if(main[2]!==undefined) mk(main[2],'bottom', isTouch?'▼':'▼ S'); // третий вариант без «молчания» — снизу, а не теряется
+    const order=[...main]; if(silentIndex>=0 && options[silentIndex]!==undefined) order.push(silentIndex);
+    const POS=['left','right','bottom','extra'], KEY=isTouch?['','','','']:['A','D','S','W'];
+    const slots={}; const row=document.createElement('div'); row.className='row';
+    order.forEach((i,n)=>{ const b=document.createElement('button'); b.className='opt'+(i===silentIndex?' silent':'');
+      b.innerHTML=(KEY[n]?`<span class="key">${KEY[n]}</span>`:'')+`<span class="t">${escapeHtml(options[i])}</span>`;
+      b.onclick=e=>{ e.stopPropagation(); b.classList.add('picked'); finish(i); }; row.appendChild(b); slots[POS[n]]=i; });
+    box.appendChild(row);
     choose.slots=slots; choose.shownAt=performance.now();
     if(seconds){
-      box.classList.add('timed');
-      // песочные часы между вариантами; вокруг них фитиль, который догорает
-      const R=30, C=2*Math.PI*R;
-      const hg=document.createElement('div'); hg.className='hg';
-      hg.innerHTML=`<svg viewBox="-36 -36 72 72" aria-hidden="true">
-        <circle r="${R}" fill="none" stroke="#3a3126" stroke-width="2"/>
-        <circle id="fuse" r="${R}" fill="none" stroke="#c9a46a" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="0" transform="rotate(-90)"/>
-        <circle id="spark" r="3.2" fill="#ffd27a"/>
-        <g id="glass">
-          <path d="M-11 -17 H11 M-11 17 H11" stroke="#b9ab8e" stroke-width="2.4" stroke-linecap="round"/>
-          <path d="M-9 -16 C-9 -6 -2 -3 -2 0 C-2 3 -9 6 -9 16 H9 C9 6 2 3 2 0 C2 -3 9 -6 9 -16 Z" fill="rgba(233,223,201,.08)" stroke="#b9ab8e" stroke-width="1.4"/>
-          <clipPath id="hgTop"><rect id="sandTopR" x="-9" y="-15" width="18" height="15"/></clipPath>
-          <clipPath id="hgBot"><rect id="sandBotR" x="-9" y="15" width="18" height="0"/></clipPath>
-          <path clip-path="url(#hgTop)" d="M-8 -15 C-8 -6 -1.5 -3 -1.5 0 H1.5 C1.5 -3 8 -6 8 -15 Z" fill="#c9a46a"/>
-          <path clip-path="url(#hgBot)" d="M-8 15 C-8 6 -1.5 3 -1.5 0 H1.5 C1.5 3 8 6 8 15 Z" fill="#c9a46a"/>
-          <line id="stream" x1="0" y1="0" x2="0" y2="14" stroke="#c9a46a" stroke-width="1" stroke-dasharray="1.5 2"/>
-        </g></svg>`;
-      box.insertBefore(hg, box.querySelector('.opt-right'));
-      const fuse=hg.querySelector('#fuse'), spark=hg.querySelector('#spark'), glass=hg.querySelector('#glass'), topR=hg.querySelector('#sandTopR'), botR=hg.querySelector('#sandBotR'), stream=hg.querySelector('#stream');
-      const t0=performance.now();
-      (function tick(now){ if(done) return; const e=(performance.now()-t0)/(seconds*1000), k=Math.max(0,1-e);
-        fuse.setAttribute('stroke-dashoffset', C*e);
-        const a=-Math.PI/2 - 2*Math.PI*e; spark.setAttribute('cx', Math.cos(a)*R); spark.setAttribute('cy', Math.sin(a)*R); spark.setAttribute('r', 2.6+Math.random()*1.4);
-        topR.setAttribute('y', -15 + 15*e); topR.setAttribute('height', 15*k);
-        botR.setAttribute('y', 15 - 15*e); botR.setAttribute('height', 15*e);
-        stream.setAttribute('stroke-dashoffset', -performance.now()/40);
-        glass.setAttribute('transform', `rotate(${Math.sin(performance.now()/260)*(4+e*10)})`);
+      // полоска времени тает к центру, к концу краснеет
+      const bar=document.createElement('div'); bar.className='tbar'; bar.innerHTML='<i></i>'; box.insertBefore(bar,row); box.classList.add('timed');
+      const fill=bar.firstChild, t0=performance.now();
+      (function tick(){ if(done) return; const e=(performance.now()-t0)/(seconds*1000), k=Math.max(0,1-e);
+        fill.style.transform=`scaleX(${k})`; if(e>.66) bar.classList.add('late');
         if(k<=0) finish(silentIndex); else requestAnimationFrame(tick); })();
       if(AC) noiseBurst({dur:.5,freq:2200,q:.6,gain:.03,type:'highpass'});
     }
