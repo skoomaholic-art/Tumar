@@ -561,7 +561,7 @@ function sceneAul(){
     for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await clickPanels(); }
     await run(DAT.scripts.house_end);
     await wait(900);
-    await fadeTo(1,900); $('panels').style.display='none'; page.classList.remove('artpage'); page.style.width='';
+    await fadeTo(1,900); $('panels').style.display='none'; page.classList.remove('artpage','row'); page.style.width='';
     startDeparture(); // дальше в той же главе: проводы, Акмолинск, эшелон
   }
   // утро: Асан спит в юрте, мать будит и зовёт пить чай; снаружи кричит отец

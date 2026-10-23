@@ -440,14 +440,24 @@ async function showInterlude(key){
   const click=()=>new Promise(r=>{ const h=()=>{ $('panels').removeEventListener('pointerdown',h); removeEventListener('keydown',kk); r(); }; const kk=e=>{ if(e.code==='Space'||e.code==='Enter') h(); }; $('panels').addEventListener('pointerdown',h); addEventListener('keydown',kk); });
   const cells=[...page.children];
   for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); sfx.paper(); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await click(); }
-  await fadeTo(1,600); $('panels').style.display='none'; page.classList.remove('four','artpage'); page.style.width='';
+  await fadeTo(1,600); $('panels').style.display='none'; page.classList.remove('four','artpage','row'); page.style.width='';
 }
 
 // рисованные кадры показываются целиком: ширина страницы подбирается так, чтобы всё влезло по высоте экрана
 function fitArtPage(page){
   if(!page.classList.contains('artpage')){ page.style.width=''; return; }
-  const fit=()=>{ page.style.width=''; let w=page.getBoundingClientRect().width;
-    for(let i=0;i<5;i++){ const h=page.getBoundingClientRect().height, max=innerHeight*.88; if(h<=max+2) break; w*=max/h; page.style.width=Math.floor(w)+'px'; } };
+  const fit=()=>{
+    // низкий экран (телефон боком): кадры в один ряд, ширина каждого — по пропорции картинки, чтобы высоты совпали
+    const row = innerHeight<520; page.classList.toggle('row',row);
+    [...page.children].forEach(pn=>{ const im=pn.querySelector('img'); pn.style.flex = row && im && im.naturalWidth ? `${im.naturalWidth/im.naturalHeight} 1 0` : ''; });
+    page.style.width=''; const w0=page.getBoundingClientRect().width, max=innerHeight*(row?.86:.88);
+    const H=w=>{ page.style.width=Math.floor(w)+'px'; return page.getBoundingClientRect().height; };
+    if(H(w0)<=max+2) return;
+    // самая широкая страница, что влезает по высоте; подписи переносятся, поэтому ищем делением, а не пропорцией
+    let lo=Math.min(w0,row?300:240), hi=w0, best=lo, bestH=H(lo);
+    for(let i=0;i<14;i++){ const m=(lo+hi)/2, h=H(m); if(h<=max+2){ best=m; bestH=h; lo=m; } else { if(h<bestH){ bestH=h; } hi=m; } }
+    H(best);
+  };
   page.querySelectorAll('img').forEach(im=>{ if(!im.complete) im.addEventListener('load',fit,{once:true}); });
   fit(); setTimeout(fit,60);
 }

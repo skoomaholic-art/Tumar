@@ -352,7 +352,7 @@ function sceneCity(){
     const clickPanels = () => new Promise(r=>{ const h=()=>{ $('panels').removeEventListener('pointerdown',h); removeEventListener('keydown',kk); r(); }; const kk=e=>{ if(e.code==='Space'||e.code==='Enter') h(); }; $('panels').addEventListener('pointerdown',h); addEventListener('keydown',kk); });
     const cells=[...page.children];
     for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await clickPanels(); }
-    await fadeTo(1,800); $('panels').style.display='none'; page.classList.remove('artpage'); page.style.width='';
+    await fadeTo(1,800); $('panels').style.display='none'; page.classList.remove('artpage','row'); page.style.width='';
   }
 
   // сборы перед вылазкой: тёмные плащ-палатки, ничего звенящего, ракеты над нейтралкой — считать

@@ -343,7 +343,7 @@ function sceneDon(){
     const cells=[...page.children];
     for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await clickPanels(); }
     await run(DAT.scripts.kitchen);
-    await fadeTo(1,900); $('panels').style.display='none'; page.classList.remove('artpage'); page.style.width=''; asan.userData.armR.rotation.x=0;
+    await fadeTo(1,900); $('panels').style.display='none'; page.classList.remove('artpage','row'); page.style.width=''; asan.userData.armR.rotation.x=0;
   }
   async function phaseRiver(){
     S.phase='riverWalk'; S.busy=true;

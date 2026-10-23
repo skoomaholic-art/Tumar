@@ -103,14 +103,16 @@ function sceneCamp(){
   function shot(p, l, w=900, h=900){ cam2.aspect=w/h; cam2.updateProjectionMatrix(); cam2.position.copy(p); cam2.lookAt(l); const old=renderer.getSize(new THREE.Vector2()); renderer.setSize(w,h,false); renderer.render(scene,cam2); const u=canvas.toDataURL('image/jpeg',.85); renderer.setSize(old.x,old.y,false); return u; }
   // подпись панели: «{de:слово}» — немецкое слово выводится шумом, как в речи
   const capHtml = s => escapeHtml(s).replace(/\{de:([^}]+)\}/g, (_,w)=>renderLang(w,'de'));
+  // рисованные кадры (img/…) — макет artpage: подписи под кадром, картинка целиком; два кадра — в ряд
   async function panels(urls, caps){
-    const page=$('page'); page.innerHTML='';
-    urls.forEach((u,i)=>{ const d=document.createElement('div'); d.className='pn'; d.innerHTML=`<img src="${u}" alt=""><div class="cap">${capHtml(caps[i])}</div>`; page.appendChild(d); });
-    $('panels').style.display='flex'; await fadeTo(0,700);
+    const page=$('page'); page.innerHTML=''; const art=urls.every(u=>u.startsWith('img/'));
+    page.classList.toggle('artpage',art); page.classList.toggle('four',art&&urls.length===2);
+    urls.forEach((u,i)=>{ const d=document.createElement('div'); d.className=art?'pn art':'pn'; d.innerHTML=`<img${art?' class="art"':''} src="${u}" alt=""><div class="cap">${capHtml(caps[i])}</div>`; page.appendChild(d); });
+    $('panels').style.display='flex'; if(art) fitArtPage(page); await fadeTo(0,700);
     const clickPanels = () => new Promise(r=>{ const h=()=>{ $('panels').removeEventListener('pointerdown',h); removeEventListener('keydown',kk); r(); }; const kk=e=>{ if(e.code==='Space'||e.code==='Enter') h(); }; $('panels').addEventListener('pointerdown',h); addEventListener('keydown',kk); });
     const cells=[...page.children];
     for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await clickPanels(); }
-    await fadeTo(1,700); $('panels').style.display='none';
+    await fadeTo(1,700); $('panels').style.display='none'; page.classList.remove('artpage','four','row'); page.style.width='';
   }
   const caps = list => list.map(c => c.if ? (evalCond(c.if, memory.flags) ? c.text : c.else) : c.text);
 
@@ -131,7 +133,7 @@ function sceneCamp(){
     // фельдфебель отступает на шаг, всё ещё показывая пальцем: не заслоняет лица в следующих планах
     feld.position.set(2.3,0,1.7); feld.lookAt(asan.position.x,0,asan.position.z);
     await fadeTo(1,500);
-    await panels([f1,f2,f3], caps(DAT.panels.point));
+    await panels(['img/ch5p_1.jpg','img/ch5p_2.jpg','img/ch5p_3.jpg'], caps(DAT.panels.point));
     setShot('tatar'); await fadeTo(0,250);
     await run(DAT.scripts.point_choice); closeDlg();
     feld.userData.armR.rotation.x=0; feld.userData.armR.position.set(.37,1.15,0);
@@ -140,7 +142,7 @@ function sceneCamp(){
     feld.position.set(3.6,0,1.6); feld.rotation.y=Math.PI/2;
     const f5=shot(new THREE.Vector3(.6,.3,2.1), new THREE.Vector3(3.6,.4,1.6), 900, 700);
     await fadeTo(1,500);
-    await panels([f4,f5], caps(DAT.panels.after));
+    await panels([memory.flags.mussulman==='self'?'img/ch5p_4a.jpg':'img/ch5p_4b.jpg','img/ch5p_5.jpg'], caps(DAT.panels.after));
     cine(false);
   }
 

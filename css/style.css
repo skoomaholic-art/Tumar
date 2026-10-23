@@ -338,3 +338,8 @@ canvas,#c{touch-action:none}
 #panels .page.artpage{height:auto;align-items:start;grid-template-rows:auto auto;grid-template-columns:1.6fr 1fr}
 #panels .page.artpage.four{grid-template-columns:1fr 1fr}
 #panels .pn.art .cap,#panels .four .pn.art .cap{position:static;flex:none;margin:0;box-shadow:none;border-top:3px solid #e9dfc9}
+
+/* рисованная страница на низком экране: кадры в ряд, подписи мельче */
+#panels .page.artpage.row{display:flex;align-items:flex-start;gap:6px}
+#panels .page.artpage.row .pn.art .cap{font-size:12px;line-height:1.25;padding:4px 7px}
+@media (max-height:520px){#panels{padding:6px}}
