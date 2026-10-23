@@ -430,7 +430,9 @@ async function showInterlude(key){
   const page=$('page'); page.innerHTML='';
   D.panels.forEach(p=>{ const d=document.createElement('div'); d.className='pn';
     const words = p.art==='notebook' ? learnt : null;
-    d.innerHTML=`<svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block;filter:sepia(.35) contrast(1.1)">${ART[p.art] ? ART[p.art](words) : ''}</svg><div class="cap${p.art==='notebook'?'':' top'}">${escapeHtml(p.text)}</div>`;
+    // рисованный кадр (img), а пока его нет — заглушка-силуэт из ART
+    d.innerHTML = p.img ? `<img class="art" src="${p.img}" alt=""><div class="cap">${escapeHtml(p.text)}</div>`
+      : `<svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block;filter:sepia(.35) contrast(1.1)">${ART[p.art] ? ART[p.art](words) : ''}</svg><div class="cap${p.art==='notebook'?'':' top'}">${escapeHtml(p.text)}</div>`;
     page.appendChild(d); });
   page.classList.toggle('four', D.panels.length>=4);
   $('panels').style.display='flex'; $('fade').style.transitionDuration='600ms'; $('fade').style.opacity=0;

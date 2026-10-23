@@ -325,3 +325,8 @@ canvas,#c{touch-action:none}
 #phrase button:disabled{opacity:.3}
 #phrase .ph-row{display:flex;gap:10px;justify-content:center;margin-top:12px}
 #phrase .ph-go{color:var(--ink);border-color:var(--ink)}
+
+/* рисованные кадры: свой цвет, без фильтра движка (красный тумар остаётся красным) */
+#panels .pn img.art{filter:none}
+#panels .pn img.art{object-position:center 30%}
+#panels .four .pn .cap{font-size:14px;padding:5px 9px;left:8px;right:8px;bottom:8px}

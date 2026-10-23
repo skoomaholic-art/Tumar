@@ -547,20 +547,13 @@ function sceneAul(){
   }
   async function enterHouse(){
     S.busy=true; S.step=5; setObj(CH,'');
-    // кадры для рисованных панелей: пока рендер из движка с крупных ракурсов
-    const shots = [];
-    const cam2 = new THREE.PerspectiveCamera(40, 1, .1, 200);
-    function shot(pos, look, w=900, h=900){ cam2.aspect=w/h; cam2.updateProjectionMatrix(); cam2.position.copy(pos); cam2.lookAt(look); const old=renderer.getSize(new THREE.Vector2()); renderer.setSize(w,h,false); renderer.render(scene,cam2); const url=canvas.toDataURL('image/jpeg',.85); renderer.setSize(old.x,old.y,false); return url; }
+    // рисованные кадры: дом ночью снаружи → руки матери с иглой → тумар из рук в руки
     father.position.set(-4.6,0,-2.2); father.lookAt(-4.6,0,5); asan.position.set(-3.6,0,-1.4); asan.lookAt(-4.6,0,-2.2);
-    const tumar = new THREE.Mesh(new THREE.ConeGeometry(.12,.2,3), new THREE.MeshLambertMaterial({color:0x8e1f1a,emissive:0x3a0806}));
-    tumar.rotation.x=Math.PI/2; tumar.position.set(-4.3,1.25,-1.7); scene.add(tumar);
-    shots.push(shot(new THREE.Vector3(-12,3.2,12), new THREE.Vector3(-6,1.6,-4), 900,1100));
-    shots.push(shot(new THREE.Vector3(-3.6,2.1,0.2), new THREE.Vector3(-4.6,1.75,-2.2)));
-    shots.push(shot(new THREE.Vector3(-4.1,1.6,-1.2), new THREE.Vector3(-4.3,1.25,-1.7)));
+    const shots = ['img/ch1_1.jpg','img/ch1_2.jpg','img/ch1_3.jpg'];
     const caps = DAT.panels.captions.map(c => c.if ? (evalCond(c.if, memory.flags) ? c.text : c.else) : c.text);
     await fadeTo(1,900);
     const page=$('page'); page.innerHTML='';
-    shots.forEach((u,i)=>{ const d=document.createElement('div'); d.className='pn'; d.innerHTML=`<img src="${u}" alt=""><div class="cap">${caps[i]}</div>`; page.appendChild(d); });
+    shots.forEach((u,i)=>{ const d=document.createElement('div'); d.className='pn'; d.innerHTML=`<img class="art" src="${u}" alt=""><div class="cap top">${caps[i]}</div>`; page.appendChild(d); });
     $('panels').style.display='flex'; await fadeTo(0,700);
     const clickPanels = () => new Promise(r=>{ const h=()=>{ $('panels').removeEventListener('pointerdown',h); r(); }; $('panels').addEventListener('pointerdown',h); const k=e=>{ if(e.code==='Space'||e.code==='Enter'){ removeEventListener('keydown',k); $('panels').removeEventListener('pointerdown',h); r(); } }; addEventListener('keydown',k); });
     const cells=[...page.children];
