@@ -35,15 +35,15 @@ test('сборный пункт: молчал — старик говорит з
   assert.ok(m.calls.includes('crossArms:tatar'));
 });
 
-test('палатка: хромота, тумар забран, раненый не пишет — только later', async ()=>{
+test('палатка: хромота, тумар удержан в кулаке, раненый не пишет — только later', async ()=>{
   const m = await playAll([0]);
   assert.strictEqual(m.memory.flags.limp, true);
-  assert.strictEqual(m.memory.flags.tumarTaken, true);
-  assert.ok(m.log.includes('Тумар забрал охранник'));
+  assert.strictEqual(m.memory.flags.tumarKept, true);
+  assert.ok(!m.memory.flags.tumarTaken);
   assert.strictEqual(m.later.length, 3);
   assert.deepStrictEqual(m.testimony[0], ['told_germans','назвался мусульманином на сборном пункте']);
   // каждое описанное действие сцена показывает своим крючком, по порядку
-  assert.deepStrictEqual(m.calls.filter(c=>!c.startsWith('crossArms')), ['dragIn','feldWalk','beltsDown','neighbourDrip','bread','sinKneel','guardWalk','tearTumar']);
+  assert.deepStrictEqual(m.calls.filter(c=>!c.startsWith('crossArms')), ['dragIn','feldWalk','beltsDown','neighbourDrip','bread','sinKneel','guardWalk','fistTumar','guardStoops']);
 });
 
 test('немецкая речь — шумом, а слово «Jude» понятно: его переводит Мударис', ()=>{

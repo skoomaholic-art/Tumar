@@ -242,6 +242,7 @@ function sceneCity(){
     // вылазка
     async noose(){ S.camFocus=gerW; S.camH=7.5; S.camBack=4.5; noiseBurst({dur:.5,freq:400,q:.8,gain:.15}); ger.position.x=0;
       const t0=S.clock; await until(()=>{ const k=Math.min(1,(S.clock-t0)/1.1); ger.rotation.x=-Math.PI/2*k; ger.position.y=.3*k; ember.visible=k<.3; ger.rotation.z=Math.sin(k*20)*.1*(1-k); return k>=1; }); },
+    async sashkoHolds(){ sashW.position.copy(gerW.position).add(new THREE.Vector3(.6,0,-.2)); sashW.rotation.y=Math.PI/2; const p=sashW.userData.p; p.userData.armR.rotation.x=-1.6; await gwait(1.1); },
     async playDead(){ S.camH=4; S.camBack=1.8; await gwait(1.2); ger.rotation.z=.05; await gwait(.3); ger.rotation.z=0; await gwait(.8); },
     async kolTakesCover(){ S.camFocus=kolW; S.camH=9; S.camBack=5;
       const near = rubble.reduce((b,r)=>Math.hypot(r.x-kolW.position.x,r.z-kolW.position.z)<Math.hypot(b.x-kolW.position.x,b.z-kolW.position.z)?r:b, rubble[0]);

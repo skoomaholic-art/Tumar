@@ -217,7 +217,8 @@ function sceneCamp(){
       DIR.look=sin; setShot('lowPOV'); await gwait(1.2); },
     async guardWalk(){ S.guardWalk=new THREE.Vector3(asanT.position.x+.15,0,.05); await until(()=>!S.guardWalk); DIR.look=guardT; setShot('lowPOV');
       guardT.lookAt(asanT.position.x,0,asanT.position.z+1); guardT.userData.carry=true; guardT.userData.armR.rotation.x=-1.0; await gwait(.6); },
-    async tearTumar(){ sfx.paper(); asanT.remove(tumar); tumar.position.set(0,-.42,.1); guardT.userData.armR.add(tumar); guardT.userData.armR.rotation.x=-1.6; await gwait(1.4); }
+    async guardStoops(){ guardT.userData.armR.rotation.x=-1.3; await gwait(1.2); guardT.userData.armR.rotation.x=0; await gwait(.6); },
+    async fistTumar(){ tumar.position.set(.3,1.0,.3); await gwait(1.0); }
   });
 
   function walkTo(o, tgt, v, dt){ const dx=tgt.x-o.position.x, dz=tgt.z-o.position.z, dd=Math.hypot(dx,dz);

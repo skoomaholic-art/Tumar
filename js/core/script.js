@@ -36,9 +36,12 @@ function createRunner(api){
     for(const st of steps){
       if('say' in st) await api.say(st.say, st.text, st.lang||'kz');
       else if('choose' in st){
-        const opts = st.options.map(o=>o.text);
-        const i = await api.choose(st.choose, st.text||'', opts, st.timer||0, st.silent ?? -1);
-        const picked = st.options[i];
+        // вариант с полем if показывается только при выполнении условия
+        const options = st.options.filter(o=>!o.if || evalCond(o.if, mem.flags));
+        const opts = options.map(o=>o.text);
+        const sil = (st.silent==null || st.silent<0) ? -1 : options.indexOf(st.options[st.silent]);
+        const i = await api.choose(st.choose, st.text||'', opts, st.timer||0, sil);
+        const picked = options[i];
         if(picked){ if(picked.set) Object.assign(mem.flags, picked.set); await run(picked.then); }
       }
       else if('set' in st) Object.assign(mem.flags, st.set);

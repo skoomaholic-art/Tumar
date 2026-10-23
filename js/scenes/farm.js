@@ -173,6 +173,7 @@ function sceneFarm(){
     async riot(){ setShot('riot'); S.riot=true; for(const p of rioters) p.visible=true; await gwait(5); },
     async gate(){ asan.position.set(-1,0,-1.5); asan.rotation.y=0; asan.userData.armR.rotation.x=-1.2; setShot('gate'); await gwait(2.4); asan.userData.armR.rotation.x=0; },
     async glass(){ setShot('riot'); noiseBurst({dur:.3,freq:3200,q:.5,gain:.3,type:'highpass'}); await gwait(2.6); },
+    async lislStays(){ lisl.visible=true; lisl.position.set(HOUSE_DOOR.x+1.2,0,HOUSE_DOOR.z+.3); lisl.lookAt(asan.position.x,0,asan.position.z); await gwait(1.6); },
     async warnPanels(){ closeDlg(); await fadeTo(1,700); await showComic(DAT.panels.warning); await fadeTo(0,500); }
   });
   const ss=[0,1].map(()=>{ const g=makePerson({coat:0x3c3e38, hat:'helmet'}); g.visible=false; scene.add(g); return g; });

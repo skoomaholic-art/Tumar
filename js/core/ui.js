@@ -436,7 +436,9 @@ async function showInterlude(key){
   (D.learnDe||[]).slice(0, Math.max(1, Math.round((D.learnDe||[]).length*share))).forEach(w=>memory.knownWords.add(w));
   if(D.ruFluent) memory.flags.ruFluent=true;
   const page=$('page'); page.innerHTML='';
-  D.panels.forEach(p=>{ const d=document.createElement('div'); d.className = p.img ? 'pn art' : 'pn';
+  D.panels.forEach(p0=>{ // кадр может зависеть от решений: {if, text, else, elseImg}
+    const p = (p0.if && !evalCond(p0.if, memory.flags)) ? Object.assign({}, p0, {text:p0.else??p0.text, img:p0.elseImg??p0.img}) : p0;
+    const d=document.createElement('div'); d.className = p.img ? 'pn art' : 'pn';
     const words = p.art==='notebook' ? learnt : null;
     // рисованный кадр (img), а пока его нет — заглушка-силуэт из ART
     d.innerHTML = p.img ? `<img class="art" src="${p.img}" alt=""><div class="cap">${escapeHtml(p.text)}</div>`

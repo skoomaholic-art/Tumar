@@ -107,7 +107,7 @@ function sceneFiltration(){
         await new Promise(res=>{
           $('paper').innerHTML=`<div style="font-size:13px;opacity:.7">${escapeHtml(scramble('Протокол допроса'))} · ${pg} / 8</div><div style="font-family:'Courier New',monospace;font-size:13px;line-height:1.5;color:#3a3430">${lines}</div>
             <div style="display:flex;align-items:center;gap:10px;margin-top:8px"><span style="font-size:12px;opacity:.6">${escapeHtml(scramble('Подпись'))}:</span><span id="pSig" style="min-width:120px;border-bottom:1px solid #3a3026;height:32px"></span></div>
-            <div class="hint">${pg===1?escapeHtml(DAT.texts.protocolRead)+' ':''}Нажми, чтобы расписаться.</div>`;
+            <div class="hint">${pg===1?escapeHtml(memory.flags.ibrayLetters?DAT.texts.protocolReadLetters:DAT.texts.protocolRead)+' ':''}Нажми, чтобы расписаться.</div>`;
           $('doc').style.display='flex'; sfx.paper&&sfx.paper();
           const go=()=>{ $('doc').onclick=null; removeEventListener('keydown',kd); $('pSig').innerHTML=sig; noiseBurst({dur:.25,freq:3400,q:.7,gain:.05,type:'bandpass'}); setTimeout(res,450); };
           const kd=e=>{ if(e.code==='Space'||e.code==='Enter'){ e.preventDefault(); go(); } };

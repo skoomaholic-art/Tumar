@@ -50,6 +50,7 @@ function sceneStalag(){
   const sitters=[]; for(let i=0;i<8;i++){ const z=i%2?7.4:-7.4; const p=sitDown(makePerson({coat:coats[(i+2)%6], hat:'none'})); p.position.x=-18+i*5; p.position.z=z; p.rotation.y= z>0?Math.PI:0; scene.add(p); sitters.push(p); }
   // Асан: хромает (короче на два пальца)
   const asan = makePerson({coat:0x5c5a3a, hat:'none'}); asan.position.set(-3,0,6.6); scene.add(asan);
+  const tumar = new THREE.Mesh(new THREE.ConeGeometry(.08,.14,3), new THREE.MeshLambertMaterial({color:0x8e1f1a, emissive:0x3a0806})); tumar.rotation.x=Math.PI/2; tumar.position.set(0,1.45,.26); asan.add(tumar); tumar.visible=!memory.flags.tumarTaken;
   // во дворе лежит умерший ночью; мимо ходят, не глядя. Сапог на нём уже нет
   const yardDead = makePerson({coat:0x55523e, hat:'none'}); yardDead.rotation.set(-Math.PI/2,0,.25); yardDead.position.set(4.5,.22,3.2); yardDead.userData.legL.material=yardDead.userData.legR.material=M(0x9a8a76); scene.add(yardDead);
   const rings=new THREE.Group(); for(let i=0;i<3;i++){ const r=new THREE.Mesh(new THREE.TorusGeometry(.035,.012,6,10),new THREE.MeshLambertMaterial({color:0xa0703a, emissive:0x000000})); r.position.set(i*.09-.09,0,0); r.rotation.x=Math.PI/2; rings.add(r); }
@@ -60,6 +61,7 @@ function sceneStalag(){
   const deadP = makePerson({coat:0x4a4836, hat:'none'}); deadP.visible=false; scene.add(deadP);
   const civ = makePerson({coat:0x2a2622, hat:'borik'}); civ.visible=false; scene.add(civ);
   const fingerC=new THREE.Mesh(new THREE.BoxGeometry(.035,.14,.035),M(0xb08a6a)); fingerC.position.set(0,-.44,0); civ.userData.armR.add(fingerC);
+  const semyonY = makePerson({coat:0x9a9068, hat:'pilotka'}); semyonY.visible=false; scene.add(semyonY);
   const ibray = makePerson({coat:0x3c3a30, hat:'borik', beard:true}); ibray.visible=false; scene.add(ibray);
   const stone=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,0),M(0x6e6a62)); stone.visible=false; scene.add(stone);
 
@@ -161,6 +163,8 @@ function sceneStalag(){
     polizai(k){ camera.fov=40; camera.position.set(BX+7.0,2.2,.6); return wp(polizai).setY(1.3); },
     // Ибрай-ага: двухплановый, учитель и ученик
     ibray(k){ camera.fov=36; const a=ibray.position; camera.position.set(a.x+1.6,1.45,a.z+(a.z>0?-1.5:1.5)); return tmp.set(a.x+.4,.9,a.z); },
+    // приём: ефрейтор перед Асаном, сбоку и низко
+    intake(k){ camera.fov=34; const a=asan.position; camera.position.set(a.x+2.6,1.5,a.z+1.6); return tmp.set(a.x,1.2,a.z+.4); },
     // кабинет: общий, лампа сверху
     oWide(k){ camera.fov=40; camera.position.set(OX+2.8,1.9,2.4); return tmp.set(OX,1.0,0); },
     // через плечо Асана на Хайдара
@@ -218,7 +222,9 @@ function sceneStalag(){
     async letterSewn(){ letter.scale.setScalar(.6); await gwait(1.4); letter.visible=false; },
     async letterTorn(){ sfx.paper(); await gwait(.4); sfx.paper(); letter.visible=false; await gwait(1.2); },
     async semyonSleeps(){ fire.intensity=.5; glow.material.color.setHex(0x8a3a1a); semyon.position.y=.0; semyon.rotation.x=-Math.PI/2; semyon.position.set(BX+.9,.15,.6); setShot('semyon'); await gwait(1.8); },
-    async tumarBack(){ ibray.userData.armR.rotation.x=-1.2; await gwait(1.6); ibray.userData.armR.rotation.x=0; },
+    async intakeWalk(){ asan.position.set(-3,0,6.6); asan.rotation.y=Math.PI; gab.position.set(-1.4,0,6.7); gab.rotation.y=Math.PI; guardF.position.set(-3,0,9.4); guardF.rotation.y=0; setShot('intake'); await gwait(1.8); },
+    async tearTumar(){ guardF.userData.armR.rotation.x=-1.5; await gwait(.7); sfx.paper(); tumar.visible=false; guardF.userData.armR.rotation.x=-.6; await gwait(1.2); guardF.userData.armR.rotation.x=0; guardF.position.set(8,0,18.7); guardF.rotation.y=Math.PI; },
+    async tumarBack(){ tumar.visible=true; ibray.userData.armR.rotation.x=-1.2; await gwait(1.6); ibray.userData.armR.rotation.x=0; },
     async officeReveal(){ setShot('oWide'); await gwait(2.6); setShot('oHaidar'); await gwait(1.4); },
     async formOnTable(){ form.visible=true; pen.visible=true; setShot('oForm'); S.lampSwing=1; await gwait(2); setShot('oAsan'); },
     async signForm(){ setShot('oForm'); asanO.userData.armR.rotation.x=-1.1; closeDlg(); await signaturePad(renderLang('Turkestanische Legion. Unterschrift:','de'), 'Распишись — так же, как когда-то на повестке.', memory.signature); asanO.userData.armR.rotation.x=0; await gwait(.6); setShot('oHaidar'); },
@@ -230,6 +236,8 @@ function sceneStalag(){
     async raiseHand(){ /* показ делает игрок: E на перекличке */ await gwait(.3); },
     async civilianPoints(){ civ.visible=true; civ.position.set(-11.5,0,-4.2); S.civTo=new THREE.Vector3(rows[13].position.x+.5,0,-4.2); setShot('line'); await until(()=>!S.civTo); },
     async fingerOnAsan(){ civ.lookAt(asan.position.x,0,asan.position.z); civ.userData.armR.rotation.x=-1.6; asan.position.z-=.9; setShot('finger'); tone({f:330,dur:.5,type:'sine',gain:.03}); await gwait(2.2); },
+    async letterBoard(){ setShot('ibray'); ibray.userData.armR.rotation.x=-1.1; await gwait(1.8); ibray.userData.armR.rotation.x=0; },
+    async semyonAtGate(){ semyonY.visible=true; semyonY.position.set(2.2,0,-12); semyonY.userData.to=new THREE.Vector3(.4,0,-16.2); setShot('leave'); await gwait(2.4); },
     async sixLeave(){ civ.userData.armR.rotation.x=0; S.six.forEach((p,i)=>{ p.userData.to=new THREE.Vector3(-1.5+i*.6,0,-17.5); }); S.sixGo=true; setShot('leave'); await gwait(5.5); }
   });
 
@@ -251,6 +259,7 @@ function sceneStalag(){
   async function campPart(){
     S.phase='arrive'; setShot('campTop'); await fadeTo(0,1600);
     await run(DAT.scripts.arrive); closeDlg();
+    if(memory.flags.tumarKept){ await wipe(900,'left'); await run(DAT.scripts.intake); closeDlg(); }
     // воскресенье: кольца
     await wipe(1100,'right'); asan.position.set(-3,0,4.6); asan.rotation.y=Math.PI; sitDown(asan); gab.position.set(-4.1,0,4.9); sitDown(gab); gab.rotation.y=Math.PI*.85;
     setShot('follow'); rings.visible=true; asan.userData.armR.rotation.x=-.9;
@@ -356,6 +365,7 @@ function sceneStalag(){
       if(S.carry){ if(walkTo(asan,S.carry,.7,dt,true)) S.carry=null; asan.userData.armL.rotation.x=asan.userData.armR.rotation.x=-1.1; stone.position.copy(asan.position).add(tmp.set(0,1.05,0).applyAxisAngle(new THREE.Vector3(0,1,0),0)).addScaledVector(new THREE.Vector3(Math.sin(asan.rotation.y),0,Math.cos(asan.rotation.y)),.35); }
       if(S.civTo){ if(walkTo(civ,S.civTo,.8,dt)) S.civTo=null; const near=S.six.find(p=>p!==asan && Math.abs(p.position.x-civ.position.x)<.3 && !p.userData.picked); if(near){ near.userData.picked=true; civ.userData.armR.rotation.x=-1.5; setTimeout(()=>civ.userData.armR.rotation.x=0,500); near.position.z-=.9; } }
       if(S.sixGo) S.six.forEach(p=>walkTo(p,p.userData.to,1,dt,p===asan));
+      if(semyonY.visible && semyonY.userData.to) walkTo(semyonY,semyonY.userData.to,1.3,dt,false);
       if(S.lampSwing){ S.lampSwing=Math.max(0,S.lampSwing-dt*.3); const a=Math.sin(t*2.2)*.18*S.lampSwing; lamp.position.x=OX+Math.sin(a)*.5; bulb.position.x=lamp.position.x; }
       // перекличка зимой: номера выкликают, пока не поднимет руку
       if(S.phase==='raise' && !S.raised){ callT-=dt; if(callT<=0){ callT=2.6; bark('Охранник', ['Zwei-sieben-vier!','Zwei-sieben-fünf!','Zwei-sieben-sechs!'][Math.random()*3|0], 'de'); } }

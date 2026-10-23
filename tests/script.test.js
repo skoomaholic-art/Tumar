@@ -68,3 +68,24 @@ test('неизвестный шаг — ошибка, а не тихий про�
   const m = mockApi([]);
   await assert.rejects(createRunner(m.api)([{ fly:true }]));
 });
+
+test('вариант с if показывается только при условии; индекс [молчать] сдвигается вместе с ним', async ()=>{
+  const seen=[]; const m=mockApi([0]);
+  m.api.choose = async (who,text,opts,timer,silent)=>{ seen.push({opts,silent}); return 0; };
+  const run=createRunner(m.api);
+  const st=[{choose:'А', options:[{if:'x==1',text:'один',set:{p:'a'}},{text:'два',set:{p:'b'}},{text:'[Молчать]',set:{p:'c'}}], silent:2}];
+  await run(st);
+  assert.deepStrictEqual(seen[0].opts,['два','[Молчать]']); assert.strictEqual(seen[0].silent,1); assert.strictEqual(m.memory.flags.p,'b');
+  m.memory.flags.x=1; await run(st);
+  assert.deepStrictEqual(seen[1].opts,['один','два','[Молчать]']); assert.strictEqual(seen[1].silent,2); assert.strictEqual(m.memory.flags.p,'a');
+});
+
+test('глава 8: Гриша живой — свидетель за; Дубровин пойман — свидетель против; письмо Жумабая зависит от воды', async ()=>{
+  const ch8=JSON.parse(fs.readFileSync(__dirname+'/../data/ch08.json','utf8'));
+  const a=mockApi([]); a.memory.flags={grishaAlive:true, dubrovinCaught:true, water:'kept'};
+  a.api.hooks=new Proxy({}, {get:(_,n)=>(...x)=>a.calls.push(n+':'+x.join(','))});
+  const run=createRunner(a.api); await run(ch8.scripts.interrogation3); await run(ch8.scripts.zhumabai);
+  assert.ok(a.calls.includes('witness:1')); assert.ok(a.calls.includes('witness:-1'));
+  assert.ok(a.said.some(s=>/воды не дал/.test(s)));
+  assert.ok(a.said.some(s=>/На повестке я тоже не знал/.test(s)));
+});

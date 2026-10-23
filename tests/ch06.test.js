@@ -15,7 +15,7 @@ async function play(flags, picks){
   return out;
 }
 test('курт на всех → место у печки; промолчал о Василии; сберёг письмо; выкупил тумар; отказался', async ()=>{
-  const m=await play({shareFood:'all', kolLetter:'taken', tumarTaken:true, father:'told'}, [1,0,0,1]);
+  const m=await play({shareFood:'all', kolLetter:'taken', tumarTaken:true, father:'told'}, [1,0,1,0,1]);
   const f=m.memory.flags;
   assert.strictEqual(f.barrackSpot,'stove'); assert.strictEqual(f.vasily,'kept'); assert.strictEqual(f.kolLetterKept,true);
   assert.strictEqual(f.tumar,'back'); assert.strictEqual(f.legion,'refused'); assert.strictEqual(f.smokeVoice,'semyon');
@@ -23,14 +23,14 @@ test('курт на всех → место у печки; промолчал о
   assert.ok(m.calls.includes('stoneWork'));
 });
 test('курт своим → у двери; сдал Василия; письма нет; подписал — врач бракует', async ()=>{
-  const m=await play({shareFood:'own', tumarTaken:true}, [0,1,0]);
+  const m=await play({shareFood:'own', tumarTaken:true}, [0,1,1,0]);
   const f=m.memory.flags;
   assert.strictEqual(f.barrackSpot,'door'); assert.strictEqual(f.vasily,'betrayed'); assert.strictEqual(f.kolLetterKept,undefined);
   assert.strictEqual(f.tumar,'lost'); assert.strictEqual(f.legion,'signed');
   assert.ok(m.calls.includes('doctorWalk')); assert.ok(m.said.some(s=>s.startsWith('Врач')));
 });
 test('голос из дыма: Семён во сне повторяет ту же фразу, что в главе 4', async ()=>{
-  const m=await play({grishaPhrase:'qoryqpady'}, [1,1,1]);
+  const m=await play({grishaPhrase:'qoryqpady'}, [1,1,1,1]);
   assert.ok(m.said.includes('Семён: Ол… корыкпаты…'));
 });
 

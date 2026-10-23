@@ -41,7 +41,7 @@ test('глава 7: выбор «отдалиться от Лизль» — то
 test('глава 8: враньё против записанного — пометка, правда — без пометок', async ()=>{
   const honest = mock([0,0], {raft:'wounded'}); await createRunner(honest.api)(ch8.scripts.interrogation1);
   assert.ok(!honest.memory.flags.marks);
-  const liar = mock([2,1], {raft:'wounded'}); await createRunner(liar.api)(ch8.scripts.interrogation1);
+  const liar = mock([1,1], {raft:'wounded'}); await createRunner(liar.api)(ch8.scripts.interrogation1);
   assert.strictEqual(liar.memory.flags.marks, 2);
 });
 

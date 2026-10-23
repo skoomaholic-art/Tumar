@@ -137,7 +137,8 @@ function sceneDon(){
     async shakeFlask(){ closeDlg(); S.flaskT=1.6; await holdCam(new THREE.Vector3(zhum.position.x+1.6,1.1,zhum.position.z+2.2), new THREE.Vector3(zhum.position.x,.9,zhum.position.z), 1.8); },
     async raftView(){ closeDlg(); await holdCam(new THREE.Vector3(0,7.5,108.5), new THREE.Vector3(0,0,116.5), 3.4); },
     raftPush(){ S.raftDrift=true; },
-    async pushedOnRaft(){ closeDlg(); await fadeTo(.85,500); asan.position.set(0,.45,raft.position.z); await fadeTo(0,700); }
+    async pushedOnRaft(){ closeDlg(); await fadeTo(.85,500); asan.position.set(0,.45,raft.position.z); await fadeTo(0,700); },
+    async politrukBoards(){ closeDlg(); const p0=politruk.position.clone(), p1=new THREE.Vector3(-1.1,.45,raft.position.z-1); const t0=performance.now(); await new Promise(r=>{ const f=()=>{ const k=Math.min(1,(performance.now()-t0)/1400); politruk.position.lerpVectors(p0,p1,k); politruk.lookAt(p1.x,0,p1.z+1); if(k<1) requestAnimationFrame(f); else r(); }; f(); }); politruk.rotation.set(0,Math.PI,0); }
   });
 
   // ---------- ввод ----------
@@ -355,6 +356,7 @@ function sceneDon(){
     S.phase='riverWalk'; S.busy=true;
     scene.background.setHex(0x12161c); scene.fog.color.setHex(0x12161c); scene.fog.near=20; scene.fog.far=110; sun.intensity=.08; hemi.intensity=.18; sun.color.setHex(0x8899bb);
     asan.position.set(0,0,104); asan.rotation.y=0; kol.position.set(-6,0,108); zhum.visible=false;
+    semyon.visible=true; semyon.position.set(1,.36,118.8); semyon.rotation.set(0,Math.PI,0);
     camera.position.set(0,18,120); camera.lookAt(asan.position);
     setObj(CH, DAT.objectives.raft); setHeart(84);
     await fadeTo(0,1500); S.busy=false; S.flareT=1;
@@ -364,6 +366,7 @@ function sceneDon(){
     await run(DAT.scripts.raft); closeDlg();
     // переправа: плот уходит в темноту под разрывами
     asan.position.set(0,.36,119.5); asan.rotation.y=Math.PI;
+    semyon.visible=true; semyon.position.set(1,.36,118.8); semyon.rotation.set(0,Math.PI,0);
     const choice = memory.flags.raft;
     if(choice==='wounded'){ lieutenant.position.set(-.6,.45,119.5); }
     if(choice==='gun'){ dpGround.position.set(.8,.45,119.7); }
