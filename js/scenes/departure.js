@@ -108,11 +108,11 @@ function sceneDeparture(){
           // идёт игрок: вперёд по дороге — джойстик/WASD/удержание кнопки; чуть влево-вправо можно, назад — нет (не оборачивается)
           const PR=new THREE.Vector3(RD.z,0,-RD.x), inp=S.walkIn||[0,0];
           const fwd=Math.max(0, inp[0]*RD.x+inp[1]*RD.z), side=-(inp[0]*PR.x+inp[1]*PR.z);
-          const go = Math.min(1, fwd + ((S.tHold||S.wHold)?1:0));
-          W.walkD += dt*1.25*go; W.lat = clamp((W.lat||0) + side*dt*.9, -.8, .8);
+          const go = Math.min(1, Math.hypot(inp[0],inp[1]) + ((S.tHold||S.wHold)?1:0)); // любое нажатие — шаг вперёд по дороге (камера бывает и спереди)
+          W.walkD += dt*1.25*go; W.lat = 0; // только вперёд, в стороны не ходят
           const p=R0.clone().addScaledVector(RD, W.walkD);
           asan.position.copy(p).addScaledVector(PR, -.5 + W.lat); zhum.position.copy(p).addScaledVector(PR, .55 + W.lat*.6);
-          asan.rotation.y = Math.atan2(RD.x,RD.z) - side*.25; zhum.rotation.y = Math.atan2(RD.x,RD.z); animWalk(asan,go,dt); animWalk(zhum,go,dt);
+          asan.rotation.y = Math.atan2(RD.x,RD.z); zhum.rotation.y = Math.atan2(RD.x,RD.z); animWalk(asan,go,dt); animWalk(zhum,go,dt);
           zhum.userData.armR.rotation.x = -.6+Math.sin(t*3)*.5; // машет рукой — рассказывает
           if(S.kulashRun){ const tg=R0.clone().addScaledVector(RD, 3.2); const d=tg.clone().sub(kulash.position); const L=d.length();
             if(L>.1){ kulash.position.addScaledVector(d.normalize(), Math.min(L, dt*3)); kulash.rotation.y=Math.atan2(d.x,d.z); animWalk(kulash,1.4,dt); }
@@ -124,6 +124,8 @@ function sceneDeparture(){
         est(k){ camera.fov=22; camera.position.set(44-k*.25,5.5,48); return new THREE.Vector3(-1,1.4,0); },
         side(k){ camera.fov=19; camera.position.copy(SIDE_CAM); camera.position.y += Math.sin(k*.4)*.01; return new THREE.Vector3(.4,1.15,3.1); },
         father(k){ camera.fov=30; camera.position.set(2.0,1.2,4.9); return new THREE.Vector3(-.75,1.45,1.5); },
+        // вторая половина пути: камера впереди на дороге, низко, смотрит назад — двое идут на нас, за ними аул и родители
+        ahead(k){ camera.fov=34; const p=R0.clone().addScaledVector(RD, W.walkD+9); camera.position.set(p.x+1.4, .9, p.z); return R0.clone().addScaledVector(RD, W.walkD-6).setY(1.3); },
         family(k){ camera.fov=40; camera.position.set(-.95,1.6,-1.2); /* дорога уходит точно между отцом и матерью */ return new THREE.Vector3(R0.x+RD.x*40, .9, R0.z+RD.z*40); }
       } };
     return W;
@@ -381,7 +383,10 @@ function sceneDeparture(){
     setShot('family'); if(memory.flags.sharedWithKulash) S.kulashRun=true;
     let j=0; const jokes=DAT.jokes;
     // Жумабай болтает, пока идут; встал — и он ждёт
-    let lastD=0; while(world.walkD<38){ await gwait(3.6); if(world.walkD-lastD>1.5 && j<jokes.length && world.walkD<30){ bark('Жумабай', jokes[j++]); lastD=world.walkD; } }
+    let lastD=0, cut2=false, jt=0;
+    while(world.walkD<38){ await gwait(.25); jt+=.25;
+      if(!cut2 && world.walkD>19){ cut2=true; setShot('ahead'); } // половина пути — смена ракурса
+      if(jt>=3.6){ jt=0; if(world.walkD-lastD>1.5 && j<jokes.length && world.walkD<30){ bark('Жумабай', jokes[j++]); lastD=world.walkD; } } }
     setObj(CH,''); cine(true);
     await run(DAT.scripts.farewell_end);
   }
