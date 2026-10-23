@@ -112,7 +112,7 @@ function sceneCamp(){
     const clickPanels = () => new Promise(r=>{ const h=()=>{ $('panels').removeEventListener('pointerdown',h); removeEventListener('keydown',kk); r(); }; const kk=e=>{ if(e.code==='Space'||e.code==='Enter') h(); }; $('panels').addEventListener('pointerdown',h); addEventListener('keydown',kk); });
     const cells=[...page.children];
     for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await clickPanels(); }
-    await fadeTo(1,700); $('panels').style.display='none'; page.classList.remove('artpage','four','row'); page.style.width='';
+    await fadeTo(1,700); $('panels').style.display='none'; page.classList.remove('artpage','four','row','two'); page.style.width='';
   }
   const caps = list => list.map(c => c.if ? (evalCond(c.if, memory.flags) ? c.text : c.else) : c.text);
 
