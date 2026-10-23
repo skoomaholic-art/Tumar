@@ -452,14 +452,14 @@ function sceneDeparture(){
     const bowls=[]; for(let i=0;i<8;i++){ const b=new THREE.Mesh(new THREE.CylinderGeometry(.13,.09,.08,10),M(0x6a6a62)); b.position.set(-3.5+i,.95,-3+(i%2?.3:-.3)); sc.add(b); bowls.push(b); }
     const kettle = new THREE.Mesh(new THREE.CylinderGeometry(.6,.5,.8,12),M(0x3a3a34)); kettle.position.set(5,.4,-3.2); sc.add(shadowAll(kettle));
     // стрельбище: вал и пять чучел — мешок на крестовине, набитый соломой
-    const RX=-40; const berm=new THREE.Mesh(new THREE.BoxGeometry(22,2.2,3),earth); berm.position.set(RX,1.1,-52); sc.add(shadowAll(berm));
+    const RX=-40; const berm=new THREE.Mesh(new THREE.BoxGeometry(22,2.2,3),earth); berm.position.set(RX,1.1,-27); sc.add(shadowAll(berm));
     const dummies=[]; for(let i=0;i<5;i++){ const g=new THREE.Group();
       const post=new THREE.Mesh(new THREE.CylinderGeometry(.05,.06,1.9,5),wood); post.position.y=.95; g.add(post);
       const arm=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,1.1,5),wood); arm.rotation.z=Math.PI/2; arm.position.y=1.35; g.add(arm);
       const body=new THREE.Mesh(new THREE.CylinderGeometry(.28,.24,.9,8),straw); body.position.y=1.2; g.add(body);
       const head=new THREE.Mesh(new THREE.SphereGeometry(.2,8,6),sack); head.position.y=1.85; g.add(head);
       const helm=new THREE.Mesh(new THREE.SphereGeometry(.23,8,6,0,Math.PI*2,0,Math.PI/2),M(0x4a4e44)); helm.position.y=1.9; g.add(helm);
-      g.position.set(RX-8+i*4, 0, -46-(i%2)*4); sc.add(shadowAll(g)); g.userData.hits=0; g.userData.wob=0; dummies.push(g); }
+      g.position.set(RX-6+i*3, 0, -20-(i%2)*3); sc.add(shadowAll(g)); g.userData.hits=0; g.userData.wob=0; dummies.push(g); }
     // гранатный ров и круг из белых камней — «окоп противника» в двадцати метрах
     const GX=-12; const pit=new THREE.Mesh(new THREE.BoxGeometry(6,.1,1.4),M(0x3a3024)); pit.position.set(GX,.03,6); sc.add(pit);
     const parapet=new THREE.Mesh(new THREE.BoxGeometry(6,.5,.6),earth); parapet.position.set(GX,.25,5.1); sc.add(shadowAll(parapet));
@@ -487,10 +487,10 @@ function sceneDeparture(){
           p.userData.armL.rotation.x = -2.6 + Math.sin(W.crawl*5)*.5; p.userData.armR.rotation.x = -2.6 - Math.sin(W.crawl*5)*.5; W.snag=Math.max(0,W.snag-dt); }
       },
       shots:{
-        range(k){ camera.fov=40; camera.position.set(RX+.3, 1.25, 3.4); return new THREE.Vector3(RX, .9, -46); },
+        range(k){ camera.fov=38; camera.position.set(RX+.25, 1.0, 3.2); return new THREE.Vector3(RX, 1.0, -21); },
         rangeKol(k){ camera.fov=30; camera.position.set(RX+3.2,1.6,-1); return new THREE.Vector3(RX+1.2,1.5,1.5); },
-        gren(k){ camera.fov=42; camera.position.set(GX+4.5, 2.2, 10.5); return new THREE.Vector3(GX-.5, .6, -6); },
-        crawl(k){ camera.fov=36; camera.position.set(WX2+5.5, 1.4, 2.5-Math.min(W.crawl,10)); return new THREE.Vector3(WX2, .3, -2-Math.min(W.crawl,10)); },
+        gren(k){ camera.fov=44; camera.position.set(GX+1.6, 2.1, 9.2); return new THREE.Vector3(GX-.2, .5, -8); },
+        crawl(k){ camera.fov=40; const c=Math.min(W.crawl,11); camera.position.set(WX2+2.4, .95, 1.2-c); return new THREE.Vector3(WX2, .25, -1.8-c); },
         dig(k){ camera.fov=36; camera.position.set(DX2+3.8, 2.1, 3.6); return new THREE.Vector3(DX2, .4, 0); },
         meal(k){ camera.fov=34; camera.position.set(2.5+k*.05, 1.5, 1.8); return new THREE.Vector3(-.5, .9, -3); },
         night(k){ camera.fov=30; camera.position.set(8, 2.2, 14); return new THREE.Vector3(0, 1.8, -12); }
@@ -509,8 +509,8 @@ function sceneDeparture(){
   async function trainRange(){
     const W=world; S.phase='range'; trainLight('day');
     place(W.asan, W.RX, 1.5, Math.PI); prone(W.asan,1); W.asan.position.y=.18; W.rifle.visible=true; W.asan.userData.armR.rotation.x=W.asan.userData.armL.rotation.x=-2.9;
-    place(W.kol, W.RX+1.4, 1.8, Math.PI*.85); place(W.zhum, W.RX-1.6, 1.6, Math.PI); prone(W.zhum,1); W.zhum.position.y=.18;
-    W.others.forEach((p,i)=>{ place(p, W.RX-4-i*1.6, 2.4, Math.PI); });
+    place(W.kol, W.RX+2.6, 4.6, Math.PI*.85); place(W.zhum, W.RX-1.6, 1.6, Math.PI); prone(W.zhum,1); W.zhum.position.y=.18;
+    W.others.forEach((p,i)=>{ place(p, W.RX-3.4-i*1.6, 1.6, Math.PI); prone(p,1); p.position.y=.18; });
     setShot('rangeKol'); cine(true); await run(DAT.scripts.range_intro); setShot('range'); cine(false);
     setObj(CH, isTouch?DAT.objectives.rangeTouch:DAT.objectives.range);
     let shots=10, hits=0; S.shooting=true; $('ammo').style.display='block'; const ammo=()=>{ $('ammo').textContent=`Патроны: ${shots}`; }; ammo();
@@ -529,13 +529,13 @@ function sceneDeparture(){
     cine(true); setShot('rangeKol');
     bark('Колесников', hits>=6?DAT.rangeBarks.good:hits>=3?DAT.rangeBarks.ok:DAT.rangeBarks.bad, 'ru'); await gwait(2.2);
     await run(DAT.scripts.range_end);
-    W.rifle.visible=false; prone(W.asan,0); prone(W.zhum,0); W.asan.userData.armR.rotation.x=W.asan.userData.armL.rotation.x=0;
+    W.rifle.visible=false; prone(W.asan,0); prone(W.zhum,0); W.others.forEach(p=>prone(p,0)); W.asan.userData.armR.rotation.x=W.asan.userData.armL.rotation.x=0;
   }
   // --- день 3: гранаты — поймать силу броска ---
   async function trainGrenade(){
     const W=world; S.phase='grenade'; trainLight('day');
-    place(W.asan, W.GX, 6, Math.PI); place(W.kol, W.GX+1.6, 6.4, Math.PI*.8); place(W.zhum, W.GX-1.2, 6.2, Math.PI);
-    W.others.forEach((p,i)=>place(p, W.GX-3-i*1.1, 7.4, Math.PI));
+    place(W.asan, W.GX, 6, Math.PI); place(W.kol, W.GX+1.6, 6.4, Math.PI*.8); place(W.zhum, W.GX-2.2, 6.2, Math.PI);
+    W.others.forEach((p,i)=>place(p, W.GX-4-i*1.1, 6.4, Math.PI));
     setShot('gren'); cine(true); await run(DAT.scripts.grenade_intro); cine(false);
     setObj(CH, isTouch?DAT.objectives.grenadeTouch:DAT.objectives.grenade);
     const meter=document.createElement('div'); meter.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:calc(26px + var(--ub));width:min(360px,70vw);height:14px;background:rgba(20,17,13,.8);border:1px solid #8a7c62;z-index:14';
