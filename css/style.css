@@ -16,7 +16,7 @@ html,body{margin:0;height:100%;background:#0d0b09;color:var(--ink);font-family:"
 .bar i{display:block;height:100%;background:var(--ink2);width:50%}
 .bar.blood i{background:var(--accent)}
 #prompt{position:fixed;transform:translate(-50%,-100%);padding:4px 9px;background:var(--panel);border:1px solid var(--line);font-size:13px;pointer-events:none;display:none;white-space:nowrap}
-#toast{position:fixed;right:16px;bottom:calc(120px + var(--ub));padding:10px 14px;background:var(--panel);border-left:3px solid var(--accent);font-size:14px;opacity:0;transform:translateY(8px);transition:all .4s;pointer-events:none;max-width:280px}
+#toast{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));top:calc(max(var(--lbh,0px), 50px) + 10px + env(safe-area-inset-top,0px));z-index:16;padding:10px 14px;background:var(--panel);border-left:3px solid var(--accent);font-size:14px;opacity:0;transform:translateY(-8px);transition:all .4s;pointer-events:none;max-width:280px}
 #toast.on{opacity:1;transform:none}
 #dlg{position:fixed;left:50%;bottom:calc(18px + var(--ub));transform:translateX(-50%);width:min(760px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--line);padding:14px 16px 14px 104px;min-height:104px;display:none;cursor:pointer}
 #dlg .por{position:absolute;left:14px;top:14px;width:76px;height:76px;border:1px solid var(--line);background:#2a231b;overflow:hidden}
