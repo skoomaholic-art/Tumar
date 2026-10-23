@@ -428,20 +428,29 @@ async function showInterlude(key){
   (D.learnDe||[]).slice(0, Math.max(1, Math.round((D.learnDe||[]).length*share))).forEach(w=>memory.knownWords.add(w));
   if(D.ruFluent) memory.flags.ruFluent=true;
   const page=$('page'); page.innerHTML='';
-  D.panels.forEach(p=>{ const d=document.createElement('div'); d.className='pn';
+  D.panels.forEach(p=>{ const d=document.createElement('div'); d.className = p.img ? 'pn art' : 'pn';
     const words = p.art==='notebook' ? learnt : null;
     // рисованный кадр (img), а пока его нет — заглушка-силуэт из ART
     d.innerHTML = p.img ? `<img class="art" src="${p.img}" alt=""><div class="cap">${escapeHtml(p.text)}</div>`
       : `<svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block;filter:sepia(.35) contrast(1.1)">${ART[p.art] ? ART[p.art](words) : ''}</svg><div class="cap${p.art==='notebook'?'':' top'}">${escapeHtml(p.text)}</div>`;
     page.appendChild(d); });
   page.classList.toggle('four', D.panels.length>=4);
+  page.classList.toggle('artpage', D.panels.some(p=>p.img)); fitArtPage(page);
   $('panels').style.display='flex'; $('fade').style.transitionDuration='600ms'; $('fade').style.opacity=0;
   const click=()=>new Promise(r=>{ const h=()=>{ $('panels').removeEventListener('pointerdown',h); removeEventListener('keydown',kk); r(); }; const kk=e=>{ if(e.code==='Space'||e.code==='Enter') h(); }; $('panels').addEventListener('pointerdown',h); addEventListener('keydown',kk); });
   const cells=[...page.children];
   for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); sfx.paper(); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await click(); }
-  await fadeTo(1,600); $('panels').style.display='none'; page.classList.remove('four');
+  await fadeTo(1,600); $('panels').style.display='none'; page.classList.remove('four','artpage'); page.style.width='';
 }
 
+// рисованные кадры показываются целиком: ширина страницы подбирается так, чтобы всё влезло по высоте экрана
+function fitArtPage(page){
+  if(!page.classList.contains('artpage')){ page.style.width=''; return; }
+  const fit=()=>{ page.style.width=''; let w=page.getBoundingClientRect().width;
+    for(let i=0;i<5;i++){ const h=page.getBoundingClientRect().height, max=innerHeight*.88; if(h<=max+2) break; w*=max/h; page.style.width=Math.floor(w)+'px'; } };
+  page.querySelectorAll('img').forEach(im=>{ if(!im.complete) im.addEventListener('load',fit,{once:true}); });
+  fit(); setTimeout(fit,60);
+}
 // комикс-страница из рисованных кадров ART: [{art, text}] — экран должен быть затемнён, в конце затемняется снова
 async function showComic(panels, title=''){ DATA.interludes = DATA.interludes || {}; DATA.interludes.__comic = { title, panels, learn:[] }; await showInterlude('__comic'); }
 

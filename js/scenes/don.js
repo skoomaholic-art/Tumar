@@ -333,17 +333,17 @@ function sceneDon(){
     const cam2 = new THREE.PerspectiveCamera(40,1,.1,300);
     function shot(p, l, w=900, h=900){ cam2.aspect=w/h; cam2.updateProjectionMatrix(); cam2.position.copy(p); cam2.lookAt(l); const old=renderer.getSize(new THREE.Vector2()); renderer.setSize(w,h,false); renderer.render(scene,cam2); const u=canvas.toDataURL('image/jpeg',.85); renderer.setSize(old.x,old.y,false); return u; }
     asan.position.set(-2.4,0,16.6); asan.rotation.y=Math.PI; asan.userData.armR.rotation.x=-1.2;
-    const k=kitchen.position;
-    const shots=[ shot(new THREE.Vector3(k.x+8,3,k.z+9), new THREE.Vector3(k.x,1,k.z), 900,1100), shot(new THREE.Vector3(-2.4,1.9,18.4), new THREE.Vector3(-2.4,1.3,16.4)), shot(new THREE.Vector3(k.x,1.1,k.z+3.4), new THREE.Vector3(k.x+.5,.1,k.z+2.2)) ];
+    const shots=['img/ch2k_1.jpg','img/ch2k_2.jpg','img/ch2k_3.jpg']; // рисованные кадры: кухня, Асан ест за троих, нетронутые котелки
     const caps = DAT.panels.captions.map(c => c.if ? (evalCond(c.if, memory.flags) ? c.text : c.else) : c.text);
     const page=$('page'); page.innerHTML='';
-    shots.forEach((u,i)=>{ const d=document.createElement('div'); d.className='pn'; d.innerHTML=`<img src="${u}" alt=""><div class="cap">${escapeHtml(caps[i])}</div>`; page.appendChild(d); });
-    $('panels').style.display='flex'; await fadeTo(0,700);
+    shots.forEach((u,i)=>{ const d=document.createElement('div'); d.className='pn art'; d.innerHTML=`<img class="art" src="${u}" alt=""><div class="cap">${escapeHtml(caps[i])}</div>`; page.appendChild(d); });
+    page.classList.add('artpage'); page.classList.remove('four');
+    $('panels').style.display='flex'; fitArtPage(page); await fadeTo(0,700);
     const clickPanels = () => new Promise(r=>{ const h=()=>{ $('panels').removeEventListener('pointerdown',h); removeEventListener('keydown',kk); r(); }; const kk=e=>{ if(e.code==='Space'||e.code==='Enter') h(); }; $('panels').addEventListener('pointerdown',h); addEventListener('keydown',kk); });
     const cells=[...page.children];
     for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await clickPanels(); }
     await run(DAT.scripts.kitchen);
-    await fadeTo(1,900); $('panels').style.display='none'; asan.userData.armR.rotation.x=0;
+    await fadeTo(1,900); $('panels').style.display='none'; page.classList.remove('artpage'); page.style.width=''; asan.userData.armR.rotation.x=0;
   }
   async function phaseRiver(){
     S.phase='riverWalk'; S.busy=true;

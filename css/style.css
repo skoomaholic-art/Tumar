@@ -330,3 +330,11 @@ canvas,#c{touch-action:none}
 #panels .pn img.art{filter:none}
 #panels .pn img.art{object-position:center 30%}
 #panels .four .pn .cap{font-size:14px;padding:5px 9px;left:8px;right:8px;bottom:8px}
+
+/* рисованный кадр: картинка целиком, подпись — отдельной плашкой под ней, лица не закрывает */
+#panels .pn.art{display:flex;flex-direction:column;background:#0b0a08}
+#panels .pn.art img.art{width:100%;height:auto;display:block;object-fit:fill}
+/* страница из рисованных кадров: высота по картинкам, ширину подгоняет fitArtPage под экран */
+#panels .page.artpage{height:auto;align-items:start;grid-template-rows:auto auto;grid-template-columns:1.6fr 1fr}
+#panels .page.artpage.four{grid-template-columns:1fr 1fr}
+#panels .pn.art .cap,#panels .four .pn.art .cap{position:static;flex:none;margin:0;box-shadow:none;border-top:3px solid #e9dfc9}

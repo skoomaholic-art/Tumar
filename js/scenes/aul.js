@@ -553,14 +553,15 @@ function sceneAul(){
     const caps = DAT.panels.captions.map(c => c.if ? (evalCond(c.if, memory.flags) ? c.text : c.else) : c.text);
     await fadeTo(1,900);
     const page=$('page'); page.innerHTML='';
-    shots.forEach((u,i)=>{ const d=document.createElement('div'); d.className='pn'; d.innerHTML=`<img class="art" src="${u}" alt=""><div class="cap top">${caps[i]}</div>`; page.appendChild(d); });
-    $('panels').style.display='flex'; await fadeTo(0,700);
+    shots.forEach((u,i)=>{ const d=document.createElement('div'); d.className='pn art'; d.innerHTML=`<img class="art" src="${u}" alt=""><div class="cap">${caps[i]}</div>`; page.appendChild(d); });
+    page.classList.add('artpage'); page.classList.remove('four');
+    $('panels').style.display='flex'; fitArtPage(page); await fadeTo(0,700);
     const clickPanels = () => new Promise(r=>{ const h=()=>{ $('panels').removeEventListener('pointerdown',h); r(); }; $('panels').addEventListener('pointerdown',h); const k=e=>{ if(e.code==='Space'||e.code==='Enter'){ removeEventListener('keydown',k); $('panels').removeEventListener('pointerdown',h); r(); } }; addEventListener('keydown',k); });
     const cells=[...page.children];
     for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await clickPanels(); }
     await run(DAT.scripts.house_end);
     await wait(900);
-    await fadeTo(1,900); $('panels').style.display='none';
+    await fadeTo(1,900); $('panels').style.display='none'; page.classList.remove('artpage'); page.style.width='';
     startDeparture(); // дальше в той же главе: проводы, Акмолинск, эшелон
   }
   // утро: Асан спит в юрте, мать будит и зовёт пить чай; снаружи кричит отец
