@@ -177,7 +177,7 @@ function sceneDeparture(){
     const moon = new THREE.Mesh(new THREE.SphereGeometry(4,16,12), new THREE.MeshBasicMaterial({color:0xe8e4d4, fog:false})); moon.position.set(-60,40,-160); sc.add(moon);
     const tufts = grassField(sc, 700, -25, 25, -260, 20, 0x5e5a48, .25, .6);
     const col=[]; for(let i=0;i<10;i++){ const p=makePerson({coat:0x5e5a3e, hat:i%3?'pilotka':'borik'}); p.position.set(rand(-.15,.15),0,-i*1.7); sc.add(p); col.push(p); }
-    const asan = makePerson({coat:0x6e5a42, hat:'borik'}); asan.position.set(0,0,-10*1.7+.1); sc.add(asan);
+    const asan = makePerson({coat:0x6e5a42, hat:'borik'}); asan.position.set(0,0,1.8); sc.add(asan); // замыкающий: идёт за последним в колонне, не внутри неё
     const maxim = new THREE.Mesh(new THREE.BoxGeometry(.24,.28,1.0),M(0x2a2a26)); maxim.position.set(.22,1.78,0); asan.add(maxim);
     const jacket = new THREE.Mesh(new THREE.CylinderGeometry(.11,.11,.5,8),M(0x3a3a34)); jacket.rotation.x=Math.PI/2; jacket.position.set(.22,1.8,.45); asan.add(jacket);
     asan.userData.carry=true; asan.userData.armR.rotation.x=-2.8; asan.userData.armL.rotation.x=-.3;
@@ -190,11 +190,13 @@ function sceneDeparture(){
     const W = { asan, zhum, col, cart, starshina, bowl, porridge, stamina:1, colV:1.55, lag:0, lagT:0, update(dt,t){
         tufts.update(t,.5);
         if(W.halted){ for(const p of [...col, asan, zhum]) animWalk(p,0,dt); return; }
-        for(const p of col){ p.position.z -= W.colV*dt; animWalk(p, 1, dt); }
-        const ahead = col[col.length-1];
+        for(const p of col){ if(p.userData.down){ animWalk(p,0,dt); continue; } p.position.z -= W.colV*dt; animWalk(p, 1, dt); }
+        // впереди Асана — последний в колонне (col[0] — хвост, колонна идёт к −z)
+        const ahead = col.find(p=>!p.userData.down && !p.userData.gone) ? col.filter(p=>!p.userData.down && !p.userData.gone).reduce((a,b)=>a.position.z>b.position.z?a:b) : col[0];
         const v = S.hold && W.stamina>0 ? 2.05 : (W.stamina<=0 ? 1.0 : 1.12);
         if(S.hold && W.stamina>0) W.stamina=Math.max(0, W.stamina-dt/9); else W.stamina=Math.min(1, W.stamina+dt/6.5);
-        asan.position.z -= v*dt; if(asan.position.z < ahead.position.z+1.5) asan.position.z = ahead.position.z+1.5;
+        const load = W.extraLoad ? 1.35 : 1; if(W.extraLoad && S.hold) W.stamina=Math.max(0, W.stamina-dt/22);
+        asan.position.z -= v/load*dt; if(asan.position.z < ahead.position.z+1.7) asan.position.z = ahead.position.z+1.7;
         animWalk(asan, 1, dt);
         W.gap = asan.position.z - ahead.position.z - 1.7;
         // отстал совсем — колонна сбавляет шаг, Жумабай подталкивает: провалить марш нельзя, но тяжесть чувствуется
@@ -208,6 +210,10 @@ function sceneDeparture(){
       shots:{
         maxim(k){ camera.fov=28; const p=asan.position; camera.position.set(p.x+3.2, 1.5, p.z+.4); return new THREE.Vector3(p.x,1.5,p.z-.3); },
         halt(k){ camera.fov=30; const p=asan.position; camera.position.set(p.x+3.8, 1.6, p.z+2.4); return new THREE.Vector3(p.x+.5,1.45,p.z-.3); },
+        // смена планов на марше: профиль колонны длинным объективом, низко спереди навстречу, крупно плечо с «максимом»
+        side(k){ camera.fov=18; const p=asan.position; camera.position.set(p.x+16, 1.2, p.z-3+k*.4); return new THREE.Vector3(p.x, 1.1, p.z-3); },
+        front(k){ camera.fov=34; const p=asan.position; camera.position.set(p.x-1.2, .7, p.z-5.5); return new THREE.Vector3(p.x, 1.4, p.z+1); },
+        moonShot(k){ camera.fov=50; const p=asan.position; camera.position.set(p.x+2, .4, p.z+6); return new THREE.Vector3(p.x-6, 6, p.z-30); },
         follow(k){ camera.fov=40; tmp.set(asan.position.x+3.2, 9.5, asan.position.z+8.5); if(S.fresh) camera.position.copy(tmp); else camera.position.lerp(tmp,.08); return asan.position.clone().add(new THREE.Vector3(0,.6,-2.5)); }
       } };
     return W;
@@ -313,6 +319,13 @@ function sceneDeparture(){
     async semyonTurns(){ const W=world, sm=W.semyon; setShot('sem'); sm.rotation.y=Math.atan2(W.asan.position.x-sm.position.x, W.asan.position.z-sm.position.z); await gwait(1.0);
       await tween(1.0, k=>{ sm.rotation.y = lerp(sm.rotation.y, Math.PI*.95, k*.3); sm.userData.armR.rotation.x = -1.3*(1-ease(k)); }); W.spoon.visible=false; await gwait(.5); },
     // проводы
+    async recruitFalls(){ const W=world; const r=W.col.reduce((a,b)=>a.position.z>b.position.z?a:b); W.fallen=r; r.userData.down=true;
+      setShot('maxim'); await tween(.7,k=>{ r.rotation.x=.9*k; r.position.y=-.35*k; }); try{ noiseBurst({dur:.25,freq:200,q:.8,gain:.25,type:'lowpass'}); }catch(e){} },
+    async helpUp(){ const W=world, r=W.fallen; await tween(1.2,k=>{ r.rotation.x=.9*(1-k); r.position.y=-.35*(1-k); W.asan.userData.armL.rotation.x=-1.4*Math.sin(k*Math.PI); });
+      r.userData.down=false; W.extraLoad=true; },
+    async kolKicks(){ const W=world, r=W.fallen; await gwait(1.2); await tween(1,k=>{ r.rotation.x=.9*(1-k); r.position.y=-.35*(1-k); }); r.userData.down=false; r.userData.gone=true;
+      // встал, но отстал: дальше бредёт далеко позади
+      r.position.z += 9; },
     async motherBread(){ const W=world, m=W.mother, from=m.position.clone(), to=W.asan.position.clone().add(new THREE.Vector3(-.25,0,-.55));
       setShot('side');
       await tween(1.4, k=>{ m.position.lerpVectors(from,to,ease(k)); m.lookAt(W.asan.position.x,0,W.asan.position.z); animWalk(m, k<1?1:0, 1/60); });
@@ -421,6 +434,190 @@ function sceneDeparture(){
     cleanupDom(); setObj(CH,''); cine(true); setShot('line'); await gwait(1.2);
     await run(DAT.scripts.drill_end);
   }
+  // ======================================================================
+  // КУРС МОЛОДОГО БОЙЦА — несколько дней одним монтажом: стрельбище, гранаты, проволока, окопы; между ними казарма и котёл
+  // ======================================================================
+  function buildTraining(){
+    scene = new THREE.Scene(); const sc=scene;
+    sc.background = new THREE.Color(0x9a988e); sc.fog = new THREE.Fog(0x9a988e, 50, 260);
+    const L = lights(sc, 0xc8c6bc, 0x4a4438, .7, 0xe8e0cc, .6, new THREE.Vector3(-14,22,10));
+    makeGround(sc, 500, [0x9e9682,0x837a62,0x6e6450,0x56503e], 51);
+    const khaki=0x5e5a3e, straw=M(0xb89c5c), sack=M(0xa89a78), wood=M(0x5e4834), earth=M(0x5a4a36);
+    // казарма и столовая под навесом — у дороги
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(26,3.2,6),M(0x7a6a52)); bar.position.set(0,1.6,-12); sc.add(shadowAll(bar));
+    const barRoof = new THREE.Mesh(new THREE.BoxGeometry(27,.4,7),M(0x4e4438)); barRoof.position.set(0,3.4,-12); sc.add(shadowAll(barRoof));
+    const wins=[]; for(let i=0;i<6;i++){ const w=new THREE.Mesh(new THREE.BoxGeometry(1.2,1,.1),new THREE.MeshBasicMaterial({color:0x2a2824})); w.position.set(-10+i*4,1.9,-8.95); sc.add(w); wins.push(w); }
+    const table = new THREE.Mesh(new THREE.BoxGeometry(8,.12,1.1),wood); table.position.set(0,.85,-3); sc.add(shadowAll(table));
+    for(const z of [-3.9,-2.1]){ const bench=new THREE.Mesh(new THREE.BoxGeometry(8,.08,.35),wood); bench.position.set(0,.48,z); sc.add(shadowAll(bench)); }
+    const bowls=[]; for(let i=0;i<8;i++){ const b=new THREE.Mesh(new THREE.CylinderGeometry(.13,.09,.08,10),M(0x6a6a62)); b.position.set(-3.5+i,.95,-3+(i%2?.3:-.3)); sc.add(b); bowls.push(b); }
+    const kettle = new THREE.Mesh(new THREE.CylinderGeometry(.6,.5,.8,12),M(0x3a3a34)); kettle.position.set(5,.4,-3.2); sc.add(shadowAll(kettle));
+    // стрельбище: вал и пять чучел — мешок на крестовине, набитый соломой
+    const RX=-40; const berm=new THREE.Mesh(new THREE.BoxGeometry(22,2.2,3),earth); berm.position.set(RX,1.1,-52); sc.add(shadowAll(berm));
+    const dummies=[]; for(let i=0;i<5;i++){ const g=new THREE.Group();
+      const post=new THREE.Mesh(new THREE.CylinderGeometry(.05,.06,1.9,5),wood); post.position.y=.95; g.add(post);
+      const arm=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,1.1,5),wood); arm.rotation.z=Math.PI/2; arm.position.y=1.35; g.add(arm);
+      const body=new THREE.Mesh(new THREE.CylinderGeometry(.28,.24,.9,8),straw); body.position.y=1.2; g.add(body);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(.2,8,6),sack); head.position.y=1.85; g.add(head);
+      const helm=new THREE.Mesh(new THREE.SphereGeometry(.23,8,6,0,Math.PI*2,0,Math.PI/2),M(0x4a4e44)); helm.position.y=1.9; g.add(helm);
+      g.position.set(RX-8+i*4, 0, -46-(i%2)*4); sc.add(shadowAll(g)); g.userData.hits=0; g.userData.wob=0; dummies.push(g); }
+    // гранатный ров и круг из белых камней — «окоп противника» в двадцати метрах
+    const GX=-12; const pit=new THREE.Mesh(new THREE.BoxGeometry(6,.1,1.4),M(0x3a3024)); pit.position.set(GX,.03,6); sc.add(pit);
+    const parapet=new THREE.Mesh(new THREE.BoxGeometry(6,.5,.6),earth); parapet.position.set(GX,.25,5.1); sc.add(shadowAll(parapet));
+    const ringC=new THREE.Vector3(GX,0,-14); for(let i=0;i<18;i++){ const a=i/18*Math.PI*2; const st=new THREE.Mesh(new THREE.SphereGeometry(.14,6,4),M(0xd8d2c0)); st.position.set(ringC.x+Math.cos(a)*2.2,.06,ringC.z+Math.sin(a)*2.2); sc.add(st); }
+    const gren=new THREE.Group(); const gh=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.12,8),M(0x3a3a30)); const gs=new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,.22,5),wood); gs.position.y=-.16; gren.add(gh,gs); gren.visible=false; sc.add(gren);
+    // полоса: низкая колючая проволока на кольях, двенадцать метров
+    const WX2=20, wireLen=12; for(let i=0;i<=6;i++){ for(const s of [-.9,.9]){ const k=new THREE.Mesh(new THREE.CylinderGeometry(.04,.05,.8,5),wood); k.position.set(WX2+s,.4,-i*2); sc.add(k); } }
+    const wireM=new THREE.MeshBasicMaterial({color:0x2a2620}); for(const y of [.55,.62]) for(const s of [-.9,0,.9]){ const w=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,wireLen,4),wireM); w.rotation.x=Math.PI/2; w.position.set(WX2+s*(s?1:0),y+(s?0:.06),-wireLen/2); sc.add(w); }
+    for(let i=0;i<6;i++){ const w=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,1.9,4),wireM); w.rotation.z=Math.PI/2; w.position.set(WX2,.6,-1-i*2); sc.add(w); }
+    // участок для окопа: колышки, лопата, растущая куча земли
+    const DX2=40; const plot=new THREE.Mesh(new THREE.BoxGeometry(1.4,.04,3),M(0x6e5e46)); plot.position.set(DX2,.02,0); sc.add(plot);
+    const hole=new THREE.Mesh(new THREE.BoxGeometry(1.2,1,2.6),M(0x2e261c)); hole.position.set(DX2,-.5,0); hole.scale.y=.02; hole.position.y=0.03; sc.add(hole);
+    const heap=new THREE.Mesh(new THREE.SphereGeometry(1,10,6,0,Math.PI*2,0,Math.PI/2),earth); heap.position.set(DX2+1.4,0,0); heap.scale.set(.2,.05,.6); sc.add(shadowAll(heap));
+    // люди: уже в форме — гимнастёрки, пилотки; Асан, Жумабай, Колесников и ещё четверо
+    const asan = makePerson({coat:khaki, hat:'pilotka'}); sc.add(asan);
+    const rifle=new THREE.Mesh(new THREE.BoxGeometry(.05,.07,1.25),M(0x3a2c1e)); rifle.position.set(.2,1.1,.35); rifle.visible=false; asan.add(rifle);
+    const shovel=new THREE.Group(); const sh1=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,.7,5),wood); const sh2=new THREE.Mesh(new THREE.BoxGeometry(.16,.2,.02),M(0x5a5a54)); sh2.position.y=-.42; shovel.add(sh1,sh2); shovel.position.set(.32,.9,.25); shovel.rotation.x=.6; shovel.visible=false; asan.add(shovel);
+    const zhum = makePerson({coat:khaki, hat:'pilotka'}); sc.add(zhum);
+    const kol = makePerson({coat:0x5c5a3a, hat:'pilotka'}); sc.add(kol);
+    const others=[]; for(let i=0;i<4;i++){ const p=makePerson({coat:khaki, hat:'pilotka'}); sc.add(p); others.push(p); }
+    const W = { asan, zhum, kol, others, dummies, gren, ringC, hole, heap, rifle, shovel, bowls, wins, L, RX, GX, WX2, DX2, crawl:0, snag:0,
+      update(dt,t){
+        for(const d of dummies){ if(d.userData.wob>0){ d.userData.wob=Math.max(0,d.userData.wob-dt*2.2); d.rotation.z=Math.sin(t*28)*.18*d.userData.wob; } }
+        if(S.phase==='crawl'){ const p=asan; p.position.set(WX2, 0, 1.6-W.crawl); prone(p,1); p.rotation.y=Math.PI; p.position.y = .18 + (W.snag>0 ? .18 : 0);
+          p.userData.armL.rotation.x = -2.6 + Math.sin(W.crawl*5)*.5; p.userData.armR.rotation.x = -2.6 - Math.sin(W.crawl*5)*.5; W.snag=Math.max(0,W.snag-dt); }
+      },
+      shots:{
+        range(k){ camera.fov=40; camera.position.set(RX+.3, 1.25, 3.4); return new THREE.Vector3(RX, .9, -46); },
+        rangeKol(k){ camera.fov=30; camera.position.set(RX+3.2,1.6,-1); return new THREE.Vector3(RX+1.2,1.5,1.5); },
+        gren(k){ camera.fov=42; camera.position.set(GX+4.5, 2.2, 10.5); return new THREE.Vector3(GX-.5, .6, -6); },
+        crawl(k){ camera.fov=36; camera.position.set(WX2+5.5, 1.4, 2.5-Math.min(W.crawl,10)); return new THREE.Vector3(WX2, .3, -2-Math.min(W.crawl,10)); },
+        dig(k){ camera.fov=36; camera.position.set(DX2+3.8, 2.1, 3.6); return new THREE.Vector3(DX2, .4, 0); },
+        meal(k){ camera.fov=34; camera.position.set(2.5+k*.05, 1.5, 1.8); return new THREE.Vector3(-.5, .9, -3); },
+        night(k){ camera.fov=30; camera.position.set(8, 2.2, 14); return new THREE.Vector3(0, 1.8, -12); }
+      } };
+    return W;
+  }
+  // освещение дня/ночи для монтажа
+  function trainLight(kind){ const W=world, bg=scene.background, fog=scene.fog;
+    if(kind==='night'){ bg.setHex(0x1a1e28); fog.color.setHex(0x1a1e28); W.wins.forEach(w=>w.material.color.setHex(0xe0b060)); }
+    else { bg.setHex(kind==='dawn'?0xb0a088:0x9a988e); fog.color.setHex(bg.getHex()); W.wins.forEach(w=>w.material.color.setHex(0x2a2824)); } }
+  function place(p,x,z,ry){ p.position.set(x,0,z); p.rotation.set(0,ry||0,0); }
+  function dayCard(n, text){ caption(`${text}`); }
+  function bugle(){ try{ [523,659,784,659,784,1046].forEach((f,i)=>tone({f,dur:.22,type:'square',gain:.035,delay:i*.24})); }catch(e){} }
+
+  // --- день 2: стрельба по чучелам ---
+  async function trainRange(){
+    const W=world; S.phase='range'; trainLight('day');
+    place(W.asan, W.RX, 1.5, Math.PI); prone(W.asan,1); W.asan.position.y=.18; W.rifle.visible=true; W.asan.userData.armR.rotation.x=W.asan.userData.armL.rotation.x=-2.9;
+    place(W.kol, W.RX+1.4, 1.8, Math.PI*.85); place(W.zhum, W.RX-1.6, 1.6, Math.PI); prone(W.zhum,1); W.zhum.position.y=.18;
+    W.others.forEach((p,i)=>{ place(p, W.RX-4-i*1.6, 2.4, Math.PI); });
+    setShot('rangeKol'); cine(true); await run(DAT.scripts.range_intro); setShot('range'); cine(false);
+    setObj(CH, isTouch?DAT.objectives.rangeTouch:DAT.objectives.range);
+    let shots=10, hits=0; S.shooting=true; $('ammo').style.display='block'; const ammo=()=>{ $('ammo').textContent=`Патроны: ${shots}`; }; ammo();
+    if(!isTouch){ $('aim').style.display='block'; canvas.style.cursor='none'; }
+    const ray=new THREE.Raycaster(), mv=new THREE.Vector2(); let cd=0;
+    S.shootAt = ev=>{ if(shots<=0 || S.clock<cd) return; cd=S.clock+.9; shots--; ammo();
+      const r=canvas.getBoundingClientRect(); const sway=.035; mv.set(((ev.clientX-r.left)/r.width)*2-1+rand(-sway,sway), -((ev.clientY-r.top)/r.height)*2+1+rand(-sway,sway));
+      ray.setFromCamera(mv, camera); try{ noiseBurst({dur:.22,freq:900,q:.7,gain:.35}); }catch(e){}
+      const hitObj = ray.intersectObjects(W.dummies, true)[0];
+      if(hitObj){ let g=hitObj.object; while(g.parent && !W.dummies.includes(g)) g=g.parent; g.userData.wob=1; g.userData.hits++; hits++; try{ sfx.wood(); }catch(e){} }
+      else if(Math.random()<.5) bark('Колесников', DAT.rangeBarks.miss, 'ru'); };
+    S.aimMove = ev=>{ const a=$('aim'); a.style.left=ev.clientX+'px'; a.style.top=ev.clientY+'px'; };
+    await until(()=>shots<=0, 1e9); await gwait(1.2);
+    S.shooting=false; S.shootAt=null; $('ammo').style.display='none'; $('aim').style.display='none'; canvas.style.cursor=''; setObj(CH,'');
+    memory.flags.rangeHits=hits; memory.flags.rangeGood = hits>=6;
+    cine(true); setShot('rangeKol');
+    bark('Колесников', hits>=6?DAT.rangeBarks.good:hits>=3?DAT.rangeBarks.ok:DAT.rangeBarks.bad, 'ru'); await gwait(2.2);
+    await run(DAT.scripts.range_end);
+    W.rifle.visible=false; prone(W.asan,0); prone(W.zhum,0); W.asan.userData.armR.rotation.x=W.asan.userData.armL.rotation.x=0;
+  }
+  // --- день 3: гранаты — поймать силу броска ---
+  async function trainGrenade(){
+    const W=world; S.phase='grenade'; trainLight('day');
+    place(W.asan, W.GX, 6, Math.PI); place(W.kol, W.GX+1.6, 6.4, Math.PI*.8); place(W.zhum, W.GX-1.2, 6.2, Math.PI);
+    W.others.forEach((p,i)=>place(p, W.GX-3-i*1.1, 7.4, Math.PI));
+    setShot('gren'); cine(true); await run(DAT.scripts.grenade_intro); cine(false);
+    setObj(CH, isTouch?DAT.objectives.grenadeTouch:DAT.objectives.grenade);
+    const meter=document.createElement('div'); meter.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:calc(26px + var(--ub));width:min(360px,70vw);height:14px;background:rgba(20,17,13,.8);border:1px solid #8a7c62;z-index:14';
+    meter.innerHTML='<i style="position:absolute;left:58%;width:10%;top:0;bottom:0;background:rgba(201,164,106,.35)"></i><b style="position:absolute;top:-4px;bottom:-4px;width:3px;background:#e9dfc9;left:0"></b>';
+    document.body.appendChild(meter); extraDom.push(meter); const mk=meter.querySelector('b');
+    let good=0;
+    for(let n=0;n<3;n++){
+      let pw=0, dir=1, thrown=false; S.tAct=()=>{ thrown=true; };
+      while(!thrown){ await gwait(.016); pw+=dir*.016*.9; if(pw>1){pw=1;dir=-1;} if(pw<0){pw=0;dir=1;} mk.style.left=(pw*100)+'%'; }
+      S.tAct=null;
+      // замах и полёт по дуге; дальность от силы броска
+      const u=W.asan.userData; await tween(.25,k=>{ u.armR.rotation.x=-2.8*k; });
+      const from=new THREE.Vector3(W.GX+.2,1.9,5.6), dist=8+pw*20, to=new THREE.Vector3(W.GX+rand(-.8,.8),.08,5.6-dist);
+      W.gren.visible=true; u.armR.rotation.x=.4;
+      await tween(1.1,k=>{ W.gren.position.lerpVectors(from,to,k); W.gren.position.y += Math.sin(k*Math.PI)*(3+pw*3); W.gren.rotation.x=k*12; });
+      try{ noiseBurst({dur:.2,freq:180,q:.8,gain:.3,type:'lowpass'}); }catch(e){}
+      const ok = to.distanceTo(W.ringC.clone().setY(.08)) < 2.4; if(ok) good++;
+      bark('Колесников', ok?DAT.grenadeBarks.hit:(dist<20?DAT.grenadeBarks.short:DAT.grenadeBarks.long), 'ru');
+      await gwait(1.4); W.gren.visible=false; u.armR.rotation.x=0;
+    }
+    meter.remove(); setObj(CH,''); memory.flags.grenadeHits=good;
+    cine(true); await run(DAT.scripts.grenade_end);
+  }
+  // --- день 4: под проволокой — ползти, не поднимая спины ---
+  async function trainCrawl(){
+    const W=world; S.phase='crawl'; W.crawl=0; trainLight('day');
+    place(W.kol, W.WX2+2.2, -6, -Math.PI/2); place(W.zhum, W.WX2-2.5, 3, Math.PI); W.others.forEach((p,i)=>place(p, W.WX2-3.5-i, 3.4, Math.PI));
+    setShot('crawl'); cine(true); await run(DAT.scripts.crawl_intro); cine(false);
+    setObj(CH, isTouch?DAT.objectives.crawlTouch:DAT.objectives.crawl);
+    let last=0, snags=0;
+    S.tAct=()=>{ if(W.snag>0) return; const now=S.clock;
+      // слишком часто — спина поднимается, цепляется за колючку
+      if(now-last<.22){ W.snag=1.1; snags++; bark('Колесников', DAT.crawlBarks.low, 'ru'); try{ noiseBurst({dur:.12,freq:2200,q:3,gain:.12}); }catch(e){} }
+      else { W.crawl+=.42; try{ noiseBurst({dur:.1,freq:260,q:.7,gain:.08,type:'lowpass'}); }catch(e){} }
+      last=now; };
+    await until(()=>W.crawl>=13.2, 1e9);
+    S.tAct=null; setObj(CH,''); memory.flags.crawlSnags=snags; memory.flags.crawlClean = snags===0; S.phase='crawlDone';
+    prone(W.asan,0); W.asan.position.set(W.WX2,0,-12); W.asan.userData.armL.rotation.x=W.asan.userData.armR.rotation.x=0;
+    cine(true); await run(DAT.scripts.crawl_end);
+  }
+  // --- день 5: окоп в полный профиль ---
+  async function trainDig(){
+    const W=world; S.phase='dig'; trainLight('day');
+    place(W.asan, W.DX2-.2, .4, Math.PI/2); W.shovel.visible=true; place(W.kol, W.DX2-2.5, 2.5, Math.PI*.7); place(W.zhum, W.DX2+.5, -3.2, Math.PI*.9);
+    setShot('dig'); cine(true); await run(DAT.scripts.dig_intro); cine(false);
+    const N=26; let k=0;
+    await digPrompt(N, DAT.actions.dig||'Копать', ()=>{ k++; const f=k/N;
+      W.hole.scale.y=Math.max(.02,f); W.hole.position.y=-f*.5+.03; W.heap.scale.set(.3+f*.9, .05+f*.55, .6+f*.6);
+      W.asan.position.y=-f*.55; W.asan.userData.armR.rotation.x=-1.2+Math.sin(k)*.6; W.shovel.rotation.x=.6+Math.sin(k)*.5; return false; });
+    W.shovel.visible=false; setObj(CH,'');
+    cine(true); await run(DAT.scripts.dig_end);
+    W.asan.position.y=0;
+  }
+  // --- монтаж: котёл, отбой, подъём ---
+  async function trainMeal(){
+    const W=world; S.phase='meal'; trainLight('day');
+    place(W.asan,-.5,-2.1,Math.PI); W.asan.position.z=-2.1; sitPose(W.asan); place(W.zhum,.5,-2.1,Math.PI); sitPose(W.zhum);
+    W.others.forEach((p,i)=>{ place(p,-2.5+i*1.6+(i>1?2:0),-3.9,0); sitPose(p); });
+    setShot('meal'); cine(true);
+    for(let i=0;i<5;i++) try{ tone({f:2400+Math.random()*600,dur:.04,type:'triangle',gain:.03,delay:i*.4+Math.random()*.2}); }catch(e){}
+    await run(DAT.scripts.meal);
+    [W.asan,W.zhum,...W.others].forEach(p=>{ p.position.y=0; p.userData.legL.rotation.x=p.userData.legR.rotation.x=0; });
+  }
+  async function trainNight(lines){
+    const W=world; S.phase='night'; trainLight('night'); setShot('night'); cine(true);
+    [W.asan,W.zhum,W.kol,...W.others].forEach(p=>p.visible=false);
+    await run(lines);
+    await fadeTo(1,900); trainLight('dawn'); [W.asan,W.zhum,W.kol,...W.others].forEach(p=>p.visible=true);
+    bugle(); await fadeTo(0,900); bark('Колесников', DAT.trainBarks.reveille, 'ru'); await gwait(1.6);
+  }
+  async function partTraining(){
+    const w = wipe(1300); world = buildTraining(); S.phase='training'; cine(true); trainLight('night'); setShot('night'); await w;
+    await run(DAT.scripts.training_intro);
+    await trainNight(DAT.scripts.night1);
+    caption(DAT.days[0]); await trainRange();
+    let ww=wipe(1100); await trainMeal(); await ww;
+    caption(DAT.days[1]); ww=wipe(1100); await trainGrenade(); await ww;
+    caption(DAT.days[2]); ww=wipe(1100); await trainCrawl(); await ww;
+    ww=wipe(1100); await trainNight(DAT.scripts.night2); await ww;
+    caption(DAT.days[3]); ww=wipe(1100); await trainDig(); await ww;
+    cleanupDom(); await run(DAT.scripts.training_end);
+  }
   async function partMarch(){
     const w = wipe(1500); world = buildMarch(); S.phase='march'; setShot('follow'); cine(true); await w;
     await run(DAT.scripts.march_intro); cine(false);
@@ -428,7 +625,11 @@ function sceneDeparture(){
     S.marching=true;
     listen(canvas,'pointerdown', ()=>{ S.pHold=true; }); listen(canvas,'pointerup', ()=>{ S.pHold=false; }); listen(canvas,'pointerleave', ()=>{ S.pHold=false; });
     let barkCD=0; const t0=S.clock; const evs=(DAT.marchEvents||[]).slice();
+    const cycle=['follow','side','front','maxim','moonShot','side','follow','front']; let ci=0, nextCut=S.clock+6.5, fell=false;
     while(S.clock-t0 < 42){ await gwait(.5); barkCD-=.5;
+      if(S.clock>=nextCut){ ci=(ci+1)%cycle.length; setShot(cycle[ci]); nextCut=S.clock+rand(6,7.5); }
+      // на середине марша упавший впереди: поднять или пройти мимо
+      if(!fell && S.clock-t0>=21){ fell=true; S.marching=false; cine(true); await run(DAT.scripts.march_fall); closeDlg(); cine(false); S.marching=true; setShot('follow'); nextCut=S.clock+6.5; }
       // по дороге: мысли, разговоры, команды — без остановки марша
       while(evs.length && S.clock-t0 >= evs[0].t){ const e=evs.shift();
         if(e.caption) caption(e.caption); else if(e.think) think(e.think); else if(e.bark){ bark(e.bark[0], e.bark[1], e.bark[2]||'kz'); barkCD=Math.max(barkCD,3); } }
@@ -477,18 +678,20 @@ function sceneDeparture(){
     onKey(code, down){
       if(!down) return;
       if(S.wantWalk && (code==='KeyE'||code==='Space'||code==='Enter')) S.walk=true;
+      if(S.tAct && (code==='Space'||code==='KeyE'||code==='Enter')){ S.tAct(); return; }
       if(drill){ const m={Digit1:'ложись',KeyC:'ложись',Digit2:'огонь',KeyF:'огонь',Digit3:'диск',KeyR:'диск',Numpad1:'ложись',Numpad2:'огонь',Numpad3:'диск'}[code]; if(m) respond(m); }
     },
-    act(){ if(S.wantWalk) S.walk=true; else if(drill) respond('ложись'); },
+    act(){ if(S.tAct){ S.tAct(); return; } if(S.wantWalk) S.walk=true; else if(drill) respond('ложись'); },
     wantsJoy(){ return !!(S.wantWalk || (S.walk && S.phase==='farewell')); },
-    touchAction(){ if(S.wantWalk || (S.walk && S.phase==='farewell')) return 'Идти'; if(drill) return DAT.actions['ложись']; if(S.marching) return 'Держать шаг'; return null; },
+    touchAction(){ if(S.tAct) return S.phase==='crawl' ? (DAT.actions.crawl||'Ползти') : (DAT.actions.throw||'Бросить'); if(S.wantWalk || (S.walk && S.phase==='farewell')) return 'Идти'; if(drill) return DAT.actions['ложись']; if(S.marching) return 'Держать шаг'; return null; },
     holdStart(){ S.tHold=true; }, holdEnd(){ S.tHold=false; },
     async begin(){
       $('bars').style.display='none'; setObj(CH,'');
-      listen(canvas,'pointerdown', ()=>{ if(S.wantWalk) S.walk=true; if(S.phase==='farewell') S.wHold=true; }); listen(window,'pointerup', ()=>{ S.wHold=false; });
+      listen(canvas,'pointerdown', ev=>{ if(S.shootAt){ S.shootAt(ev); return; } if(S.tAct && !isTouch){ S.tAct(); return; } if(S.wantWalk) S.walk=true; if(S.phase==='farewell') S.wHold=true; });
+      listen(canvas,'pointermove', ev=>{ if(S.aimMove && S.shooting) S.aimMove(ev); }); listen(window,'pointerup', ()=>{ S.wHold=false; });
       // для проверки: ?part=drill|march|train в адресе начинает сразу с нужной части
       const from = (location.search.match(/[?&]part=(\w+)/)||[])[1] || 'farewell';
-      const order = ['farewell','drill','march','train'], parts={farewell:partFarewell, drill:partDrill, march:partMarch, train:partTrain};
+      const order = ['farewell','drill','training','march','train'], parts={farewell:partFarewell, drill:partDrill, training:partTraining, march:partMarch, train:partTrain};
       for(const k of order.slice(Math.max(0,order.indexOf(from)))) await parts[k]();
       cleanupDom(); closeDlg(); cine(false);
       await fadeTo(1,1200);
