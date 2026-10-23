@@ -185,7 +185,11 @@ $('dlg').addEventListener('click', advance);
 $('nbBtn').addEventListener('click', e=>{ e.stopPropagation(); openNotebook(); });
 $('nb').addEventListener('click', e=>{ if(e.target.id==='nb') closeNotebook(); }); // клик мимо листа — закрыть
 
-function showCard(small, big, text, btn='Дальше'){
+// рисованные фоны карточек глав: «Глава N» и «Конец главы N» берут card_N.jpg, если он уже нарисован
+const CARD_ART = { 1:'img/card_1.jpg', 2:'img/card_2.jpg', 3:'img/card_3.jpg', 4:'img/card_4.jpg' };
+function showCard(small, big, text, btn='Дальше', bg=null){
+  const m = !bg && /глав[аы]?\s+(\d)/i.exec(small||''); const art = bg || (m && CARD_ART[m[1]]);
+  const c=$('card'); c.classList.toggle('bgimg', !!art); c.style.backgroundImage = art ? `url(${art})` : '';
   return new Promise(res=>{
     $('cardSmall').textContent=small; $('cardBig').textContent=big; $('cardText').innerHTML=text; $('cardBtn').textContent=btn;
     $('card').style.display='flex';

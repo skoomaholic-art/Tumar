@@ -20,8 +20,8 @@ async function playEnding(kind){
   active=sceneMenu(); active.begin && active.begin();
   await fadeTo(0,1600);
   await showCard('', E.title, E.final.map(pick).filter(Boolean).map(t=>`<span style="display:block;margin:6px 0">${escapeHtml(t)}</span>`).join(''), 'Дальше');
-  $('card').classList.add('ded'); $('card').style.backgroundImage=`url(${DATA.endings.dedicationImg})`;
-  await showCard('', 'TUMAR', `<span style="display:block;max-width:560px;margin:0 auto;font-size:18px;line-height:1.6">${escapeHtml(DATA.endings.dedication)}</span>`, 'Дальше');
-  $('card').classList.remove('ded'); $('card').style.backgroundImage='';
+  $('card').classList.add('ded');
+  await showCard('', 'TUMAR', `<span style="display:block;max-width:560px;margin:0 auto;font-size:18px;line-height:1.6">${escapeHtml(DATA.endings.dedication)}</span>`, 'Дальше', DATA.endings.dedicationImg);
+  $('card').classList.remove('ded');
   memory.flags.ending=kind;
 }
