@@ -124,7 +124,7 @@ function sceneDeparture(){
         est(k){ camera.fov=22; camera.position.set(44-k*.25,5.5,48); return new THREE.Vector3(-1,1.4,0); },
         side(k){ camera.fov=19; camera.position.copy(SIDE_CAM); camera.position.y += Math.sin(k*.4)*.01; return new THREE.Vector3(.4,1.15,3.1); },
         father(k){ camera.fov=30; camera.position.set(2.0,1.2,4.9); return new THREE.Vector3(-.75,1.45,1.5); },
-        family(k){ camera.fov=40; camera.position.set(-1.25,1.5,-1.2); /* дорога уходит точно между отцом и матерью */ return new THREE.Vector3(R0.x+RD.x*40, .9, R0.z+RD.z*40); }
+        family(k){ camera.fov=40; camera.position.set(-.95,1.6,-1.2); /* дорога уходит точно между отцом и матерью */ return new THREE.Vector3(R0.x+RD.x*40, .9, R0.z+RD.z*40); }
       } };
     return W;
   }
