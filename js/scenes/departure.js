@@ -490,8 +490,8 @@ function sceneDeparture(){
         range(k){ camera.fov=38; camera.position.set(RX+.25, 1.0, 3.2); return new THREE.Vector3(RX, 1.0, -21); },
         rangeKol(k){ camera.fov=30; camera.position.set(RX+3.2,1.6,-1); return new THREE.Vector3(RX+1.2,1.5,1.5); },
         gren(k){ camera.fov=44; camera.position.set(GX+1.6, 2.1, 9.2); return new THREE.Vector3(GX-.2, .5, -8); },
-        crawl(k){ camera.fov=40; const c=Math.min(W.crawl,11); camera.position.set(WX2+2.4, .95, 1.2-c); return new THREE.Vector3(WX2, .25, -1.8-c); },
-        dig(k){ camera.fov=36; camera.position.set(DX2+3.8, 2.1, 3.6); return new THREE.Vector3(DX2, .4, 0); },
+        crawl(k){ camera.fov=40; const c=Math.min(W.crawl,11); camera.position.set(WX2+1.9, 1.05, 4.2-c); return new THREE.Vector3(WX2, .2, -.6-c); },
+        dig(k){ camera.fov=38; camera.position.set(DX2+3.2, 3.1, 3.4); return new THREE.Vector3(DX2, .1, 0); },
         meal(k){ camera.fov=34; camera.position.set(2.5+k*.05, 1.5, 1.8); return new THREE.Vector3(-.5, .9, -3); },
         night(k){ camera.fov=30; camera.position.set(8, 2.2, 14); return new THREE.Vector3(0, 1.8, -12); }
       } };
@@ -534,7 +534,7 @@ function sceneDeparture(){
   // --- день 3: гранаты — поймать силу броска ---
   async function trainGrenade(){
     const W=world; S.phase='grenade'; trainLight('day');
-    place(W.asan, W.GX, 6, Math.PI); place(W.kol, W.GX+1.6, 6.4, Math.PI*.8); place(W.zhum, W.GX-2.2, 6.2, Math.PI);
+    place(W.asan, W.GX, 6, Math.PI); place(W.kol, W.GX+3.6, 3.2, Math.PI*.7); place(W.zhum, W.GX-3, 6.6, Math.PI);
     W.others.forEach((p,i)=>place(p, W.GX-4-i*1.1, 6.4, Math.PI));
     setShot('gren'); cine(true); await run(DAT.scripts.grenade_intro); cine(false);
     setObj(CH, isTouch?DAT.objectives.grenadeTouch:DAT.objectives.grenade);
@@ -562,7 +562,7 @@ function sceneDeparture(){
   // --- день 4: под проволокой — ползти, не поднимая спины ---
   async function trainCrawl(){
     const W=world; S.phase='crawl'; W.crawl=0; trainLight('day');
-    place(W.kol, W.WX2+2.2, -6, -Math.PI/2); place(W.zhum, W.WX2-2.5, 3, Math.PI); W.others.forEach((p,i)=>place(p, W.WX2-3.5-i, 3.4, Math.PI));
+    place(W.kol, W.WX2+4.5, -7, -Math.PI/2); place(W.zhum, W.WX2-2.5, 3, Math.PI); W.others.forEach((p,i)=>place(p, W.WX2-3.5-i, 3.4, Math.PI));
     setShot('crawl'); cine(true); await run(DAT.scripts.crawl_intro); cine(false);
     setObj(CH, isTouch?DAT.objectives.crawlTouch:DAT.objectives.crawl);
     let last=0, snags=0;
@@ -579,7 +579,7 @@ function sceneDeparture(){
   // --- день 5: окоп в полный профиль ---
   async function trainDig(){
     const W=world; S.phase='dig'; trainLight('day');
-    place(W.asan, W.DX2-.2, .4, Math.PI/2); W.shovel.visible=true; place(W.kol, W.DX2-2.5, 2.5, Math.PI*.7); place(W.zhum, W.DX2+.5, -3.2, Math.PI*.9);
+    place(W.asan, W.DX2-.2, .4, Math.PI/2); W.shovel.visible=true; place(W.kol, W.DX2-3, -2.2, Math.PI*.3); place(W.zhum, W.DX2+.5, -3.2, Math.PI*.9);
     setShot('dig'); cine(true); await run(DAT.scripts.dig_intro); cine(false);
     const N=26; let k=0;
     await digPrompt(N, DAT.actions.dig||'Копать', ()=>{ k++; const f=k/N;
