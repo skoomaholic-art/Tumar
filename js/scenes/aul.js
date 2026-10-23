@@ -540,7 +540,7 @@ function sceneAul(){
     return new Promise(res=>{
       const body = DAT.summons;
       const html = body.split('\n').map((line,i)=> i===0 ? `<b>${renderLang(line,'ru')}</b>` : renderLang(line,'ru')).join('<br>');
-      $('paper').innerHTML = html + `<div class="stamp"></div><div class="hint">${known?'Слова, которые прочитала Күләш, теперь понятны.':'Асан узнаёт только своё имя.'} Нажми, чтобы закрыть.</div>`;
+      $('paper').innerHTML = html + `<div class="seal" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><path id="sealR" d="M50 50 m-36 0 a36 36 0 1 1 72 0 a36 36 0 1 1 -72 0"/></defs><circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="50" cy="50" r="27" fill="none" stroke="currentColor" stroke-width="1.5"/><text font-size="9.5" letter-spacing="1.2" fill="currentColor" font-family="Georgia,serif"><textPath href="#sealR">АКМОЛИНСКИЙ РАЙВОЕНКОМАТ ★ КазССР ★</textPath></text><path d="M50 34 l4.7 9.6 10.6 1.5 -7.7 7.5 1.8 10.5 -9.4-5 -9.4 5 1.8-10.5 -7.7-7.5 10.6-1.5z" fill="currentColor"/></svg></div><div class="hint">${known?'Слова, которые прочитала Күләш, теперь понятны.':'Асан узнаёт только своё имя.'} Нажми, чтобы закрыть.</div>`;
       $('doc').style.display='flex'; S.busy=true;
       $('doc').onclick=()=>{ $('doc').style.display='none'; res(); };
     });

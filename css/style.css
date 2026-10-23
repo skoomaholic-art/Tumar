@@ -372,3 +372,6 @@ body.sketch #grain{opacity:.08}
 @media (prefers-reduced-motion:reduce){#panels .pn.art.on .kb{animation:none}}
 @media (max-height:520px){#panels .pn.art .artbox{flex:1;min-height:0}#panels .pn.art .kb{height:100%}#panels .pn.art .artbox img.art{height:100%;width:100%;object-fit:cover;object-position:center 35%}}
 #panels .page.artpage.tight .pn.art .cap{font-size:12.5px;line-height:1.25;padding:4px 8px}
+/* печать военкомата: круглая, с надписью по кругу и звездой; стоит под текстом, не на нём */
+#doc .paper .seal{width:92px;height:92px;margin:10px 0 -6px auto;color:rgba(120,40,70,.62);transform:rotate(-14deg);mix-blend-mode:multiply;filter:blur(.3px)}
+#doc .paper .seal svg{width:100%;height:100%;display:block}
