@@ -131,7 +131,7 @@ function sceneDon(){
   // ремарки показываются в кадре: короткие режиссёрские планы поверх обычной камеры
   const gwait = sec => { const t0=S.clock; return new Promise(r=>{ const h=setInterval(()=>{ if(S.clock-t0>=sec){ clearInterval(h); r(); } },50); }); };
   function holdCam(pos, look, sec){ S.shot={pos:pos.clone(), look:look.clone(), until:S.clock+sec}; return gwait(sec); }
-  const run = makeRunner({
+  const hooks={
     singer(){ S.singing=true; [392,440,392,349,330,349,392].forEach((f,i)=>tone({f, dur:.42, gain:.035, delay:i*.45, type:'triangle'})); },
     async deadSinger(){ closeDlg(); const p=singer.position; await holdCam(new THREE.Vector3(p.x+2.2,1.6,p.z+2.4), new THREE.Vector3(p.x,.3,p.z), 3.2); },
     async shakeFlask(){ closeDlg(); S.flaskT=1.6; await holdCam(new THREE.Vector3(zhum.position.x+1.6,1.1,zhum.position.z+2.2), new THREE.Vector3(zhum.position.x,.9,zhum.position.z), 1.8); },
@@ -139,7 +139,8 @@ function sceneDon(){
     raftPush(){ S.raftDrift=true; },
     async pushedOnRaft(){ closeDlg(); await fadeTo(.85,500); asan.position.set(0,.45,raft.position.z); await fadeTo(0,700); },
     async politrukBoards(){ closeDlg(); const p0=politruk.position.clone(), p1=new THREE.Vector3(-1.1,.45,raft.position.z-1); const t0=performance.now(); await new Promise(r=>{ const f=()=>{ const k=Math.min(1,(performance.now()-t0)/1400); politruk.position.lerpVectors(p0,p1,k); politruk.lookAt(p1.x,0,p1.z+1); if(k<1) requestAnimationFrame(f); else r(); }; f(); }); politruk.rotation.set(0,Math.PI,0); }
-  });
+  };
+  const run = makeRunner(hooks);
 
   // ---------- ввод ----------
   const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(), groundPlane = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
@@ -380,7 +381,7 @@ function sceneDon(){
 
   // ---------- кадр ----------
   const sc = {
-    S,
+    S, hooks,
     wantsJoy(){ return !S.busy && (S.phase==='train' || S.phase==='riverWalk'); },
     update(dt,t){
       S.clock=(S.clock||0)+dt;
