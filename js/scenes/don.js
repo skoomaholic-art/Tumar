@@ -245,8 +245,8 @@ function sceneDon(){
     phaseBattle();
   }
   function startWave(){
-    S.wave++; S.waveT=0; S.spawnLeft = [0,9,12,14][S.wave]||0; S.spawnT=0;
-    if(S.wave===2){ spawnTank(); zhumabaiRun(); }
+    S.wave++; S.waveT=0; const lvl=memory.difficulty||'normal'; S.spawnLeft = (lvl==='easy'?[0,5,7,8]:lvl==='hard'?[0,9,12,14]:[0,7,9,11])[S.wave]||0; S.spawnT=0; S.waveStart=S.wave;
+    if(S.wave===2){ spawnTank(); if(!memory.flags.zhumabaiMissing && !S.zhumGoneRun){ S.zhumGoneRun=true; zhumabaiRun(); } else { zhum.visible=false; } }
     bark('Колесников', ['','Идут! Дыши. Вперёд смотри!','Танк! По пехоте бей, по пехоте!','Ещё идут! Диск!'][S.wave], 'ru');
   }
   // Жумабай уходит за дисками. Что с ним — игрок понимает сам, когда диск кончится, а его всё нет
@@ -296,7 +296,7 @@ function sceneDon(){
     let best=null, bt=999;
     for(const e of enemies){ if(!e.alive) continue;
       const rel=tmp2.copy(e.p.position).setY(.9).sub(from); const along=rel.dot(dir); if(along<0) continue;
-      const perp=rel.clone().addScaledVector(dir,-along); perp.y=0; const r = e.prone>0 ? .32 : .55;
+      const perp=rel.clone().addScaledVector(dir,-along); perp.y=0; const r = (e.prone>0 ? .32 : .55) * (isTouch ? 1.6 : 1);
       if(perp.length()<r && along<bt){ bt=along; best=e; } }
     let end;
     if(tank && tank.alive){ const rel=tmp2.copy(tank.g.position).setY(.9).sub(from); const along=rel.dot(dir); const perp=rel.clone().addScaledVector(dir,-along); perp.y=0;
@@ -316,14 +316,14 @@ function sceneDon(){
     if(Math.random()<.35) tone({f:300,dur:.25,type:'sawtooth',gain:.03,delay:.05,slide:-180});
   }
   function hitFlash(){ const h=$('hit'); h.style.opacity=1; setTimeout(()=>h.style.opacity=0, 220); shake=Math.max(shake,.5); }
-  function playerHit(dmg){ S.hp-=dmg; hitFlash(); if(S.hp<=0 && S.phase==='battle') battleLost(); }
+  function playerHit(dmg){ const k=(memory.difficulty==='easy'?.6:memory.difficulty==='hard'?1:.8); S.hp-=dmg*k; S.calmT=0; hitFlash(); if(S.hp<=0 && S.phase==='battle') battleLost(); }
   async function battleLost(){
     S.phase='lost'; S.firing=false; setHeart(0); $('aim').style.display='none'; canvas.style.cursor='';
     await fadeTo(1,1600);
-    await showCard('','Асан погиб у Дона','Не подпускай пехоту к окопу и меняй диск, пока они лежат.','Попробовать снова');
+    await showCard('','Асан погиб у Дона','Не подпускай пехоту к окопу и меняй диск, пока они лежат. Бой продолжится с той же атаки.','Попробовать снова');
     // заново только бой: враги и танк убираются
     enemies.forEach(e=>scene.remove(e.p)); enemies.length=0; if(tank){ scene.remove(tank.g); tank=null; }
-    S.wave=0; S.buried=false; S.buriedOnce=false; if($('buried')) $('buried').style.display='none'; S.zhumWait=false; S.zhumRun=0; S.hp=100; S.ammo=47; S.disks=3; S.reload=0; zhum.visible=true; zhum.position.set(1.2,-.45,.2);
+    S.wave=Math.max(0,(S.waveStart||1)-1); S.buried=false; S.buriedOnce=S.wave>0; if($('buried')) $('buried').style.display='none'; S.zhumWait=false; S.zhumRun=0; S.hp=100; S.ammo=47; S.disks=Math.max(S.disks,2); S.reload=0; if(S.wave<1 || !memory.flags.zhumabaiMissing){ S.zhumGoneRun=false; if(!memory.flags.zhumabaiMissing){ zhum.visible=true; zhum.position.set(1.2,-.45,.2); } } if(S.wave<1) S.disks=3;
     await fadeTo(0,1000); phaseBattle();
   }
   async function battleWon(){
@@ -499,13 +499,14 @@ function sceneDon(){
     if(S.spawnLeft>0){ S.spawnT-=dt; if(S.spawnT<=0){ spawnEnemy(); S.spawnLeft--; S.spawnT=rand(.4,1.1); } }
     const alive = enemies.filter(e=>e.alive).length;
     if(S.spawnLeft===0 && alive===0 && S.waveT>4){ if(S.wave<3) startWave(); else if(S.phase==='battle') battleWon(); }
+    S.calmT=(S.calmT||0)+dt; if(S.phase==='battle' && S.calmT>3 && S.hp<100) S.hp=Math.min(100,S.hp+5*dt);
     // пехота
     for(const e of enemies){ if(!e.alive) continue; const p=e.p;
       if(e.prone>0){ e.prone-=dt; if(e.prone<=0){ p.rotation.x=0; p.position.y=0; } continue; }
       e.nextProne-=dt; if(e.nextProne<=0){ e.prone=rand(1,2.2); e.nextProne=rand(3,6); p.rotation.x=-Math.PI/2*.9; p.position.y=.2; continue; }
       p.position.z += e.speed*dt; p.position.x += Math.sin(t*.7+p.id)*dt*.3; animWalk(p,1,dt);
-      e.fireT-=dt; if(e.fireT<=0){ e.fireT=rand(2,4.5); tracer(tmp.copy(p.position).setY(1.2), tmp2.set(rand(-4,4),.8,rand(-1.5,.5)), enemyTracerM); noiseBurst({dur:.06,freq:1600,gain:.05}); if(Math.random()<.12) playerHit(6); }
-      if(p.position.z>-5){ e.alive=false; scene.remove(p); explode(rand(-2,2), -1.5, .7); playerHit(22); }
+      e.fireT-=dt; if(e.fireT<=0){ e.fireT=rand(2,4.5); tracer(tmp.copy(p.position).setY(1.2), tmp2.set(rand(-4,4),.8,rand(-1.5,.5)), enemyTracerM); noiseBurst({dur:.06,freq:1600,gain:.05}); if(Math.random()<.09) playerHit(6); }
+      if(p.position.z>-5){ e.alive=false; scene.remove(p); explode(rand(-2,2), -1.5, .7); playerHit(16); }
     }
     // танк: ползёт, бьёт из пулемёта; у рубежа его поджигает ПТО
     if(tank && tank.alive){ tank.g.position.z+=1.5*dt; tank.fireT-=dt;
@@ -514,10 +515,10 @@ function sceneDon(){
     if(tank && !tank.alive){ tank.smokeT-=dt; if(tank.smokeT<=0){ tank.smokeT=.25; puff(tmp.copy(tank.g.position).setY(2.2), smokeTex, 2.5, 3, 2, 2.5); } }
     // артиллерия
     S.artT-=dt; if(S.artT<=0){ S.artT=rand(1.8,3.6); let x,z; do{ x=rand(-26,26); z=rand(-22,10); }while(Math.hypot(x,z)<3.5);
-      const d=explode(x,z,1); if(d<5.5){ playerHit(12); setRing(true); setTimeout(()=>setRing(false),3500); if(d<4 && !S.buried && S.battleT-(S.lastBury||-99)>25) bury(); }
+      const d=explode(x,z,1); if(d<5.5){ playerHit(9); setRing(true); setTimeout(()=>setRing(false),3500); if(d<4 && !S.buried && S.battleT-(S.lastBury||-99)>25) bury(); }
       comrades.forEach(cm=>{ if(cm.alive && Math.hypot(cm.p.position.x-x, cm.p.position.z-z)<2.2){ cm.alive=false; cm.p.rotation.x=Math.PI/2; cm.p.position.y=-.2; decal(cm.p.position.x, cm.p.position.z, .7, bloodM); } }); }
     // товарищи стреляют
-    comrades.forEach(cm=>{ if(!cm.alive) return; cm.t-=dt; if(cm.t<=0){ cm.t=rand(1.2,3); const tg=enemies.find(e=>e.alive && Math.random()<.5); const to = tg ? tmp2.copy(tg.p.position).setY(1) : tmp2.set(rand(-20,20),.5,rand(-60,-30)); tracer(tmp.copy(cm.p.position).setY(.9), to); noiseBurst({dur:.08,freq:900,gain:.05}); if(tg && Math.random()<.12) killEnemy(tg); } });
+    comrades.forEach(cm=>{ if(!cm.alive) return; cm.t-=dt; if(cm.t<=0){ cm.t=rand(1.2,3); const tg=enemies.find(e=>e.alive && Math.random()<.5); const to = tg ? tmp2.copy(tg.p.position).setY(1) : tmp2.set(rand(-20,20),.5,rand(-60,-30)); tracer(tmp.copy(cm.p.position).setY(.9), to); noiseBurst({dur:.08,freq:900,gain:.05}); if(tg && Math.random()<.2) killEnemy(tg); } });
     // Жумабай бежит по ходу сообщения за дисками
     if(S.zhumRun){ zhum.position.x-=3.2*dt; zhum.rotation.y=-Math.PI/2; animWalk(zhum,1,dt); }
     // камера над окопом: видно сектор впереди

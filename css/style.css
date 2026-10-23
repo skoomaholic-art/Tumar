@@ -3,7 +3,7 @@
 html,body{margin:0;height:100%;background:#0d0b09;color:var(--ink);font-family:"PT Serif",Georgia,"Times New Roman",serif;overflow:hidden;user-select:none}
 #c{position:fixed;inset:0;width:100%;height:100%;display:block;filter:sepia(.28) contrast(1.06) saturate(.85) brightness(var(--gam,1))}
 #wipe{position:fixed;inset:0;display:none;pointer-events:none;background-size:100% 100%;filter:sepia(.28) contrast(1.06) saturate(.85)}
-#grain{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;opacity:.13;mix-blend-mode:overlay}
+#grain{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;opacity:.08;mix-blend-mode:overlay}
 #vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.75) 100%);transition:background .3s}
 #eyelid{position:fixed;inset:0;pointer-events:none;background:#000;opacity:0}
 #fade{position:fixed;inset:0;background:#000;opacity:1;pointer-events:none;transition:opacity 1.2s;z-index:10}
@@ -168,7 +168,7 @@ body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate
 /* нижний интерфейс поднимается над панелями браузера/приложения, которые лежат поверх страницы */
 :root{--ub:max(env(safe-area-inset-bottom,0px), var(--vvb,0px))}
 @media (pointer:coarse) and (orientation:landscape) and (max-height:560px){
-  :root{--ub:max(env(safe-area-inset-bottom,0px), var(--vvb,0px), 15vh)}
+  :root{--ub:max(env(safe-area-inset-bottom,0px), var(--vvb,0px), 6px)}
   #dlg{min-height:0;padding:8px 12px 8px 76px}#dlg .por{width:54px;height:54px;top:8px;left:10px}#dlg .txt{font-size:15px}
   :root{--lbt:var(--lbh,4vh);--lbx:max(12vh,46px)}
 }
@@ -367,7 +367,7 @@ canvas,#c{touch-action:none}
 
 /* рисованный вид: цвет делает шейдер, CSS-сепия не нужна */
 body.sketch #c{filter:none}
-body.sketch #grain{opacity:.08}
+body.sketch #grain{opacity:.05}
 
 /* шум в остальных местах (подписи кадров, протокол и т.п.) */
 .noise{display:inline-block;filter:blur(2px);user-select:none}

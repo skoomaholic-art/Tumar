@@ -2,7 +2,7 @@
 // Плёночное зерно поверх кадра
 // ---------- зерно плёнки ----------
 const grain = $('grain'), gctx = grain.getContext('2d');
-function sizeGrain(){ grain.width = innerWidth/3|0; grain.height = innerHeight/3|0; }
+function sizeGrain(){ const k=Math.max(1.5, innerWidth/900); grain.width = innerWidth/k|0; grain.height = innerHeight/k|0; } // мелкое зерно, а не «телевизионный шум»
 sizeGrain();
 function drawGrain(){
   const w=grain.width,h=grain.height,img=gctx.createImageData(w,h),d=img.data;
