@@ -413,7 +413,7 @@ function sceneDonets(){
     asan.userData.carry=true; asan.userData.armL.rotation.x=asan.userData.armR.rotation.x=-1.2;
     S.dashFrom=LIE.clone(); S.dashTo=to.clone(); S.dashK=0; cut(shotDash);
     setObj(CH, isTouch?DAT.objectives.dashTouch:DAT.objectives.dash); S.busy=false;
-    await until(()=> S.dashK>=1 || (hit && S.dashK>=.55));
+    await until(()=> S.dashK>=1 || (hit && S.dashK>=.55), 1e9);
     S.busy=true; setObj(CH,''); asan.userData.carry=false;
     if(hit){ LIE.copy(asan.position).setY(0); return; }
     LIE.copy(to); asan.position.set(LIE.x,.2,LIE.z); asan.rotation.set(-Math.PI/2,Math.PI,0); animWalk(asan,0,.016);

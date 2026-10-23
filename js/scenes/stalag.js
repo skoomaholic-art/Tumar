@@ -257,12 +257,12 @@ function sceneStalag(){
     await run(DAT.scripts.rings_intro); closeDlg(); cine(false);
     S.phase='polish'; S.polish=0; $('holdLabel').textContent=DAT.objectives.polishLabel; $('hold').style.display='block'; $('bHold').style.width='0%';
     setObj(CH, isTouch?DAT.objectives.polishTouch:DAT.objectives.polish); S.busy=false;
-    await until(()=>S.polish>=3); S.busy=true; $('hold').style.display='none';
+    await until(()=>S.polish>=3, 1e9); S.busy=true; $('hold').style.display='none';
     rings.children.forEach(r=>r.material.emissive.setHex(0x4a3410));
     // к проволоке
     asan.position.y=0; asan.userData.legL.rotation.x=asan.userData.legR.rotation.x=0; asan.userData.armR.rotation.x=-.4;
     S.phase='fence'; setObj(CH, DAT.objectives.fence); S.busy=false;
-    await until(()=>S.phase==='traded'); S.busy=true; setObj(CH,'');
+    await until(()=>S.phase==='traded', 1e9); S.busy=true; setObj(CH,'');
     cine(true); await run(DAT.scripts.trade); closeDlg();
     // перекличка с мёртвым
     await fadeTo(1,900); walkers.forEach(w=>w.visible=false); rows.forEach(r=>r.visible=true); asan.position.set(rows[6].position.x,0,rows[6].position.z); rows[6].visible=false; asan.rotation.y=Math.PI;
@@ -308,7 +308,7 @@ function sceneStalag(){
     setShot('rollDead'); await fadeTo(0,1200); await gwait(1.5);
     S.phase='raise'; setObj(CH, isTouch?DAT.objectives.rollcallTouch:DAT.objectives.rollcall); S.busy=false;
     // номера выкликают по-немецки, пока он не поднимет руку
-    S.callT=0; await until(()=>S.raised); S.busy=true; setObj(CH,'');
+    S.callT=0; await until(()=>S.raised, 1e9); S.busy=true; setObj(CH,'');
     await run(DAT.scripts.gabdulla_hand); closeDlg();
     deadP.userData.armR.rotation.x=0; await gwait(1); await fadeTo(1,1400);
   }

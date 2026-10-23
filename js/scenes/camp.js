@@ -155,7 +155,7 @@ function sceneCamp(){
     await run(DAT.scripts.tent_intro); closeDlg(); cine(false);
     // глотать по капле
     S.phase='swallow'; setObj(CH, isTouch ? DAT.objectives.swallowTouch : DAT.objectives.swallow);
-    S.busy=false; await until(()=>S.swallow>=4); S.busy=true; setObj(CH,'');
+    S.busy=false; await until(()=>S.swallow>=4, 1e9); S.busy=true; setObj(CH,'');
     await run(DAT.scripts.tent_bread); closeDlg();
     // хирург и немецкий санитар
     sin.visible=true; orderly.visible=true; S.sinWalk=new THREE.Vector3(asanT.position.x+.2,0,-.25);

@@ -366,7 +366,7 @@ function sceneDeparture(){
     setShot('side');
     // уйти — игрок сам делает первый шаг
     cine(false); setObj(CH, isTouch?DAT.objectives.leaveTouch:DAT.objectives.leave);
-    S.wantWalk=true; await until(()=>S.walk); S.wantWalk=false; setObj(CH,'');
+    S.wantWalk=true; await until(()=>S.walk, 1e9); S.wantWalk=false; setObj(CH,'');
     cine(true); setShot('family'); if(memory.flags.sharedWithKulash) S.kulashRun=true;
     let j=0; const jokes=DAT.jokes;
     while(world.walkD<38){ await gwait(3.6); if(j<jokes.length && world.walkD<30) bark('Жумабай', jokes[j++]); }
