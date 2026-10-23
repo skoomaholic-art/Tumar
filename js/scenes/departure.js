@@ -79,6 +79,10 @@ function sceneDeparture(){
     const yurt=new THREE.Group(); const yw=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.4,1.7,16),M(0xd8cfba)); yw.position.y=.85; const yr=new THREE.Mesh(new THREE.ConeGeometry(2.6,1.3,16),M(0xcfc4ac)); yr.position.y=2.35;
     yurt.add(yw,yr); yurt.position.set(-9,0,-1); sc.add(shadowAll(yurt));
     const smoke = smokeColumn(sc, new THREE.Vector3(-2.4,3.9,-3.5));
+    // тот же аул, что в главе 1: соседи, кошара, контора с флагом — но не на дороге и не перед объективами
+    const segD=(x,z,ax,az,bx,bz)=>{ const vx=bx-ax, vz=bz-az, k=Math.max(0,Math.min(1,((x-ax)*vx+(z-az)*vz)/(vx*vx+vz*vz))); return Math.hypot(x-ax-vx*k, z-az-vz*k); };
+    buildAulVillage(sc, (x,z)=>{ if(Math.hypot(x,z)<22) return false; const t=(z-5.2), dx=x-(1.6+.35*t); if(t>-6 && Math.abs(dx)<9) return false;
+      if(segD(x,z,44,48,0,0)<14 || segD(x,z,23,12.5,0,2)<9) return false; return true; });
     // дорога в степь: от двора — прочь, к горизонту
     const RD = new THREE.Vector3(.35,0,1).normalize(), R0 = new THREE.Vector3(1.6,0,5.2);
     const road=new THREE.Mesh(new THREE.PlaneGeometry(2.2,320), new THREE.MeshLambertMaterial({color:0xa8987a})); road.rotation.x=-Math.PI/2; road.rotation.z=-Math.atan2(RD.x,RD.z);
@@ -100,9 +104,15 @@ function sceneDeparture(){
       update(dt,t){
         grass.update(t); fgGrass.update(t,1.3); smoke.update(dt);
         door.visible = win.visible = S.shot!=='family'; // камера этого плана стоит в доме — дверь изнутри не нужна
-        if(S.walk){ W.walkD += dt*1.25; const p=R0.clone().addScaledVector(RD, W.walkD);
-          asan.position.copy(p).addScaledVector(new THREE.Vector3(RD.z,0,-RD.x), -.5); zhum.position.copy(p).addScaledVector(new THREE.Vector3(RD.z,0,-RD.x), .55);
-          asan.rotation.y = zhum.rotation.y = Math.atan2(RD.x,RD.z); animWalk(asan,1,dt); animWalk(zhum,1,dt);
+        if(S.walk){
+          // идёт игрок: вперёд по дороге — джойстик/WASD/удержание кнопки; чуть влево-вправо можно, назад — нет (не оборачивается)
+          const PR=new THREE.Vector3(RD.z,0,-RD.x), inp=S.walkIn||[0,0];
+          const fwd=Math.max(0, inp[0]*RD.x+inp[1]*RD.z), side=-(inp[0]*PR.x+inp[1]*PR.z);
+          const go = Math.min(1, fwd + ((S.tHold||S.wHold)?1:0));
+          W.walkD += dt*1.25*go; W.lat = clamp((W.lat||0) + side*dt*.9, -.8, .8);
+          const p=R0.clone().addScaledVector(RD, W.walkD);
+          asan.position.copy(p).addScaledVector(PR, -.5 + W.lat); zhum.position.copy(p).addScaledVector(PR, .55 + W.lat*.6);
+          asan.rotation.y = Math.atan2(RD.x,RD.z) - side*.25; zhum.rotation.y = Math.atan2(RD.x,RD.z); animWalk(asan,go,dt); animWalk(zhum,go,dt);
           zhum.userData.armR.rotation.x = -.6+Math.sin(t*3)*.5; // машет рукой — рассказывает
           if(S.kulashRun){ const tg=R0.clone().addScaledVector(RD, 3.2); const d=tg.clone().sub(kulash.position); const L=d.length();
             if(L>.1){ kulash.position.addScaledVector(d.normalize(), Math.min(L, dt*3)); kulash.rotation.y=Math.atan2(d.x,d.z); animWalk(kulash,1.4,dt); }
@@ -114,7 +124,7 @@ function sceneDeparture(){
         est(k){ camera.fov=22; camera.position.set(44-k*.25,5.5,48); return new THREE.Vector3(-1,1.4,0); },
         side(k){ camera.fov=19; camera.position.copy(SIDE_CAM); camera.position.y += Math.sin(k*.4)*.01; return new THREE.Vector3(.4,1.15,3.1); },
         father(k){ camera.fov=30; camera.position.set(2.0,1.2,4.9); return new THREE.Vector3(-.75,1.45,1.5); },
-        family(k){ camera.fov=40; camera.position.set(-.2,1.5,-1.3); return new THREE.Vector3(R0.x+RD.x*40, .9, R0.z+RD.z*40); }
+        family(k){ camera.fov=40; camera.position.set(-1.25,1.5,-1.2); /* дорога уходит точно между отцом и матерью */ return new THREE.Vector3(R0.x+RD.x*40, .9, R0.z+RD.z*40); }
       } };
     return W;
   }
@@ -367,9 +377,12 @@ function sceneDeparture(){
     // уйти — игрок сам делает первый шаг
     cine(false); setObj(CH, isTouch?DAT.objectives.leaveTouch:DAT.objectives.leave);
     S.wantWalk=true; await until(()=>S.walk, 1e9); S.wantWalk=false; setObj(CH,'');
-    cine(true); setShot('family'); if(memory.flags.sharedWithKulash) S.kulashRun=true;
+    setObj(CH, isTouch?DAT.objectives.walkTouch:DAT.objectives.walk);
+    setShot('family'); if(memory.flags.sharedWithKulash) S.kulashRun=true;
     let j=0; const jokes=DAT.jokes;
-    while(world.walkD<38){ await gwait(3.6); if(j<jokes.length && world.walkD<30) bark('Жумабай', jokes[j++]); }
+    // Жумабай болтает, пока идут; встал — и он ждёт
+    let lastD=0; while(world.walkD<38){ await gwait(3.6); if(world.walkD-lastD>1.5 && j<jokes.length && world.walkD<30){ bark('Жумабай', jokes[j++]); lastD=world.walkD; } }
+    setObj(CH,''); cine(true);
     await run(DAT.scripts.farewell_end);
   }
   async function partDrill(){
@@ -451,6 +464,7 @@ function sceneDeparture(){
       S.clock += dt;
       const mv = moveInput();
       if(S.wantWalk && (mv[0]||mv[1])) S.walk=true;
+      S.walkIn = mv;
       S.hold = !!(mv[0]||mv[1]||keys.Space||S.tHold||S.pHold);
       for(let i=tweens.length-1;i>=0;i--){ const tw=tweens[i]; tw.t+=dt; const k=Math.min(1,tw.t/tw.sec); tw.fn(k); if(k>=1){ tweens.splice(i,1); tw.res(); } }
       if(world){ world.update(dt,t); directCamera(dt); }
@@ -461,12 +475,12 @@ function sceneDeparture(){
       if(drill){ const m={Digit1:'ложись',KeyC:'ложись',Digit2:'огонь',KeyF:'огонь',Digit3:'диск',KeyR:'диск',Numpad1:'ложись',Numpad2:'огонь',Numpad3:'диск'}[code]; if(m) respond(m); }
     },
     act(){ if(S.wantWalk) S.walk=true; else if(drill) respond('ложись'); },
-    wantsJoy(){ return !!S.wantWalk; },
-    touchAction(){ if(S.wantWalk) return 'Идти'; if(drill) return DAT.actions['ложись']; if(S.marching) return 'Держать шаг'; return null; },
+    wantsJoy(){ return !!(S.wantWalk || (S.walk && S.phase==='farewell')); },
+    touchAction(){ if(S.wantWalk || (S.walk && S.phase==='farewell')) return 'Идти'; if(drill) return DAT.actions['ложись']; if(S.marching) return 'Держать шаг'; return null; },
     holdStart(){ S.tHold=true; }, holdEnd(){ S.tHold=false; },
     async begin(){
       $('bars').style.display='none'; setObj(CH,'');
-      listen(canvas,'pointerdown', ()=>{ if(S.wantWalk) S.walk=true; });
+      listen(canvas,'pointerdown', ()=>{ if(S.wantWalk) S.walk=true; if(S.phase==='farewell') S.wHold=true; }); listen(window,'pointerup', ()=>{ S.wHold=false; });
       // для проверки: ?part=drill|march|train в адресе начинает сразу с нужной части
       const from = (location.search.match(/[?&]part=(\w+)/)||[])[1] || 'farewell';
       const order = ['farewell','drill','march','train'], parts={farewell:partFarewell, drill:partDrill, march:partMarch, train:partTrain};
