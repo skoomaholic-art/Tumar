@@ -341,28 +341,18 @@ function sceneCity(){
     });
   }
   async function homePanels(){
-    const old={bg:scene.background.getHex(), fog:[scene.fog.color.getHex(), scene.fog.near, scene.fog.far], hemi:hemi.intensity, moon:moon.intensity};
-    scene.background.setHex(0xc8c6c0); scene.fog.color.setHex(0xc8c6c0); scene.fog.near=20; scene.fog.far=120; hemi.intensity=.9; moon.intensity=.6; moon.position.set(HM.x-10,20,HM.z+12); moon.target.position.copy(HM);
-    showSet('home'); letterMesh.material.map=letterTexture(); letterMesh.material.needsUpdate=true;
-    mother.userData.armL.rotation.x=mother.userData.armR.rotation.x=-1.1;
-    if(memory.flags.sharedWithKulash){ kulashH.lookAt(letterMesh.position.x,0,letterMesh.position.z); } else kulashH.visible=false;
-    const cam2 = new THREE.PerspectiveCamera(40,1,.1,300);
-    function shot(p, l, w=900, h=900, fov=40){ cam2.fov=fov; cam2.aspect=w/h; cam2.updateProjectionMatrix(); cam2.position.copy(p); cam2.lookAt(l); const o=renderer.getSize(new THREE.Vector2()); renderer.setSize(w,h,false); renderer.render(scene,cam2); const u=canvas.toDataURL('image/jpeg',.85); renderer.setSize(o.x,o.y,false); return u; }
-    const shots=[ shot(new THREE.Vector3(HM.x+8,2.6,HM.z+10), new THREE.Vector3(HM.x,1.2,HM.z-1.5), 900,1100),
-                  shot(new THREE.Vector3(HM.x+.45,1.62,HM.z+1.55), new THREE.Vector3(HM.x+.4,1.12,HM.z+.72), 900,900, 34),
-                  shot(new THREE.Vector3(HM.x-2.4,1.5,HM.z+4), new THREE.Vector3(HM.x+.7,1.1,HM.z+.4)) ];
-    Object.assign(moon.position, {x:-18,y:30,z:12}); moon.target.position.set(0,0,0);
-    scene.background.setHex(old.bg); scene.fog.color.setHex(old.fog[0]); scene.fog.near=old.fog[1]; scene.fog.far=old.fog[2]; hemi.intensity=old.hemi; moon.intensity=old.moon;
+    // рисованные кадры: треугольник в ауле → цензорская полоса → кто читает (Күләш или никто)
+    const f=memory.flags, shots=['img/ch3h_1.jpg','img/ch3h_2.jpg', f.sharedWithKulash?'img/ch3h_3a.jpg':'img/ch3h_3b.jpg'];
     const caps = DAT.panels.captions.map(c => c.if ? (evalCond(c.if, memory.flags) ? c.text : c.else) : c.text);
     showSet('dugout');
     await fadeTo(1,800);
-    const page=$('page'); page.innerHTML='';
-    shots.forEach((u,i)=>{ const d=document.createElement('div'); d.className='pn'; d.innerHTML=`<img src="${u}" alt=""><div class="cap">${escapeHtml(caps[i])}</div>`; page.appendChild(d); });
-    $('panels').style.display='flex'; await fadeTo(0,700);
+    const page=$('page'); page.innerHTML=''; page.classList.remove('four'); page.classList.add('artpage');
+    shots.forEach((u,i)=>{ const d=document.createElement('div'); d.className='pn art'; d.innerHTML=`<img class="art" src="${u}" alt=""><div class="cap">${escapeHtml(caps[i])}</div>`; page.appendChild(d); });
+    $('panels').style.display='flex'; fitArtPage(page); await fadeTo(0,700);
     const clickPanels = () => new Promise(r=>{ const h=()=>{ $('panels').removeEventListener('pointerdown',h); removeEventListener('keydown',kk); r(); }; const kk=e=>{ if(e.code==='Space'||e.code==='Enter') h(); }; $('panels').addEventListener('pointerdown',h); addEventListener('keydown',kk); });
     const cells=[...page.children];
     for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await clickPanels(); }
-    await fadeTo(1,800); $('panels').style.display='none';
+    await fadeTo(1,800); $('panels').style.display='none'; page.classList.remove('artpage'); page.style.width='';
   }
 
   // сборы перед вылазкой: тёмные плащ-палатки, ничего звенящего, ракеты над нейтралкой — считать
