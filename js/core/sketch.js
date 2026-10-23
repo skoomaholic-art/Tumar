@@ -115,7 +115,8 @@ function renderFrame(t){
   if(!scene) return;
   const on = SKETCH.enabled && active && active.sketch;
   document.body.classList.toggle('sketch', !!on);
-  if(on) SKETCH.render(scene, camera, t); else renderer.render(scene, camera);
+  if(on){ try{ SKETCH.render(scene, camera, t); return; }catch(e){ console.error('sketch off:', e); SKETCH.enabled=false; renderer.setRenderTarget(null); document.body.classList.remove('sketch'); } }
+  renderer.render(scene, camera);
 }
 // переключатель в настройках
 (()=>{ const b=document.getElementById('sketchBtn'); if(!b) return;

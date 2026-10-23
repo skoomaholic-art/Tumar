@@ -52,7 +52,9 @@ function setHelp(t){ $('help').textContent=t; }
 setHelp(isTouch ? 'Слева — джойстик · касание — идти · кнопка справа — действие' : 'Клик или WASD — идти · E — действие · колесо — масштаб');
 
 // Язык: незнакомые русские слова превращаются в шум, известные — читаются
-function scramble(word){ return word.replace(/[а-яёa-zäöüß]/gi, ch => '▒░▓'[Math.random()*3|0]).replace(/[▒░▓]{2,}/g, m => m.slice(0, Math.max(2, m.length))); }
+// шум — не кирпичи, а чужая речь: те же по длине слова из случайных букв того же алфавита, размытые (в CSS)
+function scramble(word){ const cyr='аеиоуыпрстнлмвкдгзшчбхжцщ', lat='aeiounrstlmhdkgwbfzc';
+  return word.replace(/[а-яёa-zäöüß]/gi, ch => { const set=/[a-zäöüß]/i.test(ch)?lat:cyr; return set[Math.random()*set.length|0]; }); }
 function renderLang(text, lang){
   if((lang!=='ru' && lang!=='de') || memory.fullDialogs) return escapeHtml(text);
   if(lang==='ru' && ((memory.flags && memory.flags.ruFluent) || (memory.lastSummary||0)>=3)) return escapeHtml(text); // за год на фронте Асан стал понимать по-русски
