@@ -69,7 +69,7 @@ html,body{margin:0;height:100%;background:#0d0b09;color:var(--ink);font-family:"
 .lb{position:fixed;left:0;right:0;height:0;background:#000;z-index:8;transition:height 1.1s cubic-bezier(.65,0,.35,1)}
 #lbT{top:0}#lbB{bottom:0}
 /* полосы кино — только в кинематографичных сценах; реплики там белым по нижней полосе */
-:root{--lbt:var(--lbh,9vh);--lbx:max(15vh,66px,var(--lbh,0px))}
+:root{--lbt:var(--lbh,6vh);--lbx:max(11vh,54px,var(--lbh,0px))}
 body.cine #lbT{height:var(--lbt)}
 body.cine #lbB{height:calc(var(--lbx) + var(--ub))}
 body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s}
@@ -170,7 +170,7 @@ body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate
 @media (pointer:coarse) and (orientation:landscape) and (max-height:560px){
   :root{--ub:max(env(safe-area-inset-bottom,0px), var(--vvb,0px), 15vh)}
   #dlg{min-height:0;padding:8px 12px 8px 76px}#dlg .por{width:54px;height:54px;top:8px;left:10px}#dlg .txt{font-size:15px}
-  :root{--lbt:var(--lbh,6vh);--lbx:max(17vh,62px)}
+  :root{--lbt:var(--lbh,4vh);--lbx:max(12vh,46px)}
 }
 
 /* финал: все решения за игру */
@@ -389,7 +389,7 @@ body.sketch #grain{opacity:.08}
 body.cine #dlg,body.dlg #dlg{z-index:15}
 body.dlg #hud,body.dlg #help,body.dlg #nbBtn{opacity:0;transition:opacity .4s}
 /* реплики вне катсцен: белые буквы на чёрной плашке, без портрета */
-body.dlg:not(.cine) #dlg{background:rgba(6,5,4,.93);padding:8px 18px 10px;border-radius:2px;bottom:calc(14px + var(--ub))}
+body.dlg:not(.cine) #dlg{background:rgba(6,5,4,.93);padding:8px 22px 10px;border-radius:2px;bottom:calc(14px + var(--ub));width:fit-content;min-width:min(320px,calc(100vw - 32px));max-width:min(980px,calc(100vw - 32px))}
 /* мысль Асана — с облачком в начале, чтобы не путать с репликой */
 #think::before{content:"";display:inline-block;width:52px;height:38px;margin:0 12px -8px 0;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2044%2032%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23e9dfc9%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%2020c-4%200-6.5-2.6-6.5-5.6S10%209%2013.3%209.4C14.2%205.6%2017.4%203.5%2021%203.5c3.4%200%206.2%201.9%207.2%204.8%203.6-.5%207%202%207%205.6%200%203.4-2.8%206.1-6.6%206.1z%22/%3E%3Ccircle%20cx%3D%229%22%20cy%3D%2225%22%20r%3D%222.4%22/%3E%3Ccircle%20cx%3D%224%22%20cy%3D%2229.5%22%20r%3D%221.4%22/%3E%3C/g%3E%3C/svg%3E") no-repeat center/contain;filter:drop-shadow(0 1px 2px #000);opacity:.95}
 

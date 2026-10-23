@@ -117,6 +117,8 @@ function say(who, text, lang='kz'){
     dlgOpen=true; document.body.classList.add('dlg'); $('help').style.visibility='hidden'; $('dlg').style.display='block'; $('choices').innerHTML=''; $('more').style.display='block';
     $('who').textContent = who; $('who').dataset.f=factionOf(who); $('por').innerHTML = portrait(who);
     const html = renderLang(text, lang); const el=$('txt');
+    // плашка по ширине всей реплики сразу, чтобы не росла по мере печати
+    const D=$('dlg'); D.style.width=''; el.innerHTML=html; if(!document.body.classList.contains('cine')) D.style.width=Math.ceil(D.getBoundingClientRect().width)+'px';
     // печать по символам для обычного текста; шумный текст выводим сразу
     clearInterval(typing);
     if(lang==='ru'||lang==='de'){ el.innerHTML = html; dlgResolve = res; return; }
@@ -130,10 +132,10 @@ function advance(){
   const r = dlgResolve(); if(r===false) return;
   dlgResolve=null;
 }
-function closeDlg(){ dlgOpen=false; document.body.classList.remove('dlg'); $('dlg').style.display='none'; $('help').style.visibility='visible'; }
+function closeDlg(){ dlgOpen=false; document.body.classList.remove('dlg'); $('dlg').style.display='none'; $('dlg').style.width=''; $('help').style.visibility='visible'; }
 function choose(who, text, options, seconds=0, silentIndex=-1){
   return new Promise(res=>{
-    dlgOpen=true; document.body.classList.add('dlg'); $('help').style.visibility='hidden'; $('dlg').style.display='block'; $('more').style.display='none';
+    dlgOpen=true; document.body.classList.add('dlg'); $('help').style.visibility='hidden'; $('dlg').style.display='block'; $('dlg').style.width=''; $('more').style.display='none';
     $('who').textContent=who; $('who').dataset.f=factionOf(who); $('por').innerHTML=portrait(who); $('txt').textContent=text;
     const box=$('choices'); box.innerHTML='';
     let done=false; const finish=i=>{ if(done) return; done=true; box.innerHTML=''; choose.slots=null; res(i); };
@@ -244,7 +246,7 @@ function signaturePad(head, hint, prev){
 
 // Каше, как в кинорежиме RDR2: в сценах-кино кадр сужается до 2.39:1 на любом экране
 (function letterbox(){
-  const upd=()=>{ const H=innerHeight, W=innerWidth; const bar=Math.max(H*.035, (H - W/2.39)/2); document.documentElement.style.setProperty('--lbh', Math.round(bar)+'px'); };
+  const upd=()=>{ const H=innerHeight, W=innerWidth; const bar=Math.max(H*.03, Math.min(H*.07, (H - W/2)/2)); document.documentElement.style.setProperty('--lbh', Math.round(bar)+'px'); };
   addEventListener('resize', upd); upd();
 })();
 
