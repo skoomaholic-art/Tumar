@@ -59,13 +59,13 @@ let last=performance.now(), gT=0;
 function loop(now){
   const dt=Math.min((now-last)/1000,.05); last=now; if(!PAUSED) gT+=dt;
   if(active && !PAUSED) active.update(dt,gT);
-  if(scene) renderer.render(scene,camera);
+  renderFrame(gT);
   if((gT*12|0)%2===0) drawGrain();
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
 
-async function startAul(){ saveGame('ch1'); active=sceneAul(); await active.begin(); }
+async function startAul(){ saveGame('ch1'); active=sceneAul(); active.sketch=true; await active.begin(); }
 async function startDon(){ $('fade').style.opacity=1; await showChronicle('ch2'); await showInterlude('ch2'); active=sceneDon(); await active.begin(); }
 async function startDeparture(){ saveGame('ch1b'); $('fade').style.opacity=1; active=sceneDeparture(); await active.begin(); }
 async function startStalag(){ saveGame('ch6'); $('fade').style.opacity=1; await showChronicle('ch6'); await showInterlude('ch6'); active=sceneStalag(); await active.begin(); }

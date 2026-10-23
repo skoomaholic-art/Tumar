@@ -343,3 +343,7 @@ canvas,#c{touch-action:none}
 #panels .page.artpage.row{display:flex;align-items:flex-start;gap:6px}
 #panels .page.artpage.row .pn.art .cap{font-size:12px;line-height:1.25;padding:4px 7px}
 @media (max-height:520px){#panels{padding:6px}}
+
+/* рисованный вид: цвет делает шейдер, CSS-сепия не нужна */
+body.sketch #c{filter:none}
+body.sketch #grain{opacity:.08}

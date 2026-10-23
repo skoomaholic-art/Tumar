@@ -20,7 +20,7 @@ function toast(text){ const t=$('toast'); t.textContent=text; t.classList.add('o
 // Шторка, как у Куросавы: прошлый кадр уходит за жёсткую вертикальную линию и открывает новый.
 // Вызов снимает текущий кадр сразу; новый план ставится сразу после вызова, до следующей отрисовки.
 function wipe(ms=1100, dir='right'){
-  if(scene) renderer.render(scene,camera);
+  renderFrame(typeof gT!=='undefined'?gT:0);
   const w=$('wipe'); w.style.backgroundImage=`url(${canvas.toDataURL('image/jpeg',.88)})`;
   w.style.transition='none'; w.style.clipPath='inset(0 0 0 0)'; w.style.display='block';
   return new Promise(res=>{ requestAnimationFrame(()=>requestAnimationFrame(()=>{
