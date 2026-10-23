@@ -68,10 +68,10 @@ html,body{margin:0;height:100%;background:#0d0b09;color:var(--ink);font-family:"
 #panels{cursor:pointer}
 .lb{position:fixed;left:0;right:0;height:0;background:#000;z-index:8;transition:height 1.1s cubic-bezier(.65,0,.35,1)}
 #lbT{top:0}#lbB{bottom:0}
-/* полосы кино: в катсценах и всегда, когда идёт диалог; реплики — белым по нижней полосе */
+/* полосы кино — только в кинематографичных сценах; реплики там белым по нижней полосе */
 :root{--lbt:var(--lbh,9vh);--lbx:max(15vh,66px,var(--lbh,0px))}
-body.cine #lbT,body.dlg #lbT{height:var(--lbt)}
-body.cine #lbB,body.dlg #lbB{height:calc(var(--lbx) + var(--ub))}
+body.cine #lbT{height:var(--lbt)}
+body.cine #lbB{height:calc(var(--lbx) + var(--ub))}
 body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s}
 #nbBtn{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(14px + var(--ub));z-index:5;font:inherit;font-size:14px;padding:8px 14px;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer;display:none}
 #nbBtn:focus-visible,#camBtn:focus-visible{outline:1px solid var(--ink)}
@@ -382,3 +382,5 @@ body.sketch #grain{opacity:.08}
 /* диалог внутри нижней полосы: не выше полосы, текст по центру */
 body.cine #dlg,body.dlg #dlg{z-index:15}
 body.dlg #hud,body.dlg #help,body.dlg #nbBtn{opacity:0;transition:opacity .4s}
+/* реплики вне катсцен: белые буквы на чёрной плашке, без портрета */
+body.dlg:not(.cine) #dlg{background:rgba(6,5,4,.93);padding:8px 18px 10px;border-radius:2px;bottom:calc(14px + var(--ub))}

@@ -1,7 +1,13 @@
 'use strict';
 // Интерфейс: задачи, тосты, язык, портреты, диалоги и выборы
 // ---------- интерфейс: подсказки, тосты, задачи ----------
-function cine(on){ document.body.classList.toggle('cine', on); if(!on && objPending) setTimeout(popObj, 450); }
+// полосы кино: включаются сразу, а снимаются с задержкой — если сцена тут же продолжится, полосы не мигают туда-обратно
+let cineOffT=null;
+function cine(on){
+  clearTimeout(cineOffT);
+  if(on){ document.body.classList.add('cine'); return; }
+  cineOffT=setTimeout(()=>{ document.body.classList.remove('cine'); if(objPending) setTimeout(popObj, 450); }, 1400);
+}
 // Задача всплывает слева сверху: выезжает с меткой «Новая задача» и короткой подсветкой.
 // Если сейчас идёт сцена (полосы кино), всплывёт, когда сцена кончится.
 let objText='', objPending=false;
