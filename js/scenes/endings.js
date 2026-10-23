@@ -14,11 +14,14 @@ async function playEnding(kind){
   const pick=x=> x.if ? (evalCond(x.if, fl) ? x.text : x.else) : x.text;
   setObj('',''); $('fade').style.transitionDuration='0ms'; $('fade').style.opacity=1;
   await showCard('Концовка', E.title, '', 'Дальше');
-  await showComic(E.panels.map(p=>({art:p.art, text:pick(p)})).filter(p=>p.text));
+  const pickImg=x=> x.if && !evalCond(x.if, fl) ? (x.elseImg||x.img) : x.img;
+  await showComic(E.panels.map(p=>({art:p.art, text:pick(p), img:pickImg(p)})).filter(p=>p.text));
   // последний кадр — загон: жердь, тумар на ветру, барашки (в C — тоже: тумар туда вернулся письмом)
   active=sceneMenu(); active.begin && active.begin();
   await fadeTo(0,1600);
   await showCard('', E.title, E.final.map(pick).filter(Boolean).map(t=>`<span style="display:block;margin:6px 0">${escapeHtml(t)}</span>`).join(''), 'Дальше');
+  $('card').classList.add('ded'); $('card').style.backgroundImage=`url(${DATA.endings.dedicationImg})`;
   await showCard('', 'TUMAR', `<span style="display:block;max-width:560px;margin:0 auto;font-size:18px;line-height:1.6">${escapeHtml(DATA.endings.dedication)}</span>`, 'Дальше');
+  $('card').classList.remove('ded'); $('card').style.backgroundImage='';
   memory.flags.ending=kind;
 }

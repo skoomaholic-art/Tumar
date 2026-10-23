@@ -27,6 +27,21 @@ const ART_FX = {
   'ch5p_4a':{ fx:[{t:'dust',n:14}] },
   'ch5p_4b':{ fx:[{t:'dust',n:14}] },
   'ch5p_5':{ fx:[{t:'dust',n:24},{t:'shimmer',y:.42}], snd:'wind' },
+  'end_a1':{ fx:[{t:'dust',n:30},{t:'shimmer',y:.42}], snd:'wind' },
+  'end_a2':{ fx:[{t:'dust',n:16}], snd:'wind' },
+  'end_a3':{ fx:[{t:'smoke',x:.17,y:.17,n:1,wind:-1},{t:'dust',n:12}], snd:'wind' },
+  'end_a4a':{ fx:[{t:'flame',x:.11,y:.42,r:.14}] },
+  'end_a4b':{ fx:[{t:'glow',x:.07,y:.37,r:.06},{t:'dust',n:10}], snd:'wind' },
+  'end_b1':{ fx:[{t:'dust',n:22},{t:'shimmer',y:.6}] },
+  'end_b2':{ fx:[{t:'smoke',x:.86,y:.18,n:2,dark:1,wind:1},{t:'snow',n:60}], snd:'wind' },
+  'end_b3':{ fx:[{t:'flame',x:.08,y:.55,r:.12},{t:'snow',n:14}] },
+  'end_b4a':{ fx:[{t:'dust',n:14}], snd:'wind' },
+  'end_b4b':{ fx:[{t:'dust',n:18}], snd:'wind' },
+  'end_c1':{ fx:[{t:'smoke',x:.66,y:.2,n:1,wind:1},{t:'dust',n:10}] },
+  'end_c2a':{ fx:[{t:'snow',n:80},{t:'glow',x:.89,y:.71,r:.05}], snd:'wind' },
+  'end_c2b':{ fx:[{t:'snow',n:80}], snd:'wind' },
+  'end_c3':{ fx:[{t:'smoke',x:.13,y:.47,n:1},{t:'glow',x:.73,y:.05,r:.04}] },
+  'end_c4':{ fx:[{t:'steam',x:.68,y:.67},{t:'dust',n:10}] },
 };
 const ArtFx = (()=>{
   let raf=0, items=[], sndT=null, last=0, startedAt=0;

@@ -392,3 +392,11 @@ body.dlg #hud,body.dlg #help,body.dlg #nbBtn{opacity:0;transition:opacity .4s}
 body.dlg:not(.cine) #dlg{background:rgba(6,5,4,.93);padding:8px 18px 10px;border-radius:2px;bottom:calc(14px + var(--ub))}
 /* мысль Асана — с облачком в начале, чтобы не путать с репликой */
 #think::before{content:"";display:inline-block;width:52px;height:38px;margin:0 12px -8px 0;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2044%2032%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23e9dfc9%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%2020c-4%200-6.5-2.6-6.5-5.6S10%209%2013.3%209.4C14.2%205.6%2017.4%203.5%2021%203.5c3.4%200%206.2%201.9%207.2%204.8%203.6-.5%207%202%207%205.6%200%203.4-2.8%206.1-6.6%206.1z%22/%3E%3Ccircle%20cx%3D%229%22%20cy%3D%2225%22%20r%3D%222.4%22/%3E%3Ccircle%20cx%3D%224%22%20cy%3D%2229.5%22%20r%3D%221.4%22/%3E%3C/g%3E%3C/svg%3E") no-repeat center/contain;filter:drop-shadow(0 1px 2px #000);opacity:.95}
+
+/* посвящение: рисованная степь под текстом */
+#card.ded{background:#0a0806 center/cover no-repeat}
+#card.ded::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,8,6,.35),rgba(10,8,6,.15) 40%,rgba(10,8,6,.7));pointer-events:none}
+#card.ded>*{position:relative}
+#card.ded{justify-content:flex-start;padding-top:9vh}
+#card.ded h1,#card.ded #cardText{text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 18px rgba(0,0,0,.6);color:#f2ead8}
+#card.ded::before{background:linear-gradient(180deg,rgba(10,8,6,.62),rgba(10,8,6,.25) 45%,rgba(10,8,6,.55))}
