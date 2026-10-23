@@ -68,7 +68,10 @@ html,body{margin:0;height:100%;background:#0d0b09;color:var(--ink);font-family:"
 #panels{cursor:pointer}
 .lb{position:fixed;left:0;right:0;height:0;background:#000;z-index:8;transition:height 1.1s cubic-bezier(.65,0,.35,1)}
 #lbT{top:0}#lbB{bottom:0}
-body.cine .lb{height:var(--lbh,11vh)}
+/* полосы кино: в катсценах и всегда, когда идёт диалог; реплики — белым по нижней полосе */
+:root{--lbt:var(--lbh,9vh);--lbx:max(15vh,66px,var(--lbh,0px))}
+body.cine #lbT,body.dlg #lbT{height:var(--lbt)}
+body.cine #lbB,body.dlg #lbB{height:calc(var(--lbx) + var(--ub))}
 body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s}
 #nbBtn{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(14px + var(--ub));z-index:5;font:inherit;font-size:14px;padding:8px 14px;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer;display:none}
 #nbBtn:focus-visible,#camBtn:focus-visible{outline:1px solid var(--ink)}
@@ -148,7 +151,7 @@ body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s
 @keyframes objIn{from{transform:translateX(-28px);opacity:0;background-color:rgba(201,164,106,.35)}to{transform:none;opacity:1}}
 @keyframes objLbl{0%{max-height:0;opacity:0}12%{max-height:18px;opacity:1}78%{max-height:18px;opacity:1}100%{max-height:0;opacity:0}}
 /* мысли Асана: почерк в кадре */
-#think{position:fixed;left:50%;bottom:calc(17vh + var(--ub));transform:translateX(-50%);width:min(760px,86vw);text-align:center;z-index:12;pointer-events:none;
+#think{position:fixed;left:50%;bottom:calc(var(--lbx,15vh) + var(--ub) + 12px);transform:translateX(-50%);width:min(760px,86vw);text-align:center;z-index:12;pointer-events:none;
   font-family:'Caveat','PT Serif',cursive;font-size:clamp(24px,3.2vw,36px);line-height:1.2;color:#f1e7d0;text-shadow:0 2px 10px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.9);opacity:0;transition:opacity .45s}
 #think.on{opacity:1}
 #think span{display:inline-block;opacity:0;transform:translateY(6px);filter:blur(3px)}
@@ -157,7 +160,7 @@ body.cine #hud,body.cine #help,body.cine #nbBtn{opacity:0;transition:opacity .5s
 body.thinking #vig{background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,.82) 100%)!important}
 body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate(.6) brightness(calc(.85 * var(--gam,1)))}
 /* титр места и времени */
-#caption{position:fixed;left:calc(22px + env(safe-area-inset-left,0px));bottom:calc(13vh + var(--ub));z-index:12;pointer-events:none;
+#caption{position:fixed;left:calc(22px + env(safe-area-inset-left,0px));bottom:calc(var(--lbx,15vh) + var(--ub) + 12px);z-index:12;pointer-events:none;
   font-family:'Old Standard TT','PT Serif',serif;font-size:clamp(14px,1.6vw,19px);letter-spacing:.22em;text-transform:uppercase;color:#efe6d2;text-shadow:0 1px 6px rgba(0,0,0,.9);opacity:0;transition:opacity 1s}
 #caption.on{opacity:1}
 #beatDev{position:fixed;right:10px;top:10px;max-width:40vw;z-index:30;font:12px/1.3 monospace;color:#9bd;background:rgba(0,0,0,.6);padding:4px 6px;opacity:0;transition:opacity .4s;pointer-events:none}
@@ -167,7 +170,7 @@ body.thinking #c{transition:filter .6s;filter:sepia(.28) contrast(1.06) saturate
 @media (pointer:coarse) and (orientation:landscape) and (max-height:560px){
   :root{--ub:max(env(safe-area-inset-bottom,0px), var(--vvb,0px), 15vh)}
   #dlg{min-height:0;padding:8px 12px 8px 76px}#dlg .por{width:54px;height:54px;top:8px;left:10px}#dlg .txt{font-size:15px}
-  body.cine .lb{height:var(--lbh,7vh)}
+  :root{--lbt:var(--lbh,6vh);--lbx:max(17vh,62px)}
 }
 
 /* финал: все решения за игру */
@@ -274,16 +277,16 @@ body.paused *:not(#settings):not(#settings *){ animation-play-state:paused !impo
 #nb .cover .t{font-family:"Old Standard TT",serif;font-size:30px;letter-spacing:.2em;text-transform:uppercase}
 
 /* кино-режим (кэше): реплики — белыми субтитрами на нижней чёрной полосе, без плашки и портрета */
-body.cine #dlg{background:transparent;border:none;padding:2px 16px 4px;min-height:0;bottom:calc(4px + var(--ub));width:min(980px,calc(100vw - 32px));text-align:center}
-body.cine #dlg .por{display:none}
-body.cine #dlg .who{color:#bdb39c;font-size:11px}
-body.cine #dlg .txt{color:#fff;font-size:18px;line-height:1.3;margin-top:2px;text-shadow:0 1px 3px #000,0 0 2px #000}
-body.cine #dlg .txt .known{color:#fff}
-body.cine #dlg .txt .noise{color:#e9dfc9;text-shadow:0 0 3px #000,0 1px 2px #000;filter:blur(1.3px)}
-body.cine #dlg .more{right:0;bottom:2px;color:#8a8070}
-body.cine #dlg #choices{text-align:left}
-body.cine #bark{background:transparent;border:none;color:#fff;text-shadow:0 1px 3px #000,0 0 2px #000;bottom:calc(var(--lbh,11vh) + 10px + var(--ub))}
-body.cine #bark .bw{color:#d8cfb8}
+body.cine #dlg,body.dlg #dlg{background:transparent;border:none;padding:2px 16px 4px;min-height:0;bottom:calc(4px + var(--ub));width:min(980px,calc(100vw - 32px));text-align:center}
+body.cine #dlg .por,body.dlg #dlg .por{display:none}
+body.cine #dlg .who,body.dlg #dlg .who{color:#bdb39c;font-size:11px}
+body.cine #dlg .txt,body.dlg #dlg .txt{color:#fff;font-size:18px;line-height:1.3;margin-top:2px;text-shadow:0 1px 3px #000,0 0 2px #000}
+body.cine #dlg .txt .known,body.dlg #dlg .txt .known{color:#fff}
+body.cine #dlg .txt .noise,body.dlg #dlg .txt .noise{color:#e9dfc9;text-shadow:0 0 3px #000,0 1px 2px #000;filter:blur(1.3px)}
+body.cine #dlg .more,body.dlg #dlg .more{right:0;bottom:2px;color:#8a8070}
+body.cine #dlg #choices,body.dlg #dlg #choices{text-align:left}
+body.cine #bark,body.dlg #bark{background:transparent;border:none;color:#fff;text-shadow:0 1px 3px #000,0 0 2px #000;bottom:calc(var(--lbx) + var(--ub) + 8px)}
+body.cine #bark .bw,body.dlg #bark .bw{color:#d8cfb8}
 @media (max-height:500px){ body.cine #dlg .txt{font-size:15px} }
 
 /* выбор главы при «Продолжить» */
@@ -301,8 +304,8 @@ body.cine #bark .bw{color:#d8cfb8}
 #dlg .who[data-f=ally],#bark .bw[data-f=ally]{color:#7fc27a}
 #dlg .who[data-f=enemy],#bark .bw[data-f=enemy]{color:#e0645a}
 #dlg .who[data-f=neutral],#bark .bw[data-f=neutral]{color:#f2ede2}
-body.cine #dlg .who{font-size:13px;letter-spacing:.14em;font-weight:600;text-shadow:0 1px 3px #000,0 0 2px #000}
-body.cine #bark .bw{font-size:12px;font-weight:600}
+body.cine #dlg .who,body.dlg #dlg .who{font-size:13px;letter-spacing:.14em;font-weight:600;text-shadow:0 1px 3px #000,0 0 2px #000}
+body.cine #bark .bw,body.dlg #bark .bw{font-size:12px;font-weight:600}
 body:has(#dlg[style*="block"]) #prompt{opacity:0;pointer-events:none}
 
 #title .btn:disabled{opacity:.35;cursor:default;pointer-events:none}
@@ -375,3 +378,7 @@ body.sketch #grain{opacity:.08}
 /* печать военкомата: круглая, с надписью по кругу и звездой; стоит под текстом, не на нём */
 #doc .paper .seal{width:92px;height:92px;margin:10px 0 -6px auto;color:rgba(120,40,70,.62);transform:rotate(-14deg);mix-blend-mode:multiply;filter:blur(.3px)}
 #doc .paper .seal svg{width:100%;height:100%;display:block}
+
+/* диалог внутри нижней полосы: не выше полосы, текст по центру */
+body.cine #dlg,body.dlg #dlg{z-index:15}
+body.dlg #hud,body.dlg #help,body.dlg #nbBtn{opacity:0;transition:opacity .4s}

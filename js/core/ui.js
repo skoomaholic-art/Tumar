@@ -108,7 +108,7 @@ function portrait(who){
 let dlgResolve=null, typing=null, dlgOpen=false;
 function say(who, text, lang='kz'){
   return new Promise(res=>{
-    dlgOpen=true; $('help').style.visibility='hidden'; $('dlg').style.display='block'; $('choices').innerHTML=''; $('more').style.display='block';
+    dlgOpen=true; document.body.classList.add('dlg'); $('help').style.visibility='hidden'; $('dlg').style.display='block'; $('choices').innerHTML=''; $('more').style.display='block';
     $('who').textContent = who; $('who').dataset.f=factionOf(who); $('por').innerHTML = portrait(who);
     const html = renderLang(text, lang); const el=$('txt');
     // печать по символам для обычного текста; шумный текст выводим сразу
@@ -124,10 +124,10 @@ function advance(){
   const r = dlgResolve(); if(r===false) return;
   dlgResolve=null;
 }
-function closeDlg(){ dlgOpen=false; $('dlg').style.display='none'; $('help').style.visibility='visible'; }
+function closeDlg(){ dlgOpen=false; document.body.classList.remove('dlg'); $('dlg').style.display='none'; $('help').style.visibility='visible'; }
 function choose(who, text, options, seconds=0, silentIndex=-1){
   return new Promise(res=>{
-    dlgOpen=true; $('help').style.visibility='hidden'; $('dlg').style.display='block'; $('more').style.display='none';
+    dlgOpen=true; document.body.classList.add('dlg'); $('help').style.visibility='hidden'; $('dlg').style.display='block'; $('more').style.display='none';
     $('who').textContent=who; $('who').dataset.f=factionOf(who); $('por').innerHTML=portrait(who); $('txt').textContent=text;
     const box=$('choices'); box.innerHTML='';
     let done=false; const finish=i=>{ if(done) return; done=true; box.innerHTML=''; choose.slots=null; res(i); };
