@@ -83,7 +83,7 @@ if(typeof window!=='undefined' && typeof document!=='undefined'){
 const DATA = {};
 async function loadData(){
   const ids = { ch1:'data/ch01.json', ch2:'data/ch02.json', ch3:'data/ch03.json', ch4:'data/ch04.json', ch5:'data/ch05.json', ch1b:'data/ch01b.json', ch5b:'data/ch05b.json', ch6:'data/ch06.json', ch7:'data/ch07.json', ch8:'data/ch08.json', endings:'data/endings.json', interludes:'data/interludes.json', decisions:'data/decisions.json', chronicle:'data/chronicle.json' };
-  for(const [k,url] of Object.entries(ids)){ const r = await fetch(url); if(!r.ok) throw new Error('Не загрузились данные '+url); DATA[k] = await r.json(); }
+  for(const [k,url] of Object.entries(ids)){ const r = await fetch(url, {cache:'no-cache'}); if(!r.ok) throw new Error('Не загрузились данные '+url); DATA[k] = await r.json(); }
 }
 // Сценарий главы, подключённый к интерфейсу; hooks — крючки в код сцены
 function makeRunner(hooks){
