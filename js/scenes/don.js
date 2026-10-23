@@ -146,13 +146,19 @@ function sceneDon(){
     const r=canvas.getBoundingClientRect(); mouse.set(((ev.clientX-r.left)/r.width)*2-1, -((ev.clientY-r.top)/r.height)*2+1);
     ray.setFromCamera(mouse, camera); return ray.ray.intersectPlane(groundPlane, out);
   }
-  const onMove = ev=>{ if(S.phase==='battle'){ screenToGround(ev, S.aim); const a=$('aim'); a.style.left=ev.clientX+'px'; a.style.top=ev.clientY+'px'; } };
+  // прицел: точка на земле, но не дальше поля боя — иначе у горизонта луч уходит на сотни метров и камеру уводит
+  const aimP=new THREE.Vector3();
+  function setAim(ev){ if(!screenToGround(ev, aimP)) return; aimP.x=clamp(aimP.x,-28,28); aimP.z=clamp(aimP.z,-75,-3);
+    // на телефоне палец толстый: цель рядом с касанием берётся сама и ведётся, пока держишь
+    S.lock=null; if(isTouch){ let bd=4.5; for(const e of enemies){ if(!e.alive) continue; const d=Math.hypot(e.p.position.x-aimP.x, e.p.position.z-aimP.z); if(d<bd){ bd=d; S.lock=e; } } }
+    S.aim.copy(aimP); }
+  const onMove = ev=>{ if(S.phase==='battle'){ setAim(ev); const a=$('aim'); a.style.left=ev.clientX+'px'; a.style.top=ev.clientY+'px'; } };
   const onDown = ev=>{
     if(dlgOpen) return;
-    if(S.phase==='battle'){ if(S.buried) return; screenToGround(ev, S.aim); S.firing=true; onMove(ev); return; }
+    if(S.phase==='battle'){ if(S.buried) return; S.firing=true; if(isTouch) $('aim').style.display='block'; onMove(ev); return; }
     if(!S.busy && (S.phase==='train' || S.phase==='riverWalk')){ const p=screenToGround(ev, tmp2); if(p) S.target={x:p.x, z:p.z}; }
   };
-  const onUp = ()=>{ S.firing=false; };
+  const onUp = ()=>{ S.firing=false; S.lock=null; if(isTouch) $('aim').style.display='none'; };
   listen(canvas,'pointermove', onMove); listen(canvas,'pointerdown', onDown); listen(window,'pointerup', onUp);
   listen(canvas,'wheel', e=>{ S.zoom = clamp(S.zoom + Math.sign(e.deltaY)*.1, .6, 1.6); }, {passive:true});
 
@@ -512,10 +518,13 @@ function sceneDon(){
     if(S.zhumRun){ zhum.position.x-=3.2*dt; zhum.rotation.y=-Math.PI/2; animWalk(zhum,1,dt); }
     // камера над окопом: видно сектор впереди
     // низкая камера за спиной расчёта: виден и окоп, и всё поле до горизонта
-    const z=S.zoom; tmp2.set(1.6+S.aim.x*.06, 5.2*z, 7.5*z);
+    if(S.lock){ if(S.lock.alive) S.aim.set(S.lock.p.position.x,0,S.lock.p.position.z); else S.lock=null; }
+    // камера чуть смотрит туда, куда целишься; на телефоне стоит на месте — иначе поле уезжает из-под пальца
+    const ax = isTouch ? 0 : clamp(S.aim.x,-28,28);
+    const z=S.zoom; tmp2.set(1.6+ax*.06, 5.2*z, 7.5*z);
     camera.position.lerp(tmp2, 1-Math.pow(.03,dt));
     camera.fov = lerp(camera.fov, 50, 1-Math.pow(.05,dt)); camera.updateProjectionMatrix();
-    camera.lookAt(S.aim.x*.3, 0, -24);
+    camera.lookAt(ax*.3, 0, -24);
     // сердце и сознание: чем меньше здоровья, тем краснее по краям
     $('vig').style.background = `radial-gradient(ellipse at center,transparent ${30+S.hp*.2}%,rgba(${(100-S.hp)*.9|0},0,0,.85) 100%)`;
   }

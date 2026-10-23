@@ -449,14 +449,12 @@ async function showInterlude(key){
 function fitArtPage(page){
   if(!page.classList.contains('artpage')){ page.style.width=''; return; }
   const fit=()=>{
-    // низкий экран (телефон боком): кадры в один ряд, ширина каждого — по пропорции картинки, чтобы высоты совпали
-    const row = innerHeight<520; page.classList.toggle('row',row);
-    [...page.children].forEach(pn=>{ const im=pn.querySelector('img'); pn.style.flex = row && im && im.naturalWidth ? `${im.naturalWidth/im.naturalHeight} 1 0` : ''; });
-    page.style.width=''; const w0=page.getBoundingClientRect().width, max=innerHeight*(row?.86:.88);
+    // низкий экран (телефон боком): страница на весь экран, кадры заполняют сетку целиком (CSS обрезает края картинок)
+    page.style.width=''; if(innerHeight<520) return; const w0=page.getBoundingClientRect().width, max=innerHeight*.86;
     const H=w=>{ page.style.width=Math.floor(w)+'px'; return page.getBoundingClientRect().height; };
     if(H(w0)<=max+2) return;
     // самая широкая страница, что влезает по высоте; подписи переносятся, поэтому ищем делением, а не пропорцией
-    let lo=Math.min(w0,row?300:240), hi=w0, best=lo, bestH=H(lo);
+    let lo=Math.min(w0,240), hi=w0, best=lo, bestH=H(lo);
     for(let i=0;i<14;i++){ const m=(lo+hi)/2, h=H(m); if(h<=max+2){ best=m; bestH=h; lo=m; } else { if(h<bestH){ bestH=h; } hi=m; } }
     H(best);
   };

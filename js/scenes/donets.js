@@ -165,11 +165,16 @@ function sceneDonets(){
   const ray=new THREE.Raycaster(), mouse=new THREE.Vector2(), groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
   function screenToGround(ev,out){ const r=canvas.getBoundingClientRect(); mouse.set(((ev.clientX-r.left)/r.width)*2-1, -((ev.clientY-r.top)/r.height)*2+1); ray.setFromCamera(mouse,camera); return ray.ray.intersectPlane(groundPlane,out); }
   const fighting = ()=> S.phase==='battle' || S.phase==='encircle';
-  const onMove=ev=>{ if(fighting()){ screenToGround(ev,S.aim); const a=$('aim'); a.style.left=ev.clientX+'px'; a.style.top=ev.clientY+'px'; } };
+  // прицел: не дальше поля боя (у горизонта луч уходит далеко и камеру уводит); на телефоне цель у пальца берётся сама
+  const aimP=new THREE.Vector3();
+  function setAim(ev){ if(!screenToGround(ev,aimP)) return; aimP.x=clamp(aimP.x,-32,32); aimP.z=clamp(aimP.z,-80,8);
+    S.lock=null; if(isTouch){ let bd=4.5; for(const e of enemies){ if(!e.alive) continue; const d=Math.hypot(e.p.position.x-aimP.x, e.p.position.z-aimP.z); if(d<bd){ bd=d; S.lock=e; } } }
+    S.aim.copy(aimP); }
+  const onMove=ev=>{ if(fighting()){ setAim(ev); const a=$('aim'); a.style.left=ev.clientX+'px'; a.style.top=ev.clientY+'px'; } };
   const onDown=ev=>{ if(dlgOpen || active!==sc) return;
-    if(fighting()){ screenToGround(ev,S.aim); S.firing=true; onMove(ev); return; }
+    if(fighting()){ S.firing=true; if(isTouch) $('aim').style.display='block'; onMove(ev); return; }
     if(S.phase==='dig') dig(); };
-  const onUp=()=>{ S.firing=false; };
+  const onUp=()=>{ S.firing=false; S.lock=null; if(isTouch) $('aim').style.display='none'; };
   listen(canvas,'pointermove',onMove); listen(canvas,'pointerdown',onDown); listen(window,'pointerup',onUp);
   listen(window,'keyup',e=>{ if(e.code==='Space' && fighting()) S.firing=false; });
   listen(canvas,'wheel',e=>{ S.zoom=clamp(S.zoom+Math.sign(e.deltaY)*.1,.6,1.6); },{passive:true});
@@ -235,11 +240,12 @@ function sceneDonets(){
   // на дне окопа за спиной Асана: сыплется земля
   const shotDown = k => { camera.fov=55; camera.position.set(3.0,.6,1.6); camera.lookAt(-.6,1.0,-1.2); };
   // бой сверху: за расчётом, видно реку и переправу
-  const shotBattle = () => { const z=S.zoom; tmp2.set(S.aim.x*.12, 15*z, 15*z); if(S.fresh) camera.position.copy(tmp2); else camera.position.lerp(tmp2,.06); camera.fov=55; camera.lookAt(S.aim.x*.2,0,-28); };
+  const camAx = () => isTouch ? 0 : clamp(S.aim.x,-32,32);
+  const shotBattle = () => { const z=S.zoom; tmp2.set(camAx()*.12, 15*z, 15*z); if(S.fresh) camera.position.copy(tmp2); else camera.position.lerp(tmp2,.06); camera.fov=55; camera.lookAt(camAx()*.2,0,-28); };
   // танк над головой: из окопа вверх
   const shotIron = k => { camera.fov=66; camera.position.set(S.crushX-1.35,.18,.75); camera.lookAt(S.crushX+.5,2.5,-.5); };
   // окружение сверху: за Асаном, лежащим в подсолнухах
-  const shotEnc = () => { const z=S.zoom; tmp2.set(LIE.x+(S.aim.x-LIE.x)*.08, 16*z, LIE.z+9*z); if(S.fresh) camera.position.copy(tmp2); else camera.position.lerp(tmp2,.06); camera.fov=50; camera.lookAt(LIE.x+(S.aim.x-LIE.x)*.2, 0, LIE.z-9); };
+  const shotEnc = () => { const z=S.zoom; tmp2.set(LIE.x+((isTouch?LIE.x:clamp(S.aim.x,-32,32))-LIE.x)*.08, 16*z, LIE.z+9*z); if(S.fresh) camera.position.copy(tmp2); else camera.position.lerp(tmp2,.06); camera.fov=50; camera.lookAt(LIE.x+((isTouch?LIE.x:clamp(S.aim.x,-32,32))-LIE.x)*.2, 0, LIE.z-9); };
   // ранен: у самой земли, сквозь стебли
   // перебежка: за спиной, низко, через стебли; камера бежит следом
   const shotDash = k => { const p=asan.position; camera.fov=46; tmp2.set(p.x-1.6,1.35+Math.sin(k*9)*.05,p.z-3.4); if(S.fresh) camera.position.copy(tmp2); else camera.position.lerp(tmp2,.12); camera.lookAt(p.x+.6,1.0,p.z+6); };
@@ -515,6 +521,7 @@ function sceneDonets(){
   const sc = {
     S,
     update(dt,t){
+      if(S.lock){ if(S.lock.alive) S.aim.set(S.lock.p.position.x,0,S.lock.p.position.z); else S.lock=null; }
       S.clock+=dt*(window.__dbgSpeed||1);   // ускорение только для автопроверки
       for(let i=fx.length-1;i>=0;i--){ const f=fx[i]; f.life-=dt; const k=1-f.life/f.max; f.s.position.y+=f.vy*dt; f.s.position.x+=f.vx*dt; f.s.scale.setScalar(f.base*(1+k*f.grow)); f.s.material.opacity=Math.max(0,1-k); if(f.life<=0){ scene.remove(f.s); f.s.material.dispose(); fx.splice(i,1);} }
       for(let i=tracers.length-1;i>=0;i--){ const tr=tracers[i]; tr.life-=dt; tr.l.material.opacity=tr.life/.07; if(tr.life<=0){ scene.remove(tr.l); tr.l.geometry.dispose(); tracers.splice(i,1);} }
