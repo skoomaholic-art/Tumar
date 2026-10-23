@@ -137,6 +137,7 @@ function choose(who, text, options, seconds=0, silentIndex=-1){
     if(main[0]!==undefined) mk(main[0],'left', isTouch?'◀':'◀ A');
     if(main[1]!==undefined) mk(main[1],'right', isTouch?'▶':'D ▶');
     if(silentIndex>=0 && options[silentIndex]!==undefined) mk(silentIndex,'bottom', isTouch?'▼':'▼ S');
+    else if(main[2]!==undefined) mk(main[2],'bottom', isTouch?'▼':'▼ S'); // третий вариант без «молчания» — снизу, а не теряется
     choose.slots=slots; choose.shownAt=performance.now();
     if(seconds){
       box.classList.add('timed');
@@ -244,21 +245,24 @@ function wordQuiz(words, pool){
   const uniq=[]; words.forEach(w=>{ if(!uniq.some(u=>u.ru===w.ru)) uniq.push(w); });
   const lvl = memory.difficulty||'normal';
   const qs = uniq.slice(lvl==='easy'?-3 : lvl==='hard'?-10 : -6);
-  const all = [...pool.map(w=>[w.ru,kzClean(w.kz)]), ...QUIZ_EXTRA];
+  const meaning = w => w.de ? String(w.ru).split(' — ').slice(1).join(' — ') : w.ru; // немецкое: «Mehl — мука» → «мука»
+  const all = [...pool.map(w=>[meaning(w),kzClean(w.kz)]), ...QUIZ_EXTRA];
+  const isDe = qsAll => qsAll.length && qsAll.every(w=>w.de);
   return new Promise(res=>{
     let el=$('quiz'); if(!el){ el=document.createElement('div'); el.id='quiz'; el.className='screen'; document.body.appendChild(el); }
     el.style.display='flex'; let i=0, right=0;
     const ask=()=>{
-      if(i>=qs.length){ el.innerHTML=`<p class="small">${toKz?'Орыс сөздері':'Казахские слова'}</p><h1 style="font-size:clamp(26px,5vw,40px)">${right} из ${qs.length}</h1>
+      if(i>=qs.length){ el.innerHTML=`<p class="small">${isDe(qs)?(toKz?'Неміс сөздері':'Немецкие слова'):(toKz?'Орыс сөздері':'Казахские слова')}</p><h1 style="font-size:clamp(26px,5vw,40px)">${right} из ${qs.length}</h1>
         <p>${right===qs.length?'Все слова узнал.':'Ошибки не страшны: слова останутся в блокноте.'}</p><button class="btn" id="qDone">Дальше</button>`;
         $('qDone').onclick=()=>{ el.style.display='none'; memory.quiz=(memory.quiz||[]).concat([{right,total:qs.length}]); res(); }; return; }
-      const w=qs[i], ru=w.ru, kz=kzClean(w.kz);
-      const q=toKz?ru:kz, ans=toKz?kz:ru;
+      const w=qs[i], ru=meaning(w), kz=kzClean(w.kz);
+      // немецкое слово спрашиваем по-немецки: «Mehl» — что значит?
+      const q=w.de ? w.lat : (toKz?ru:kz), ans=w.de ? (toKz?kz:ru) : (toKz?kz:ru);
       const wrong=[...new Set(all.map(p=>toKz?p[1]:p[0]).filter(x=>x && x!==ans))].sort(()=>Math.random()-.5).slice(0,3);
       const opts=[ans,...wrong].sort(()=>Math.random()-.5);
       el.innerHTML=`<p class="small">${toKz?'Сөзді тексер':'Проверь слово'} · ${i+1} / ${qs.length}</p>
         <h1 style="font-size:clamp(28px,6vw,48px);letter-spacing:.04em">${escapeHtml(q)}</h1>
-        <p class="small">${toKz?'Қазақша мағынасы?':'Что это значит по-русски?'}</p>
+        <p class="small">${toKz?'Қазақша мағынасы?':(w.de?'Что это значит?':'Что это значит по-русски?')}</p>
         <div class="qOpts">${opts.map(o=>`<button class="btn qo">${escapeHtml(o)}</button>`).join('')}</div>
         <p class="small" style="opacity:.6">${escapeHtml(w.where||'')}</p>`;
       el.querySelectorAll('.qo').forEach(b=>b.onclick=()=>{ const ok=b.textContent===ans; if(ok) right++;
@@ -365,6 +369,52 @@ const ART = {
   lineup: ()=>`<rect width="400" height="260" fill="#cbc2ac"/><line x1="0" y1="222" x2="400" y2="222" stroke="${INK}" stroke-width="2"/>
     ${[0,1,2,3,4,5,6].map(i=>{ const x=30+i*44, h=i===2?8:0; return `<circle cx="${x}" cy="${96+h}" r="11" fill="${INK}"/><rect x="${x-10}" y="${108+h}" width="20" height="56" fill="${INK}"/><rect x="${x-9}" y="${164+h}" width="7" height="${56-h}" fill="${INK}"/><rect x="${x+2}" y="${164+h}" width="7" height="${56-h}" fill="${INK}"/>`+(i===2?`<line x1="${x+16}" y1="122" x2="${x+20}" y2="222" stroke="${INK}" stroke-width="3"/>`:''); }).join('')}
     <path d="M350 92 Q362 76 374 92 Z" fill="${INK}"/><circle cx="362" cy="98" r="10" fill="${INK}"/><rect x="351" y="108" width="22" height="60" fill="${INK}"/><rect x="352" y="168" width="8" height="54" fill="${INK}"/><rect x="364" y="168" width="8" height="54" fill="${INK}"/><line x1="351" y1="118" x2="326" y2="134" stroke="${INK}" stroke-width="5"/>`,
+  // сени: лавка у двери, миска, сапоги
+  bench: ()=>`<rect width="400" height="260" fill="#d6c9a8"/><rect x="300" y="30" width="70" height="190" fill="none" stroke="${INK}" stroke-width="5"/><circle cx="312" cy="128" r="4" fill="${INK}"/>
+    <rect x="60" y="150" width="200" height="12" fill="${INK}"/><rect x="70" y="162" width="8" height="50" fill="${INK}"/><rect x="242" y="162" width="8" height="50" fill="${INK}"/>
+    <circle cx="150" cy="112" r="13" fill="${INK}"/><path d="M135 125 Q150 118 165 125 L170 150 L130 150 Z" fill="${INK}"/><path d="M118 146 Q150 136 190 146 L190 152 L118 152 Z" fill="${INK}"/><ellipse cx="200" cy="146" rx="16" ry="5" fill="${INK}"/>
+    <line x1="0" y1="222" x2="400" y2="222" stroke="${INK}" stroke-width="2"/>`,
+  // общий стол: лампа, миски, четыре фигуры
+  table: ()=>`<rect width="400" height="260" fill="#e0cfa8"/><line x1="200" y1="0" x2="200" y2="40" stroke="${INK}" stroke-width="2"/><path d="M180 40 L220 40 L212 58 L188 58 Z" fill="${INK}"/>
+    <rect x="70" y="150" width="260" height="14" fill="${INK}"/><rect x="84" y="164" width="9" height="56" fill="${INK}"/><rect x="307" y="164" width="9" height="56" fill="${INK}"/>
+    ${[95,165,235,305].map((x,i)=>`<circle cx="${x}" cy="${100+(i===1?6:0)}" r="15" fill="${INK}"/><path d="M${x-20} ${150} Q${x} ${112+(i===1?6:0)} ${x+20} 150 Z" fill="${INK}"/><ellipse cx="${x}" cy="146" rx="13" ry="4" fill="#e0cfa8" stroke="${INK}" stroke-width="2"/>`).join('')}`,
+  // окно напротив: рамы крестом, силуэт в окне
+  window: ()=>`<rect width="400" height="260" fill="#cfc3a6"/><rect x="120" y="40" width="160" height="180" fill="#9a8f78" stroke="${INK}" stroke-width="10"/><line x1="200" y1="40" x2="200" y2="220" stroke="${INK}" stroke-width="7"/><line x1="120" y1="122" x2="280" y2="122" stroke="${INK}" stroke-width="7"/>
+    <circle cx="232" cy="150" r="16" fill="${INK}"/><path d="M206 220 Q232 160 258 220 Z" fill="${INK}"/><path d="M214 140 Q232 122 250 140 Z" fill="${INK}"/>`,
+  // американский солдат: каска, сигарета, дым
+  kowalski: ()=>`<rect width="400" height="260" fill="#d3c7aa"/><path d="M160 92 Q200 52 240 92 L248 98 L152 98 Z" fill="${INK}"/><circle cx="200" cy="118" r="26" fill="${INK}"/><path d="M140 260 Q150 160 200 150 Q250 160 260 260 Z" fill="${INK}"/>
+    <line x1="222" y1="128" x2="250" y2="122" stroke="${INK}" stroke-width="4"/><path d="M252 118 Q262 100 252 84 Q244 70 256 54" fill="none" stroke="${INK}" stroke-width="2" stroke-dasharray="4 5"/>
+    <path d="M150 196 l14 -10 l14 10 l-6 -16 l12 -9 l-16 0 l-4 -16 l-4 16 l-16 0 l12 9 z" fill="#d3c7aa"/>`,
+  // развилка: дорога на восток и дорога в никуда
+  road: ()=>`<rect width="400" height="260" fill="#d8ccad"/><line x1="0" y1="110" x2="400" y2="110" stroke="${INK}" stroke-width="1.5"/>
+    <path d="M190 260 L200 150 L210 260 Z" fill="${INK}"/><path d="M200 150 L60 112 L66 110 L204 146 Z" fill="${INK}"/><path d="M200 150 L330 116" fill="none" stroke="${INK}" stroke-width="3" stroke-dasharray="6 8"/>
+    <rect x="216" y="150" width="5" height="60" fill="${INK}"/><path d="M221 154 L262 160 L221 170 Z" fill="${INK}"/><path d="M221 176 L184 182 L221 190 Z" fill="${INK}"/>`,
+  // китель без погон: фигура в профиль, голова опущена
+  tunic: ()=>`<rect width="400" height="260" fill="#cdc2a4"/><circle cx="200" cy="86" r="24" fill="${INK}"/><path d="M146 260 L152 150 Q200 118 248 150 L254 260 Z" fill="${INK}"/>
+    ${[0,1,2,3].map(i=>`<circle cx="200" cy="${160+i*22}" r="4" fill="#cdc2a4"/>`).join('')}<rect x="164" y="146" width="22" height="6" fill="#cdc2a4" opacity=".5"/><rect x="214" y="146" width="22" height="6" fill="#cdc2a4" opacity=".5"/>`,
+  // шахта: копёр, вагонетки, дым
+  mine: ()=>`<rect width="400" height="260" fill="#bdb6a4"/><path d="M150 230 L200 40 L250 230" fill="none" stroke="${INK}" stroke-width="6"/><path d="M165 170 L235 170 M175 120 L225 120 M185 80 L215 80" stroke="${INK}" stroke-width="4"/><circle cx="200" cy="40" r="16" fill="none" stroke="${INK}" stroke-width="5"/>
+    <path d="M0 230 L400 230" stroke="${INK}" stroke-width="3"/>${[40,90,290,340].map(x=>`<rect x="${x}" y="200" width="40" height="24" fill="${INK}"/><circle cx="${x+10}" cy="228" r="5" fill="${INK}"/><circle cx="${x+30}" cy="228" r="5" fill="${INK}"/>`).join('')}
+    <path d="M300 60 Q320 40 300 20 Q290 6 310 0" fill="none" stroke="${INK}" stroke-width="10" opacity=".35"/><rect x="292" y="60" width="16" height="140" fill="${INK}"/>`,
+  // могила в степи: холм, жердь, на жерди — тумар
+  grave: ()=>`<rect width="400" height="260" fill="#d6c9a6"/><line x1="0" y1="190" x2="400" y2="190" stroke="${INK}" stroke-width="1.5"/>
+    <path d="M110 200 Q200 150 290 200 Z" fill="${INK}"/><line x1="200" y1="170" x2="200" y2="60" stroke="${INK}" stroke-width="6"/>
+    <line x1="200" y1="78" x2="214" y2="98" stroke="${INK}" stroke-width="1.5"/><path d="M214 98 L204 118 L224 118 Z" fill="${INK}"/>
+    <path d="M30 120 Q60 112 90 120" fill="none" stroke="${INK}" stroke-width="2"/><path d="M300 100 Q330 92 360 100" fill="none" stroke="${INK}" stroke-width="2"/>`,
+  // ночь, прожекторы, проволока, бегущая фигура
+  searchlight: ()=>`<rect width="400" height="260" fill="#2a2a2c"/><path d="M40 10 L170 260 L230 260 Z" fill="#e8e0c8" opacity=".35"/><path d="M380 10 L250 260 L320 260 Z" fill="#e8e0c8" opacity=".25"/>
+    ${[90,130,170].map(y=>`<path d="M0 ${y} ${Array.from({length:20},(_,k)=>`L${k*20+10} ${y+(k%2?4:-4)}`).join(' ')}" fill="none" stroke="#e8e0c8" stroke-width="1.2" opacity=".7"/>`).join('')}
+    <circle cx="300" cy="196" r="9" fill="#e8e0c8"/><path d="M292 206 L308 206 L316 236 M300 206 L286 240" stroke="#e8e0c8" stroke-width="6" fill="none"/>`,
+  // радиостудия: микрофон, наушники, лист
+  radio: ()=>`<rect width="400" height="260" fill="#cfc7b2"/><rect x="60" y="180" width="280" height="12" fill="${INK}"/><circle cx="200" cy="110" r="26" fill="none" stroke="${INK}" stroke-width="8"/><rect x="194" y="136" width="12" height="44" fill="${INK}"/>
+    <rect x="240" y="150" width="70" height="28" fill="#f0e8d4" stroke="${INK}"/><line x1="248" y1="158" x2="300" y2="158" stroke="${INK}"/><line x1="248" y1="166" x2="290" y2="166" stroke="${INK}"/>
+    <text x="70" y="60" font-family="Georgia" font-size="18" fill="${INK}">Мюнхен. Эфир.</text>`,
+  // загон: отец и сын кладут последнюю жердь
+  pen: ()=>`<rect width="400" height="260" fill="#e0d0a6"/><line x1="0" y1="210" x2="400" y2="210" stroke="${INK}" stroke-width="2"/>
+    ${[60,150,250,340].map(x=>`<rect x="${x}" y="120" width="8" height="90" fill="${INK}"/>`).join('')}<rect x="56" y="150" width="296" height="6" fill="${INK}"/><rect x="56" y="180" width="296" height="6" fill="${INK}"/>
+    <rect x="100" y="122" width="210" height="7" fill="${INK}" transform="rotate(-4 200 125)"/>
+    <circle cx="96" cy="82" r="11" fill="${INK}"/><rect x="88" y="94" width="16" height="44" fill="${INK}"/><circle cx="314" cy="86" r="10" fill="${INK}"/><rect x="307" y="97" width="14" height="40" fill="${INK}"/>
+    <line x1="154" y1="129" x2="164" y2="146" stroke="${INK}" stroke-width="1.5"/><path d="M164 146 L156 160 L172 160 Z" fill="${INK}"/>`,
   wire: ()=>`<rect width="400" height="260" fill="#c9c6bc"/>${[30,130,230,330].map(x=>`<line x1="${x}" y1="70" x2="${x}" y2="240" stroke="${INK}" stroke-width="5"/>`).join('')}
     ${[90,120,150,180,210].map(y=>`<path d="M0 ${y} ${Array.from({length:20},(_,k)=>`L${k*20+10} ${y+(k%2?4:-4)}`).join(' ')}" fill="none" stroke="${INK}" stroke-width="1.5"/>`).join('')}
     <rect x="300" y="10" width="60" height="30" fill="${INK}"/><line x1="310" y1="40" x2="305" y2="240" stroke="${INK}" stroke-width="4"/><line x1="350" y1="40" x2="355" y2="240" stroke="${INK}" stroke-width="4"/>`
@@ -389,6 +439,9 @@ async function showInterlude(key){
   for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); sfx.paper(); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await click(); }
   await fadeTo(1,600); $('panels').style.display='none'; page.classList.remove('four');
 }
+
+// комикс-страница из рисованных кадров ART: [{art, text}] — экран должен быть затемнён, в конце затемняется снова
+async function showComic(panels, title=''){ DATA.interludes = DATA.interludes || {}; DATA.interludes.__comic = { title, panels, learn:[] }; await showInterlude('__comic'); }
 
 // кнопка «Копать»: рывками, мышью/пальцем или Пробелом/E. Возвращает промис после n нажатий (n=0 — без счёта, onPress сам решает)
 function digPrompt(n, label='Копать', onPress=null){

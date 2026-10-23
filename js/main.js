@@ -1,7 +1,7 @@
 'use strict';
 // Порядок глав, сохранения, финал, главный цикл и запуск
 
-const CHAPTERS = { ch1: startAul, ch1b: startDeparture, ch2: startDon, ch3: startCity, ch4: startDonets, ch5: startField, ch5b: startCamp, ch6: startStalag };
+const CHAPTERS = { ch1: startAul, ch1b: startDeparture, ch2: startDon, ch3: startCity, ch4: startDonets, ch5: startField, ch5b: startCamp, ch6: startStalag, ch7: startFarm, ch8: startFiltration };
 
 async function endChapter1(){ await chapterSummary(1,'ch2'); startDon(); }
 
@@ -13,16 +13,22 @@ async function chapterSummary(n, next){
   memory.logMark = memory.log.length; memory.lastSummary = n; memory.wordMark = memory.notebook.length;
   // короткий тест по словам этой главы: учим казахский (игра на русском) или русский (игра на казахском)
   if(words.length>=2) await wordQuiz(words, memory.notebook);
-  saveGame(next);
+  if(next!=='end') saveGame(next);
   const lines = items.length ? items.map(l=>'· '+escapeHtml(l)).join('<br>') : '<span class="small">В этой главе никто ничего не запомнил.</span>';
-  return showCard(first<n ? `Конец глав ${first}–${n}` : 'Конец главы '+n, 'Что запомнили', `<span style="text-align:left;display:inline-block">${lines}</span><br><br><span class="small">Игра сохранена.</span>`, 'Дальше');
+  return showCard(first<n ? `Конец глав ${first}–${n}` : 'Конец главы '+n, 'Что запомнили', `<span style="text-align:left;display:inline-block">${lines}</span>${next!=='end'?'<br><br><span class="small">Игра сохранена.</span>':''}`, 'Дальше');
 }
 async function endChapter2(){ await chapterSummary(2,'ch3'); startCity(); }
 async function endChapter3(){ await chapterSummary(3,'ch4'); startDonets(); }
 // глава 4 кончается ранением — в поле переходим без итоговой карточки, прямо из темноты; её решения войдут в итог главы 5
 async function endChapter4(){ saveGame('ch5'); startField(); }
 async function endChapter5(){ await chapterSummary(5,'ch6'); startStalag(); }
-async function endChapter6(){ await chapterSummary(6,'ch6'); finale(); }
+async function endChapter6(){ await chapterSummary(6,'ch7'); startFarm(); }
+async function endChapter7(){
+  // остался на Западе — восьмой главы нет, сразу концовка «Чужой берег»
+  if(memory.flags.goHome===false){ await chapterSummary(7,'end'); await playEnding('C'); finale(); return; }
+  await chapterSummary(7,'ch8'); startFiltration();
+}
+async function endChapter8(){ await chapterSummary(8,'end'); await playEnding(endingKind()); finale(); }
 
 // все решения за игру: «Когда …, вы …». Доля игроков — когда будет сервер со статистикой (Cloud.stats)
 function decisionLines(){
@@ -62,7 +68,9 @@ requestAnimationFrame(loop);
 async function startAul(){ saveGame('ch1'); active=sceneAul(); await active.begin(); }
 async function startDon(){ $('fade').style.opacity=1; await showChronicle('ch2'); await showInterlude('ch2'); active=sceneDon(); await active.begin(); }
 async function startDeparture(){ saveGame('ch1b'); $('fade').style.opacity=1; active=sceneDeparture(); await active.begin(); }
-async function startStalag(){ saveGame('ch6'); $('fade').style.opacity=1; await showInterlude('ch6'); active=sceneStalag(); await active.begin(); }
+async function startStalag(){ saveGame('ch6'); $('fade').style.opacity=1; await showChronicle('ch6'); await showInterlude('ch6'); active=sceneStalag(); await active.begin(); }
+async function startFarm(){ saveGame('ch7'); $('fade').style.opacity=1; await showChronicle('ch7'); await showInterlude('ch7'); active=sceneFarm(); await active.begin(); }
+async function startFiltration(){ saveGame('ch8'); $('fade').style.opacity=1; await showChronicle('ch8'); await showInterlude('ch8'); active=sceneFiltration(); await active.begin(); }
 async function startCamp(){ saveGame('ch5b'); $('fade').style.opacity=1; active=sceneCamp(); await active.begin(); }
 async function startCity(){ $('fade').style.opacity=1; await showChronicle('ch3'); await showInterlude('ch3'); active=sceneCity(); await active.begin(); }
 async function startDonets(){ $('fade').style.opacity=1; await showChronicle('ch4'); await showInterlude('ch4'); active=sceneDonets(); await active.begin(); }

@@ -314,3 +314,14 @@ canvas,#c{touch-action:none}
 #nb .sheet,#nb .sheet *,#settings .panel,#settings .panel *,#cardText,#cardText *,#chapSel,#chapSel *{touch-action:pan-y}
 #nb .sheet,#settings .panel,#cardText,#chapSel{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 #settings input[type=range]{touch-action:pan-x}
+
+/* ответ американцам: собрать фразу из слов */
+#phrase{position:fixed;left:50%;bottom:calc(16px + var(--ub,0px));transform:translateX(-50%);z-index:30;width:min(620px,94vw);background:var(--panel);border:1px solid var(--line);padding:14px 16px;text-align:center}
+#phrase .ph-q{font-size:13px;color:var(--ink2);letter-spacing:.06em}
+#phrase .ph-line{font:20px Georgia,serif;margin:8px 0 10px;min-height:28px;color:var(--ink)}
+#phrase .ph-tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+#phrase button{font:inherit;font-size:16px;padding:7px 12px;background:#2a231b;color:#b9b0a0;border:1px solid var(--line);cursor:pointer;touch-action:none}
+#phrase button.known{color:var(--ink);border-color:var(--ink2)}
+#phrase button:disabled{opacity:.3}
+#phrase .ph-row{display:flex;gap:10px;justify-content:center;margin-top:12px}
+#phrase .ph-go{color:var(--ink);border-color:var(--ink)}
