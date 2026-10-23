@@ -361,3 +361,14 @@ body.sketch #grain{opacity:.08}
 
 /* шум в остальных местах (подписи кадров, протокол и т.п.) */
 .noise{display:inline-block;filter:blur(2px);user-select:none}
+
+/* синемаграф: медленный наезд на открытый кадр, поверх — холст с дымом/огнём/пылью */
+#panels .pn.art .artbox{position:relative;overflow:hidden;line-height:0}
+#panels .pn.art .artbox img.art{display:block}
+#panels canvas.artfx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#panels .pn.art .kb{position:relative;line-height:0}
+#panels .pn.art.on .kb{animation:kb 22s ease-in-out infinite alternate}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.06)}}
+@media (prefers-reduced-motion:reduce){#panels .pn.art.on .kb{animation:none}}
+@media (max-height:520px){#panels .pn.art .artbox{flex:1;min-height:0}#panels .pn.art .kb{height:100%}#panels .pn.art .artbox img.art{height:100%;width:100%;object-fit:cover;object-position:center 35%}}
+#panels .page.artpage.tight .pn.art .cap{font-size:12.5px;line-height:1.25;padding:4px 8px}

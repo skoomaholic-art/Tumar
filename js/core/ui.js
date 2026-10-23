@@ -442,21 +442,24 @@ async function showInterlude(key){
   const click=()=>new Promise(r=>{ const h=()=>{ $('panels').removeEventListener('pointerdown',h); removeEventListener('keydown',kk); r(); }; const kk=e=>{ if(e.code==='Space'||e.code==='Enter') h(); }; $('panels').addEventListener('pointerdown',h); addEventListener('keydown',kk); });
   const cells=[...page.children];
   for(let i=0;i<cells.length;i++){ cells[i].classList.add('on'); sfx.paper(); $('pnNext').textContent = i<cells.length-1 ? 'Нажми, чтобы открыть следующий кадр' : 'Нажми, чтобы перевернуть страницу'; await wait(350); await click(); }
-  await fadeTo(1,600); $('panels').style.display='none'; page.classList.remove('four','artpage','row'); page.style.width='';
+  await fadeTo(1,600); $('panels').style.display='none'; page.classList.remove('four','artpage','row','tight'); page.style.width='';
 }
 
 // рисованные кадры показываются целиком: ширина страницы подбирается так, чтобы всё влезло по высоте экрана
 function fitArtPage(page){
   if(!page.classList.contains('artpage')){ page.style.width=''; return; }
+  if(typeof ArtFx!=='undefined') ArtFx.start(page); // живые элементы в кадрах
   const fit=()=>{
     // низкий экран (телефон боком): страница на весь экран, кадры заполняют сетку целиком (CSS обрезает края картинок)
     page.style.width=''; if(innerHeight<520) return; const w0=page.getBoundingClientRect().width, max=innerHeight*.86;
     const H=w=>{ page.style.width=Math.floor(w)+'px'; return page.getBoundingClientRect().height; };
+    page.classList.remove('tight');
     if(H(w0)<=max+2) return;
-    // самая широкая страница, что влезает по высоте; подписи переносятся, поэтому ищем делением, а не пропорцией
-    let lo=Math.min(w0,240), hi=w0, best=lo, bestH=H(lo);
-    for(let i=0;i<14;i++){ const m=(lo+hi)/2, h=H(m); if(h<=max+2){ best=m; bestH=h; lo=m; } else { if(h<bestH){ bestH=h; } hi=m; } }
-    H(best);
+    // подписи переносятся, высота от ширины зависит не монотонно: перебираем ширины, берём самую широкую, что влезает;
+    // если не влезает ни одна — мельчим подписи и пробуем снова, в крайнем случае берём самую низкую
+    const scan=()=>{ let fit=0, minW=w0, minH=1e9; for(let i=0;i<=16;i++){ const w=w0-(w0-260)*i/16, h=H(w); if(h<=max+2 && !fit) fit=w; if(h<minH){ minH=h; minW=w; } } return fit||(-minW); };
+    let r=scan(); if(r<0){ page.classList.add('tight'); r=scan(); }
+    H(Math.abs(r));
   };
   page.querySelectorAll('img').forEach(im=>{ if(!im.complete) im.addEventListener('load',fit,{once:true}); });
   fit(); setTimeout(fit,60);
