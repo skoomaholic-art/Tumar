@@ -269,6 +269,9 @@ function sceneAul(){
     showDoc,
     async kulashRuns(){ setShot('kulashRun'); S.look.asan=kulash; S.look.father=kulash; S.kulashGo=true; await until(()=>!S.kulashGo); S.look.kulash=asan; setShot('three'); },
     cut(name){ setShot(name); },
+    async walkHome(){ closeDlg(); setShot('endWide'); S.look.father=asan; const from=asan.position.clone(), to=new THREE.Vector3(-3.6,0,-1.4), t0=S.clock;
+      asan.lookAt(to.x,0,to.z); await until(()=>{ const k=Math.min(1,(S.clock-t0)/5.5); asan.position.lerpVectors(from,to,k); animWalk(asan,1,.016); return k>=1 || S.clock-t0>4.2; }); animWalk(asan,0,.016); },
+    async tshot(n, sec=0){ closeDlg(); cine(true); tShot(n); if(sec) await gwait(sec); },
     async sleep(){ mShot('est'); await gwait(3.2); },
     async teaOffer(){ mShot('motherMid'); mother.userData.armR.rotation.x=-1.2; kese.visible=true; sfx.wood && tone({f:520,dur:.1,gain:.03}); await gwait(1.8); },
     async keseOffer(){ mShot('motherClose'); await gwait(1.8); },
@@ -285,7 +288,7 @@ function sceneAul(){
     async doorCall(){ mShot('door'); asan.userData.armR.rotation.x=asan.userData.armL.rotation.x=0; asan.userData.legL.rotation.x=asan.userData.legR.rotation.x=0; await gwait(1.8); },
     // ремарки — показать, а не рассказать
     async holdShot(sec=2.4){ closeDlg(); await gwait(sec); },
-    async fatherLooksAway(){ closeDlg(); father.lookAt(40,0,30); await gwait(2.2); },
+    async fatherLooksAway(){ closeDlg(); father.lookAt(40,0,30); tShot('steppe'); await gwait(4.2); tShot('two'); },
     fatherWatches(){ S.look && (S.look.father=rman); },
     async signInsert(){ closeDlg(); sfx.paper(); asan.userData.armR.rotation.x=-.9; await signatureInsert(); asan.userData.armR.rotation.x=-.5; },
     async reachBag(){ await reachBag(); },
@@ -307,7 +310,7 @@ function sceneAul(){
   async function talkFather(){
     S.busy=true; faceEach(asan,father);
     await run(DAT.scripts.father_intro);
-    closeDlg(); S.step=2; setObj(CH, fillObj(DAT.objectives.bring,{n:0})); S.busy=false;
+    closeDlg(); talkEnd(); S.step=2; setObj(CH, fillObj(DAT.objectives.bring,{n:0})); S.busy=false;
   }
   function takePole(){
     const p = pile.pop(); p.parent.remove(p);
@@ -320,7 +323,7 @@ function sceneAul(){
     const sl = slots[S.placed]; if(S.placed<2){ sl.material = railM; shadowAll(sl); } else sl.visible=false; /* последнюю ставят вдвоём — и не успевают */ sfx.wood(); setTimeout(sfx.wood,180);
     S.placed++;
     setObj(CH, fillObj(DAT.objectives.bring,{n:S.placed}));
-    if(S.placed===1){ S.busy=true; faceEach(asan,father); await run(DAT.scripts.pole_1); closeDlg(); S.busy=false; }
+    if(S.placed===1){ S.busy=true; faceEach(asan,father); await run(DAT.scripts.pole_1); closeDlg(); talkEnd(); S.busy=false; }
     if(S.placed===2){ await fatherStory(); }
     if(S.placed===2){ setObj(CH, DAT.objectives.last); }
     if(S.placed===3) await riderArrives();
@@ -328,7 +331,7 @@ function sceneAul(){
   async function fatherStory(){
     S.busy=true; faceEach(asan,father); father.lookAt(40,0,30);
     await run(DAT.scripts.father_story);
-    closeDlg(); S.busy=false;
+    closeDlg(); talkEnd(); S.busy=false;
   }
   // ================= РЕЖИССЁР: приезд нарочного =================
   // Монтаж по Куросаве: в сцену входим шторкой, внутри сцены — жёсткие склейки, планы держим долго.
@@ -452,9 +455,33 @@ function sceneAul(){
     kulashRun(k){ const mid=asan.position.clone().lerp(father.position,.5), d=flat(mid.clone().sub(kulash.position));
       camera.fov=30; camera.position.copy(mid).addScaledVector(d,4.2).addScaledVector(sideOf(d),1.2).setY(2.1); return kulash.position.clone().setY(.9); },
     // трое вместе
+    // 23: общий завершающий — загон на переднем, отец остаётся, Асан уходит к дому; между ними пусто
+    endWide(k){ camera.fov=24; camera.position.set(H.x+2.2,.9,H.z+7.5); return tmp.set(lerp(H.x,-2,.45),1.0,lerp(H.z,-1,.4)); },
     three(k){ const c=asan.position.clone().add(father.position).add(kulash.position).multiplyScalar(1/3);
       camera.fov=32; camera.position.set(c.x+1.6, 1.45, c.z+5.2); return c.setY(1.05); }
   };
+  // разговоры у загона по раскадровке: планы строятся от того, где стоят отец и сын
+  const TALK = {
+    // 01: общий, камера у земли, длинный объектив, люди маленькие на фоне степи и неба
+    est(k){ const F=father.position, A=asan.position, m=A.clone().lerp(F,.5), d=flat(A.clone().sub(F)), sd=sideOf(d);
+      camera.fov=22; camera.position.copy(m).addScaledVector(sd,-13).addScaledVector(d,-2).setY(.6); return m.setY(1.6); },
+    // 02: средний двухплановый, на уровне груди: отец слева, Асан справа
+    two(k){ const F=father.position, A=asan.position, m=A.clone().lerp(F,.5), d=flat(A.clone().sub(F)), sd=sideOf(d);
+      camera.fov=30; camera.position.copy(m).addScaledVector(sd,-4.4).setY(1.35); return m.setY(1.3); },
+    // 04: низкая боковая через жерди
+    low(k){ const F=father.position, A=asan.position, m=A.clone().lerp(F,.5), d=flat(A.clone().sub(F)), sd=sideOf(d);
+      camera.fov=26; camera.position.copy(m).addScaledVector(sd,-5).addScaledVector(d,1.2).setY(.75); return m.setY(1.1); },
+    // 06: профиль отца, очень медленный наезд
+    profile(k){ const F=father.position, A=asan.position, d=flat(A.clone().sub(F)), sd=sideOf(d), e=Math.min(1,k/8);
+      camera.fov=lerp(28,22,e); camera.position.copy(F).addScaledVector(sd,-3.2).addScaledVector(d,.8).setY(1.65); return F.clone().setY(1.6); },
+    // 07: через плечо отца в пустую степь — самый долгий неподвижный план
+    steppe(k){ const F=father.position, L=flat(new THREE.Vector3(40,0,30).sub(F));
+      camera.fov=20; camera.position.copy(F).addScaledVector(L,-1.1).addScaledVector(sideOf(L),.45).setY(1.85); return F.clone().addScaledVector(L,60).setY(1.2); }
+  };
+  function talkCamera(dt,t){ const T=S.talk; T.k=(T.k||0)+dt; const look=TALK[T.shot](T.k); camera.updateProjectionMatrix();
+    if(T.fresh||!T.look){ T.look=look.clone(); T.fresh=false; } else T.look.lerp(look,1-Math.pow(.15,dt)); camera.lookAt(T.look); }
+  function tShot(n){ S.talk={shot:n,k:0,fresh:true}; }
+  function talkEnd(){ S.talk=null; S.cut=true; cine(false); }
   function directCamera(dt, t){
     const k = DIR.t; const look = SHOTS[DIR.shot](k, dt);
     camera.updateProjectionMatrix();
@@ -591,7 +618,7 @@ function sceneAul(){
   }
 
   const tmp = new THREE.Vector3();
-  const sc = { debugMShot(n){ if(!S.morning) S.morning={}; S.dbgLock=true; yurtIn.visible=true; mShot(n,true); },
+  const sc = { debugTalk(n){ S.morning=null; S.dbgLock=true; asan.rotation.set(0,Math.PI/2,0); asan.position.set(father.position.x-1.6,0,father.position.z+.2); animWalk(asan,0,.016); S.talk={shot:n,k:0,fresh:true}; }, debugMShot(n){ if(!S.morning) S.morning={}; S.dbgLock=true; yurtIn.visible=true; mShot(n,true); },
     update(dt, t){
       S.clock=(S.clock||0)+dt;
       // движение
@@ -651,6 +678,7 @@ function sceneAul(){
       if(S.morning){ morningShot(dt,t); }
       else if(S.intro){ introShot(dt); }
       else if(S.seq && DIR.shot){ directCamera(dt,t); }
+      else if(S.talk){ talkCamera(dt,t); }
       else if(S.shot==='yurt'){
         camera.position.copy(YURT_SHOT.pos); camera.position.y += Math.sin(t*.4)*.015;
         camera.fov=YURT_SHOT.fov; camera.updateProjectionMatrix();

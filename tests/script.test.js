@@ -51,7 +51,7 @@ test('глава 1: повестка и Күләш — слова в блокн�
   assert.deepStrictEqual(m.words, ['явиться','завтра','военкомат','повестка']);
   assert.ok(m.diary.some(d=>d.includes('Про сестру')));
   // порядок сцены: рука к поясу → лист → подпись → уезжает → Асан не может прочесть → бежит Күләш
-  assert.deepStrictEqual(m.calls.filter(c=>!c.startsWith('cut:') && !['fatherWatches','holdShot'].includes(c)), ['reachBag','paper','signInsert','leave','read','showDoc:false','kulash','showDoc:true']);
+  assert.deepStrictEqual(m.calls.filter(c=>!c.startsWith('cut:') && !['fatherWatches','holdShot'].includes(c)), ['reachBag','paper','signInsert','leave','read','showDoc:false','kulash','showDoc:true','walkHome']);
   assert.ok(m.calls.includes('cut:kulash'), 'есть план глазами Күләш');
   assert.deepStrictEqual(m.testimony[0], ['name','Нурбеков Асан Нурбекович']);
 });
