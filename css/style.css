@@ -420,3 +420,12 @@ body.closeup #caption,body.closeup #hud{opacity:0}
 #dlg:has(#choices .row) .who{display:none}
 #dlg:has(#choices .row) .txt:empty{display:none}
 #closeup img[data-k=kulash]{height:min(70vh,calc(100vh - var(--lbt,0px)))}
+/* телефон боком: меньше наложений */
+@media (pointer:coarse) and (orientation:landscape) and (max-height:560px){
+  :root{--ub:max(env(safe-area-inset-bottom,0px), var(--vvb,0px), 14px)}
+  #help{display:none}
+  #bark{bottom:calc(10px + var(--ub));max-width:58vw;font-size:13px;padding:5px 10px}
+  body.cine #dlg{bottom:calc(2px + var(--ub))}
+}
+/* крупный план: сцена за портретами уходит в тень и расфокус, чтобы 3D-фигуры не спорили с рисованными */
+#closeup::before{background:rgba(6,5,4,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}

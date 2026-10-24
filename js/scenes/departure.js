@@ -50,6 +50,8 @@ function sceneDeparture(){
   }
   function bow(p, k){ p.rotation.x = k; }             // наклон вперёд — смотрит в землю
   function prone(p, k){ p.rotation.x = Math.PI/2*k; p.position.y = .18*k; }
+  // лёжа головой туда, куда смотрит (к мишеням, вперёд по полосе), лицом вниз
+  function proneFwd(p){ p.rotation.x = -Math.PI/2; p.position.y = .18; }
   function sitPose(p){ p.userData.legL.rotation.x=p.userData.legR.rotation.x=-1.45; p.position.y=-.38*(p.scale.y||1); }
   function wp(o){ return o.getWorldPosition(new THREE.Vector3()); }
   function directCamera(dt){
@@ -483,7 +485,7 @@ function sceneDeparture(){
     const W = { asan, zhum, kol, others, dummies, gren, ringC, hole, heap, rifle, shovel, bowls, wins, L, RX, GX, WX2, DX2, crawl:0, snag:0,
       update(dt,t){
         for(const d of dummies){ if(d.userData.wob>0){ d.userData.wob=Math.max(0,d.userData.wob-dt*2.2); d.rotation.z=Math.sin(t*28)*.18*d.userData.wob; } }
-        if(S.phase==='crawl'){ const p=asan; p.position.set(WX2, 0, 1.6-W.crawl); prone(p,1); p.rotation.y=Math.PI; p.position.y = .18 + (W.snag>0 ? .18 : 0);
+        if(S.phase==='crawl'){ const p=asan; p.position.set(WX2, 0, 1.6-W.crawl); p.rotation.x=-Math.PI/2; p.rotation.y=Math.PI; /* головой вперёд, лицом вниз */ p.position.y = .18 + (W.snag>0 ? .18 : 0);
           p.userData.armL.rotation.x = -2.6 + Math.sin(W.crawl*5)*.5; p.userData.armR.rotation.x = -2.6 - Math.sin(W.crawl*5)*.5; W.snag=Math.max(0,W.snag-dt); }
       },
       shots:{
@@ -508,9 +510,9 @@ function sceneDeparture(){
   // --- день 2: стрельба по чучелам ---
   async function trainRange(){
     const W=world; S.phase='range'; trainLight('day');
-    place(W.asan, W.RX, 1.5, Math.PI); prone(W.asan,1); W.asan.position.y=.18; W.rifle.visible=true; W.asan.userData.armR.rotation.x=W.asan.userData.armL.rotation.x=-2.9;
-    place(W.kol, W.RX+2.6, 4.6, Math.PI*.85); place(W.zhum, W.RX-1.6, 1.6, Math.PI); prone(W.zhum,1); W.zhum.position.y=.18;
-    W.others.forEach((p,i)=>{ place(p, W.RX-3.4-i*1.6, 1.6, Math.PI); prone(p,1); p.position.y=.18; });
+    place(W.asan, W.RX, 1.5, Math.PI); proneFwd(W.asan); W.asan.position.y=.18; W.rifle.visible=true; W.asan.userData.armR.rotation.x=W.asan.userData.armL.rotation.x=-2.9;
+    place(W.kol, W.RX+2.6, 4.6, Math.PI*.85); place(W.zhum, W.RX-1.6, 1.6, Math.PI); proneFwd(W.zhum); W.zhum.position.y=.18;
+    W.others.forEach((p,i)=>{ place(p, W.RX-3.4-i*1.6, 1.6, Math.PI); proneFwd(p); p.position.y=.18; });
     setShot('rangeKol'); cine(true); await run(DAT.scripts.range_intro); setShot('range'); cine(false);
     setObj(CH, isTouch?DAT.objectives.rangeTouch:DAT.objectives.range);
     let shots=10, hits=0; S.shooting=true; $('ammo').style.display='block'; const ammo=()=>{ $('ammo').textContent=`Патроны: ${shots}`; }; ammo();
