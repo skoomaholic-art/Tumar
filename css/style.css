@@ -284,6 +284,9 @@ body.cine #bark .bw,body.dlg #bark .bw{color:#d8cfb8}
 #chapSel .dOpts{display:flex;flex-direction:column;gap:8px;width:min(560px,92vw);margin-top:10px}
 #chapSel .dOpts .btn{margin-top:0;text-align:left;padding:10px 16px}
 #chapSel .dOpts .btn b{display:block;font-weight:normal;font-size:17px}
+#chapSel{justify-content:safe center}
+#chapSel .dOpts{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));width:min(760px,94vw)}
+@media (max-height:500px){#chapSel .dOpts .btn{padding:6px 12px}#chapSel .dOpts .btn b{font-size:15px}#chapSel h2{font-size:18px}}
 #chapSel .dOpts .btn span{display:block;font-size:12px;color:var(--ink2);margin-top:2px}
 #chapSel .dOpts .btn.last{border-color:var(--ink)}
 #chapSel .back{margin-top:14px}

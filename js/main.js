@@ -97,6 +97,18 @@ function lockLandscape(){
   let unlocked=false; try{ unlocked = localStorage.getItem('tumar-unlock-full')==='1'; }catch(_){}
   if(unlocked){ $('fullStart').hidden=false; $('fullStart').onclick=()=>{ deleteSave(); newGame(true); }; }
   const toGame=()=>{ $('gearBtn').style.display='block'; $('help').style.visibility=''; $('hud').style.visibility=''; const f=$('fade'); f.style.transitionDuration='0ms'; f.style.opacity=1; };
+  // для быстрых тестов: любая глава или концовка с чистой памятью
+  $('chapTest').onclick=()=>{
+    let el=$('chapSel'); if(!el){ el=document.createElement('div'); el.id='chapSel'; el.className='screen'; document.body.appendChild(el); }
+    const EXTRA={ch1b:'Глава 1 · Эшелон', ch5b:'Глава 5 · Сборный пункт'}; const name=k=>{ const c=DATA[k]&&DATA[k].card; return EXTRA[k] || (c ? `${c.small} · ${c.big}` : k); };
+    const ends=[['A','Концовка А · Загон'],['B','Концовка Б · Забой'],['C','Концовка В · Чужой берег']];
+    el.innerHTML=`<h2>Выбор главы</h2><div class="dOpts">${Object.keys(CHAPTERS).map(k=>`<button class="btn" data-k="${k}" type="button"><b>${escapeHtml(name(k))}</b></button>`).join('')}${ends.map(([k,n])=>`<button class="btn" data-e="${k}" type="button"><b>${n}</b></button>`).join('')}</div><button class="btn back" type="button">Назад</button>`;
+    el.style.display='flex';
+    const begin=()=>{ el.style.display='none'; initAudio(); lockLandscape(); $('title').style.display='none'; toGame(); };
+    el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ begin(); CHAPTERS[b.dataset.k](); });
+    el.querySelectorAll('[data-e]').forEach(b=>b.onclick=async()=>{ begin(); if(b.dataset.e==='C') memory.flags.goHome=false; await playEnding(b.dataset.e); });
+    el.querySelector('.back').onclick=()=>{ el.style.display='none'; };
+  };
   const saved = loadGame();
   if(saved && CHAPTERS[saved.chapter]){
     $('continue').hidden=false; $('continue').disabled=false;
