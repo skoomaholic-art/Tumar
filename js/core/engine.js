@@ -61,7 +61,7 @@ function makePerson({coat=0x6b5440, hat='borik', scale=1, scarf=null, beard=fals
   const g=new THREE.Group(), root=new THREE.Group(); g.add(root);
   const female = hat==='scarf', elder = beard || hat==='tymak';
   const isLong = long!==null ? long : (female || elder);
-  const coatM=MT(coat,'cloth.jpg',2), pantsM=MT(pants!=null?pants:shade(coat,.78),'cloth.jpg',2);
+  const coatM=MT(coat,'cloth.jpg',5), pantsM=MT(pants!=null?pants:shade(coat,.78),'cloth.jpg',5);
   const skinM=MT(0xa8754f,'skin.jpg'), bootM=MT(0x241a12,'leather.jpg'), beltM=MT(0x3a2a1c,'leather.jpg');
   const hairM=M(0x15110d);
   const mesh=(geo,mat,x=0,y=0,z=0)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x,y,z); return m; };
