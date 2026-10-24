@@ -21,6 +21,7 @@ function portraitFile(who, emo){
 }
 function showCloseup(who, emo){
   const el=$('closeup'); if(!el) return false;
+  if(emo==='off'){ hideCloseup(); return false; } // голос из-за кадра — без портрета
   const src = SETTINGS.closeups===false ? null : portraitFile(who, emo);
   // у говорящего портрета пока нет: на экране остаётся слушающий (в тени), а не мигает пустота
   if(!src){ if(closeupSide) el.querySelectorAll('img').forEach(i=>i.classList.remove('talk')); return false; }

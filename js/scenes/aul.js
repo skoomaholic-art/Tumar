@@ -211,7 +211,9 @@ function sceneAul(){
   const dastarkhan = new THREE.Mesh(new THREE.CircleGeometry(.55,20), M(0xb83a2a)); dastarkhan.rotation.x=-Math.PI/2; dastarkhan.position.set(YC.x-.1,.025,YC.z-.15);
   const bed = new THREE.Mesh(new THREE.BoxGeometry(1.9,.12,.8), M(0x2a4a6a)); bed.position.set(YC.x-.3,.06,YC.z-1.55);
   const sunBeam = new THREE.Mesh(new THREE.CylinderGeometry(.3,.75,2.8,14,1,true), new THREE.MeshBasicMaterial({color:0xfff2d0, transparent:true, opacity:.07, depthWrite:false, side:THREE.DoubleSide})); sunBeam.position.set(YC.x+.15,1.45,YC.z-.25); sunBeam.rotation.z=.08;
-  yurtIn.add(mother, kettle, dastarkhan, bed, sunBeam);
+  const keseFloor = new THREE.Mesh(new THREE.CylinderGeometry(.05,.035,.05,10), M(0xe8e0d0)); keseFloor.position.set(YC.x-.45,.05,YC.z+.15); keseFloor.visible=false;
+  const bowls = new THREE.Group(); [[.0,.0],[.22,.1],[.1,-.18]].forEach(([x,z])=>{ const b=new THREE.Mesh(new THREE.SphereGeometry(.09,10,6,0,Math.PI*2,Math.PI/2,Math.PI/2), M(0x7a5232)); b.position.set(x,.09,z); bowls.add(b); }); bowls.position.set(YC.x-.95,0,YC.z+.95);
+  yurtIn.add(mother, kettle, dastarkhan, bed, sunBeam, keseFloor, bowls);
   const hearth = new THREE.PointLight(0xff8a44, 0, 4.5, 2); hearth.position.set(YC.x,.5,YC.z); scene.add(hearth);
 
   // люди
@@ -267,11 +269,19 @@ function sceneAul(){
     showDoc,
     async kulashRuns(){ setShot('kulashRun'); S.look.asan=kulash; S.look.father=kulash; S.kulashGo=true; await until(()=>!S.kulashGo); S.look.kulash=asan; setShot('three'); },
     cut(name){ setShot(name); },
-    async sleep(){ mShot('sleep'); await gwait(2.4); },
-    async teaOffer(){ mShot('mother'); mother.userData.armR.rotation.x=-1.2; kese.visible=true; sfx.wood && tone({f:520,dur:.1,gain:.03}); await gwait(1.6); },
+    async sleep(){ mShot('est'); await gwait(3.2); },
+    async teaOffer(){ mShot('motherMid'); mother.userData.armR.rotation.x=-1.2; kese.visible=true; sfx.wood && tone({f:520,dur:.1,gain:.03}); await gwait(1.8); },
+    async keseOffer(){ mShot('motherClose'); await gwait(1.8); },
     async sitTea(){ asan.rotation.set(0,Math.atan2(mother.position.x-(YC.x-.25),mother.position.z-(YC.z-.75)),0); asan.position.set(YC.x-.25,-.45,YC.z-.75); asan.userData.legL.rotation.x=asan.userData.legR.rotation.x=-1.45;
-      kese.visible=false; asan.userData.armR.rotation.x=asan.userData.armL.rotation.x=-1.1; mother.userData.armR.rotation.x=0; mShot('tea'); await gwait(2.2); },
+      kese.visible=false; asan.userData.armR.rotation.x=asan.userData.armL.rotation.x=-1.1; mother.userData.armR.rotation.x=0; mShot('tea'); await gwait(2.4); },
     async teaLeft(){ mother.userData.armR.rotation.x=-.4; await gwait(1.4); },
+    async sipTea(){ closeDlg(); hideCloseup(); asan.userData.armR.rotation.x=asan.userData.armL.rotation.x=-1.6; mShot('tea'); await gwait(2.0); asan.userData.armR.rotation.x=asan.userData.armL.rotation.x=-1.1; },
+    async mshot(n, sec=1.6){ mShot(n); await gwait(sec); },
+    async asanWakes(){ closeDlg(); showCloseup('Асан','think'); await gwait(2.4); hideCloseup(); asan.rotation.z=Math.PI/2-.18; },
+    async portrait(who, emo, sec=2.2){ closeDlg(); showCloseup(who, emo); await gwait(sec); },
+    async asanRises(){ mShot('twoPlane'); await gwait(.6); asan.rotation.set(0,Math.PI*.15,0); asan.position.set(YC.x-.6,-.45,YC.z-1.45); asan.userData.legL.rotation.x=asan.userData.legR.rotation.x=-1.45; await gwait(1.6); },
+    async asanStands(){ asan.rotation.set(0,Math.PI*.15,0); asan.position.set(YC.x-.6,0,YC.z-1.4); asan.userData.legL.rotation.x=asan.userData.legR.rotation.x=0; mShot('stand'); await gwait(1.0); asan.rotation.y=Math.PI*.5; await gwait(1.2); },
+    async keseDown(){ mShot('motherMid'); mother.userData.armR.rotation.x=-1.2; await gwait(.9); kese.visible=false; keseFloor.visible=true; mother.userData.armR.rotation.x=-.3; await gwait(.6); mShot('keseLeft'); await gwait(2.0); },
     async doorCall(){ mShot('door'); asan.userData.armR.rotation.x=asan.userData.armL.rotation.x=0; asan.userData.legL.rotation.x=asan.userData.legR.rotation.x=0; await gwait(1.8); },
     // ремарки — показать, а не рассказать
     async holdShot(sec=2.4){ closeDlg(); await gwait(sec); },
@@ -520,11 +530,11 @@ function sceneAul(){
   // утро: Асан спит в юрте, мать будит и зовёт пить чай; снаружи кричит отец
   async function morningYurt(){
     S.morning={shot:'sleep'}; mShot('sleep'); cine(true);
-    asan.position.set(YC.x-.3,.2,YC.z-1.55); asan.rotation.set(-Math.PI/2,0,Math.PI/2);
+    asan.position.set(YC.x+.62,.2,YC.z-1.55); asan.rotation.set(-Math.PI/2,0,Math.PI/2); /* голова у изголовья (−x), не в стене */
     await fadeTo(0,2600);
     await run(DAT.scripts.morning); closeDlg();
     // встаёт и выходит: силуэт в светлом проёме
-    asan.rotation.set(0,Math.PI/2,0); asan.position.set(YC.x-.2,0,YC.z); mShot('door'); mother.userData.armR.rotation.x=0; kese.visible=false;
+    asan.rotation.set(0,Math.PI/2,0); asan.position.set(YC.x-.2,0,YC.z); mShot('exit'); mother.userData.armR.rotation.x=0; kese.visible=false; keseFloor.visible=false;
     const from=asan.position.clone(), to=new THREE.Vector3(DX+.9,0,YC.z), t0=S.clock||0;
     await until(()=>{ const k=Math.min(1,((S.clock||0)-t0)/2.4); asan.position.lerpVectors(from,to,k); animWalk(asan,1,.016); return k>=1; });
     await wipe(1200,'right'); S.morning=null; animWalk(asan,0,.016);
@@ -536,11 +546,34 @@ function sceneAul(){
     sleep(k){ camera.fov=42; camera.position.set(YC.x+.9,1.45-Math.min(.15,k*.02),YC.z-.35); return tmp.set(YC.x-.4,.15,YC.z-1.55); },
     mother(k){ camera.fov=42; camera.position.set(YC.x-.55,.42,YC.z-1.45); return tmp.set(mother.position.x,1.0,mother.position.z); },
     tea(k){ camera.fov=52; camera.position.set(YC.x-1.85,1.1,YC.z+.05); return tmp.set(YC.x-.05,.6,YC.z); },
-    door(k){ camera.fov=44; camera.position.set(YC.x-1.7,1.0,YC.z+.15); return tmp.set(DX,.95,YC.z); }
+    door(k){ camera.fov=44; camera.position.set(YC.x-1.7,1.0,YC.z+.15); return tmp.set(DX,.95,YC.z); },
+    // раскадровка сцены 1: низко у пола, три плана — посуда, спящий Асан, столб света
+    est(k){ camera.fov=44; camera.position.set(YC.x-1.35,.34,YC.z+1.45); return tmp.set(YC.x-.3,.32-k*.005,YC.z-1.55); },
+    // мать справа у очага, Асан размыт слева в глубине
+    motherMid(k){ camera.fov=48; camera.position.set(YC.x+.75,.95,YC.z-1.35); return tmp.set(YC.x+.1,.95,YC.z+.8); },
+    motherClose(k){ camera.fov=30-Math.min(4,k*1.2); camera.position.set(YC.x+.6,1.15,YC.z-.85); return tmp.set(YC.x+.15,1.2,YC.z+.8); },
+    // крупно: лицо спящего, медленный наезд
+    asanFace(k){ camera.fov=34-Math.min(4,k*.8); const h=tmp.set(YC.x-1.15,.28,YC.z-1.55); camera.position.set(h.x+.55,.75,h.z+.75); return h; },
+    // деталь: рука матери с кесе входит в свет
+    keseHand(k){ camera.fov=26; const c=wp(kese); camera.position.set(c.x-.55,c.y+.18,c.z-.6); return c; },
+    // двухплановый: кесе слева на переднем, мать, в глубине Асан поднимается
+    twoPlane(k){ camera.fov=46; camera.position.set(YC.x+1.7,1.0,YC.z+.7); return tmp.set(YC.x-.6,.65,YC.z-1.2); },
+    // крупно руки вокруг кесе
+    hands(k){ camera.fov=24; const a=asan.position, f=new THREE.Vector3(Math.sin(asan.rotation.y),0,Math.cos(asan.rotation.y)); const h=a.clone().addScaledVector(f,.32).setY(.72); camera.position.copy(h).addScaledVector(f,.55).add(new THREE.Vector3(-f.z*.35,.25,f.x*.35)); return h; },
+    // деталь: глоток, пар у лица
+    sip(k){ camera.fov=26; const a=asan.position, f=new THREE.Vector3(Math.sin(asan.rotation.y),0,Math.cos(asan.rotation.y)); const h=a.clone().setY(1.08); camera.position.copy(h).addScaledVector(f,.85).add(new THREE.Vector3(-f.z*.3,-.05,f.x*.3)); return h; },
+    // Асан встаёт молча, взгляд на мать, потом к выходу
+    stand(k){ camera.fov=46; camera.position.set(YC.x+1.0,1.1,YC.z+1.3); return tmp.set(YC.x-.6,1.25,YC.z-1.4); },
+    // деталь: кесе на краю дастархана, рядом пусто
+    keseLeft(k){ camera.fov=30; const c=keseFloor.position; camera.position.set(c.x-.5,.32,c.z-.5); return c.clone().setY(.06); },
+    // крупно лицо на зов отца
+    faceUp(k){ camera.fov=30; const a=asan.position, f=new THREE.Vector3(Math.sin(asan.rotation.y),0,Math.cos(asan.rotation.y)); const y=asan.position.y<-.2?1.05:1.6; const h=a.clone().setY(y); camera.position.copy(h).addScaledVector(f,.9).add(new THREE.Vector3(-f.z*.25,0,f.x*.25)); return h.add(new THREE.Vector3(0,.02,0)); },
+    // общий завершающий: очаг на переднем, Асан, светлый проём
+    exit(k){ camera.fov=40; camera.position.set(YC.x-1.75,.42,YC.z+.3); return tmp.set(DX,.85,YC.z); }
   };
   function morningShot(dt,t){ const M2=S.morning; M2.k=(M2.k||0)+dt; const look=MORNING[M2.shot](M2.k); camera.position.y+=Math.sin(t*.5)*.006; camera.updateProjectionMatrix();
     if(M2.fresh||!M2.look){ M2.look=look.clone(); M2.fresh=false; } else M2.look.lerp(look,1-Math.pow(.2,dt)); camera.lookAt(M2.look); }
-  function mShot(n){ S.morning.shot=n; S.morning.k=0; S.morning.fresh=true; }
+  function mShot(n, force){ if(S.dbgLock && !force) return; S.morning.shot=n; S.morning.k=0; S.morning.fresh=true; }
   function introShot(dt){
     const I=S.intro; I.t+=dt; const k=Math.min(1,I.t/9), e=k*k*(3-2*k);
     camera.position.copy(OBS.pos); camera.fov = lerp(20, 38, e); camera.updateProjectionMatrix();
@@ -558,7 +591,7 @@ function sceneAul(){
   }
 
   const tmp = new THREE.Vector3();
-  const sc = {
+  const sc = { debugMShot(n){ if(!S.morning) S.morning={}; S.dbgLock=true; yurtIn.visible=true; mShot(n,true); },
     update(dt, t){
       S.clock=(S.clock||0)+dt;
       // движение
