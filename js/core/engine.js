@@ -144,15 +144,6 @@ function updatePeople(){
     u.walking=false;
   }
 }
-function makeHorse(col=0x4a3222){
-  const horse=new THREE.Group(), m=M(col), lm=M(0x3a2618);
-  const hb=new THREE.Mesh(new THREE.BoxGeometry(.7,.8,2),m); hb.position.y=1.3;
-  const hn=new THREE.Mesh(new THREE.BoxGeometry(.4,.9,.45),m); hn.position.set(0,1.85,1.05); hn.rotation.x=-.5;
-  const tail=new THREE.Mesh(new THREE.BoxGeometry(.12,.7,.12),lm); tail.position.set(0,1.2,-1.05); tail.rotation.x=.5;
-  horse.add(hb,hn,tail); const legs=[];
-  for(const [x,z] of [[-.25,.8],[.25,.8],[-.25,-.8],[.25,-.8]]){ const l=new THREE.Mesh(new THREE.BoxGeometry(.15,1,.15),lm); l.geometry.translate(0,-.5,0); l.position.set(x,1,z); horse.add(l); legs.push(l); }
-  horse.userData.legs=legs; return shadowAll(horse);
-}
 function animWalk(p, speed, dt){
   const u=p.userData; u.phase += dt*speed*7;
   const s = speed>0.05 ? Math.sin(u.phase)*.5 : 0;
