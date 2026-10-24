@@ -63,7 +63,8 @@ function scramble(word){ const cyr='аеиоуыпрстнлмвкдгзшчбх
   return word.replace(/[а-яёa-zäöüß]/gi, ch => { const set=/[a-zäöüß]/i.test(ch)?lat:cyr; return set[Math.random()*set.length|0]; }); }
 function renderLang(text, lang){
   if((lang!=='ru' && lang!=='de') || memory.fullDialogs) return escapeHtml(text);
-  if(lang==='ru' && ((memory.flags && memory.flags.ruFluent) || (memory.lastSummary||0)>=3)) return escapeHtml(text); // за год на фронте Асан стал понимать по-русски
+  // за год на фронте Асан выучил русский: с главы 4 (Донец) и дальше — плен, лагеря, хутор, фильтрация — русская речь понятна всегда
+  if(lang==='ru' && ((memory.flags && memory.flags.ruFluent) || (memory.lastSummary||0)>=3 || ['ch4','ch5','ch5b','ch6','ch7','ch8'].includes(typeof CUR_CH!=='undefined'?CUR_CH:''))) return escapeHtml(text);
   return text.split(/(\s+|[.,!?—:])/).map(w => {
     const k = w.toLowerCase();
     if(!/[а-яёa-zäöüß]/i.test(w)) return escapeHtml(w);

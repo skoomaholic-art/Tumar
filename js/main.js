@@ -1,6 +1,7 @@
 'use strict';
 // Порядок глав, сохранения, финал, главный цикл и запуск
 
+let CUR_CH = '';
 const CHAPTERS = { ch1: startAul, ch1b: startDeparture, ch2: startDon, ch3: startCity, ch4: startDonets, ch5: startField, ch5b: startCamp, ch6: startStalag, ch7: startFarm, ch8: startFiltration };
 
 async function endChapter1(){ await chapterSummary(1,'ch2'); startDon(); }
@@ -59,22 +60,23 @@ let last=performance.now(), gT=0;
 function loop(now){
   const dt=Math.min((now-last)/1000,.05); last=now; if(!PAUSED) gT+=dt;
   if(active && !PAUSED) active.update(dt,gT);
+  if(typeof updatePeople==='function') updatePeople();
   renderFrame(gT);
   if((gT*12|0)%2===0) drawGrain();
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
 
-async function startAul(){ CAST_SET='aul'; saveGame('ch1'); active=sceneAul(); active.sketch=true; await active.begin(); }
-async function startDon(){ CAST_SET='army'; $('fade').style.opacity=1; await showChronicle('ch2'); await showInterlude('ch2'); active=sceneDon(); await active.begin(); }
-async function startDeparture(){ CAST_SET='aul'; saveGame('ch1b'); $('fade').style.opacity=1; active=sceneDeparture(); await active.begin(); }
-async function startStalag(){ CAST_SET='pow'; saveGame('ch6'); $('fade').style.opacity=1; await showChronicle('ch6'); await showInterlude('ch6'); active=sceneStalag(); await active.begin(); }
-async function startFarm(){ CAST_SET='farm'; saveGame('ch7'); $('fade').style.opacity=1; await showChronicle('ch7'); await showInterlude('ch7'); active=sceneFarm(); await active.begin(); }
-async function startFiltration(){ CAST_SET='filtr'; saveGame('ch8'); $('fade').style.opacity=1; await showChronicle('ch8'); await showInterlude('ch8'); active=sceneFiltration(); await active.begin(); }
-async function startCamp(){ CAST_SET='pow'; saveGame('ch5b'); $('fade').style.opacity=1; active=sceneCamp(); await active.begin(); }
-async function startCity(){ CAST_SET='army'; $('fade').style.opacity=1; await showChronicle('ch3'); await showInterlude('ch3'); active=sceneCity(); await active.begin(); }
-async function startDonets(){ CAST_SET='army'; $('fade').style.opacity=1; await showChronicle('ch4'); await showInterlude('ch4'); active=sceneDonets(); await active.begin(); }
-async function startField(){ CAST_SET='pow'; $('fade').style.opacity=1; camera.position.set(0,.32,0); active=sceneField(); await active.begin(); }
+async function startAul(){ CUR_CH='ch1'; CAST_SET='aul'; saveGame('ch1'); active=sceneAul(); active.sketch=true; await active.begin(); }
+async function startDon(){ CUR_CH='ch2'; CAST_SET='army'; $('fade').style.opacity=1; await showChronicle('ch2'); await showInterlude('ch2'); active=sceneDon(); await active.begin(); }
+async function startDeparture(){ CUR_CH='ch1b'; CAST_SET='aul'; saveGame('ch1b'); $('fade').style.opacity=1; active=sceneDeparture(); await active.begin(); }
+async function startStalag(){ CUR_CH='ch6'; CAST_SET='pow'; saveGame('ch6'); $('fade').style.opacity=1; await showChronicle('ch6'); await showInterlude('ch6'); active=sceneStalag(); await active.begin(); }
+async function startFarm(){ CUR_CH='ch7'; CAST_SET='farm'; saveGame('ch7'); $('fade').style.opacity=1; await showChronicle('ch7'); await showInterlude('ch7'); active=sceneFarm(); await active.begin(); }
+async function startFiltration(){ CUR_CH='ch8'; CAST_SET='filtr'; saveGame('ch8'); $('fade').style.opacity=1; await showChronicle('ch8'); await showInterlude('ch8'); active=sceneFiltration(); await active.begin(); }
+async function startCamp(){ CUR_CH='ch5b'; CAST_SET='pow'; saveGame('ch5b'); $('fade').style.opacity=1; active=sceneCamp(); await active.begin(); }
+async function startCity(){ CUR_CH='ch3'; CAST_SET='army'; $('fade').style.opacity=1; await showChronicle('ch3'); await showInterlude('ch3'); active=sceneCity(); await active.begin(); }
+async function startDonets(){ CUR_CH='ch4'; CAST_SET='army'; $('fade').style.opacity=1; await showChronicle('ch4'); await showInterlude('ch4'); active=sceneDonets(); await active.begin(); }
+async function startField(){ CUR_CH='ch5'; CAST_SET='pow'; $('fade').style.opacity=1; camera.position.set(0,.32,0); active=sceneField(); await active.begin(); }
 
 // на телефоне — полный экран и горизонтальная ориентация, если браузер позволяет
 function lockLandscape(){

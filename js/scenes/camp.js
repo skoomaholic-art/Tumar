@@ -126,7 +126,7 @@ function sceneCamp(){
     await until(()=>!S.feldWalk);
     // панели: сапоги, палец, винтовки — без тел, только сапоги, руки и лица
     feld.position.set(1.4,0,1.5); feld.rotation.y=-Math.PI/2; const f1=shot(new THREE.Vector3(3.2,.28,2.9), new THREE.Vector3(1.2,.35,1.4), 900, 700);
-    feld.position.set(.45,0,1.25); feld.lookAt(asan.position.x,0,asan.position.z); feld.userData.armR.rotation.x=-1.8; feld.userData.armR.position.set(.3,1.52,.34); feld.userData.carry=true;
+    feld.position.set(.45,0,1.25); feld.lookAt(asan.position.x,0,asan.position.z); feld.userData.armR.rotation.x=-1.8; feld.userData.carry=true;
     const f2=shot(new THREE.Vector3(1.1,1.72,-.45), new THREE.Vector3(.38,1.62,1.25), 900, 560);
     guards.forEach((g,i)=>{ g.position.set(1.1+i*1.1,0,2.7+i*.2); g.lookAt(asan.position.x,0,asan.position.z); g.userData.rifle.rotation.x=1.3; g.userData.rifle.position.set(.2,1.35,.45); });
     const f3=shot(new THREE.Vector3(.2,1.55,.25), new THREE.Vector3(1.4,1.35,3.2), 900, 700);
@@ -136,7 +136,7 @@ function sceneCamp(){
     await panels(['img/ch5p_1.jpg','img/ch5p_2.jpg','img/ch5p_3.jpg'], caps(DAT.panels.point));
     setShot('tatar'); await fadeTo(0,250);
     await run(DAT.scripts.point_choice); closeDlg();
-    feld.userData.armR.rotation.x=0; feld.userData.armR.position.set(.37,1.15,0);
+    feld.userData.armR.rotation.x=0;
     feld.position.set(3.6,0,1.6);
     const f4=shot(new THREE.Vector3(.4,1.55,2.2), new THREE.Vector3(-.15,1.3,0), 900, 900);
     feld.position.set(3.6,0,1.6); feld.rotation.y=Math.PI/2;
