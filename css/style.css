@@ -395,7 +395,7 @@ body.dlg:not(.cine) #dlg{background:rgba(6,5,4,.93);padding:8px 22px 10px;border
 /* ---------- выбор как у Telltale: варианты в ряд, над ними тает полоска ---------- */
 #choices{margin-top:10px}
 #choices .row{display:flex;gap:8px;justify-content:center;align-items:stretch}
-#choices .opt{flex:1 1 0;max-width:280px;font:inherit;font-size:15px;line-height:1.25;text-align:center;background:rgba(10,8,6,.78);color:#fff;border:1px solid rgba(233,223,201,.28);border-radius:3px;padding:9px 10px 10px;cursor:pointer;text-shadow:0 1px 2px #000;transition:background .15s,border-color .15s,transform .15s}
+#choices .opt{flex:1 1 0;max-width:300px;font:inherit;font-size:17px;line-height:1.25;text-align:center;background:rgba(10,8,6,.78);color:#fff;border:1px solid rgba(233,223,201,.28);border-radius:3px;padding:9px 10px 10px;cursor:pointer;text-shadow:0 1px 2px #000;transition:background .15s,border-color .15s,transform .15s}
 #choices .opt:hover,#choices .opt:focus{background:rgba(40,32,24,.9);border-color:#e9dfc9;outline:none;transform:translateY(-2px)}
 #choices .opt.silent{flex:0 1 auto;color:#b9ab8e;font-style:italic}
 #choices .opt.picked{background:#e9dfc9;color:#14100c;text-shadow:none}
