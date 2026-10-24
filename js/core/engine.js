@@ -127,6 +127,9 @@ function makePerson({coat=0x6b5440, hat='borik', scale=1, scarf=null, beard=fals
     const r=mesh(new THREE.BoxGeometry(.215,.03,.13),pm,.012,TOP-.07,0); r.rotation.z=.14; headG.add(r);
     headG.add(mesh(new THREE.BoxGeometry(.018,.018,.005),M(0x8a2018),.01,TOP-.045,.063)); // звёздочка
   }
+  g.add=function(...o){ // старые сцены ставили предметы по прежней, более толстой фигуре — придвигаем их к телу
+    for(const it of o){ const q=it.position; if(q.y>.45 && q.y<1.7){ if(Math.abs(q.x)>.22 && Math.abs(q.x)<.5) q.x*=.62; if(Math.abs(q.z)>.14 && Math.abs(q.z)<.45) q.z*=.6; } }
+    root.add(...o); return g; }; // то, что сцены вешают на фигуру (сумка, винтовка за спиной), садится вместе с телом
   g.scale.setScalar(scale);
   g.userData={legL,legR,armL,armR,head:headG,root,phase:0, kneeL:legL.userData.knee, kneeR:legR.userData.knee, elbowL:armL.userData.elbow, elbowR:armR.userData.elbow};
   PEOPLE.push(g);

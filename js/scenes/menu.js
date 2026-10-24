@@ -10,7 +10,7 @@ function sceneMenu(){
   sun.shadow.mapSize.set(1024,1024); Object.assign(sun.shadow.camera,{left:-14,right:14,top:14,bottom:-14,near:1,far:90}); scene.add(sun, sun.target);
 
   // степь
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(800,800), M(0xb59a64)); ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(800,800), MT(0xb59a64,'steppe.jpg',300)); ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
   const tuftM=[M(0x9a8450),M(0x8a7a48),M(0xc2a86c)];
   for(let i=0;i<260;i++){ const t=new THREE.Mesh(new THREE.ConeGeometry(rand(.05,.12),rand(.2,.5),4), tuftM[i%3]); const r=rand(2,70), a=rand(0,Math.PI*2); t.position.set(Math.cos(a)*r, .12, Math.sin(a)*r-10); scene.add(t); }
   // горы на горизонте: синеватые, со снегом на вершинах
@@ -20,7 +20,7 @@ function sceneMenu(){
     const c=new THREE.Mesh(new THREE.ConeGeometry(r*.28,h*.28,6), snowM); c.position.set(x,h-2-h*.14+.4,z); c.rotation.y=m.rotation.y; scene.add(c); }
 
   // загон: столбы и три жерди
-  const wood=M(0x7a5a3a), woodD=M(0x5e4430);
+  const wood=MAT.wood(0x7a5a3a), woodD=MAT.wood(0x5e4430);
   const PEN={x0:-6,x1:2,z0:-7,z1:-1};
   function post(x,z){ const p=new THREE.Mesh(new THREE.CylinderGeometry(.09,.11,1.8,6),woodD); p.position.set(x,.9,z); p.rotation.z=rand(-.04,.04); scene.add(shadowAll(p)); }
   function rail(x0,z0,x1,z1,y){ const L=Math.hypot(x1-x0,z1-z0); const r=new THREE.Mesh(new THREE.CylinderGeometry(.06,.07,L+.3,6),wood); r.rotation.z=Math.PI/2; r.rotation.y=-Math.atan2(z1-z0,x1-x0); r.position.set((x0+x1)/2,y,(z0+z1)/2); scene.add(shadowAll(r)); }
@@ -28,20 +28,14 @@ function sceneMenu(){
     const n=Math.round(Math.hypot(x1-x0,z1-z0)/2); for(let i=0;i<=n;i++) post(lerp(x0,x1,i/n),lerp(z0,z1,i/n));
     for(const y of [.32,.66,1.52]) rail(x0,z0,x1,z1,y+rand(-.03,.03)); }
   // сено
-  const hay=new THREE.Mesh(new THREE.SphereGeometry(1.1,12,6,0,Math.PI*2,0,Math.PI/2), M(0xd2b464)); hay.scale.set(1.3,.55,1); hay.position.set(-1.2,0,-4.8); scene.add(shadowAll(hay));
+  const hay=new THREE.Mesh(new THREE.SphereGeometry(1.1,12,6,0,Math.PI*2,0,Math.PI/2), MAT.hay(0xd2b464,2)); hay.scale.set(1.3,.55,1); hay.position.set(-1.2,0,-4.8); scene.add(shadowAll(hay));
   for(let i=0;i<30;i++){ const s=new THREE.Mesh(new THREE.BoxGeometry(rand(.2,.5),.02,.03),M(0xd8bc6a)); s.position.set(-1.2+rand(-1.8,1.8),.02,-4.8+rand(-1.3,1.3)); s.rotation.y=rand(0,3); scene.add(s); }
 
   // барашки
   const woolM=[M(0xe8dcc4),M(0xd8ccb0),M(0xc8b896)], headM=M(0x2e2620);
   const sheep=[];
   for(let i=0;i<6;i++){
-    const g=new THREE.Group();
-    const body=new THREE.Mesh(new THREE.SphereGeometry(.42,10,8), woolM[i%3]); body.scale.set(1.35,.95,.95); body.position.y=.62; g.add(body);
-    const fluff=new THREE.Mesh(new THREE.SphereGeometry(.3,8,6), woolM[(i+1)%3]); fluff.position.set(0,.8,0); fluff.scale.set(1.5,.6,1); g.add(fluff);
-    const neck=new THREE.Group(); neck.position.set(.48,.72,0); g.add(neck);
-    const head=new THREE.Mesh(new THREE.BoxGeometry(.3,.2,.18), headM); head.position.set(.14,0,0); neck.add(head);
-    const earL=new THREE.Mesh(new THREE.BoxGeometry(.05,.03,.14),headM); earL.position.set(.06,.04,.12); const earR=earL.clone(); earR.position.z=-.12; neck.add(earL,earR);
-    const legs=[]; for(const [x,z] of [[.28,.16],[.28,-.16],[-.28,.16],[-.28,-.16]]){ const l=new THREE.Mesh(new THREE.BoxGeometry(.07,.42,.07),headM); l.geometry.translate(0,-.21,0); l.position.set(x,.42,z); g.add(l); legs.push(l); }
+    const g=makeSheep([0xe8dcc4,0xd8ccb0,0xc8b896][i%3]); const {neck,legs}=g.userData;
     g.position.set(rand(-2.5,1.3),0,rand(-6.2,-2.2)); g.rotation.y=rand(0,6);
     g.userData={neck,legs,to:null,graze:rand(1,4),ph:rand(0,6)}; scene.add(shadowAll(g)); sheep.push(g);
   }

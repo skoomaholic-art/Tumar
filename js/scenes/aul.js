@@ -26,7 +26,7 @@ function sceneAul(){
     c.offsetHSL(0,0,rand(-.03,.03)); col.push(c.r,c.g,c.b);
   }
   gGeo.setAttribute('color', new THREE.Float32BufferAttribute(col,3)); gGeo.computeVertexNormals();
-  const ground = new THREE.Mesh(gGeo, new THREE.MeshLambertMaterial({vertexColors:true}));
+  const ground = new THREE.Mesh(gGeo, new THREE.MeshLambertMaterial({vertexColors:true, map:TEX('steppe.jpg',300)}));
   ground.receiveShadow = true; scene.add(ground);
 
   // пучки сухой травы
@@ -36,25 +36,16 @@ function sceneAul(){
   scene.add(tufts);
 
   // саманный дом
-  const house = new THREE.Group();
-  const walls = new THREE.Mesh(new THREE.BoxGeometry(7,2.8,5), M(0xb39a74)); walls.position.y=1.4;
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(7.6,.35,5.6), M(0x6a5a44)); roof.position.y=2.95;
-  const door = new THREE.Mesh(new THREE.BoxGeometry(1,1.9,.1), M(0x3a2c1e)); door.position.set(1.2,.95,2.52);
-  const win = new THREE.Mesh(new THREE.BoxGeometry(.9,.7,.1), M(0x2a2a28,{emissive:0x000000})); win.position.set(-1.6,1.6,2.52);
-  const chimney = new THREE.Mesh(new THREE.BoxGeometry(.6,1,.6), M(0x8e7a5c)); chimney.position.set(-2.4,3.4,-1);
-  house.add(walls,roof,door,win,chimney); house.position.set(-6,0,-6); shadowAll(house); scene.add(house);
+  const house = makeAdobeHouse(7,5,{h:2.8,wall:0xb39a74}); house.position.set(-6,0,-6); scene.add(house);
+  const win = house.userData.glass;
   const winMat = win.material;
 
   // юрта
-  const yurt = new THREE.Group();
-  const yw = new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.4,1.7,16), M(0xd8cfba)); yw.position.y=.85;
-  const yr = new THREE.Mesh(new THREE.ConeGeometry(2.6,1.3,16), M(0xcfc4ac)); yr.position.y=2.35;
-  const band = new THREE.Mesh(new THREE.CylinderGeometry(2.42,2.42,.18,16), M(0x7a2a22)); band.position.y=1.5;
-  yurt.add(yw,yr,band); yurt.position.set(-15,0,-3); shadowAll(yurt); scene.add(yurt);
+  const yurt = makeYurt(2.4,{h:1.7,ropes:false,felt:0xd8cfba}); yurt.userData.door.visible=false; yurt.rotation.y=Math.PI/2; yurt.position.set(-15,0,-3); scene.add(yurt);
 
   // загон: столбы и жерди, три пустых места подсвечены
   const pen = new THREE.Group(); pen.position.set(5,0,2); scene.add(pen);
-  const postM = M(0x5e4a34), railM = M(0x8a7050);
+  const postM = MAT.wood(0x5e4a34), railM = MAT.wood(0x8a7050);
   const W=8, D=6, posts=[];
   for(let i=0;i<=4;i++){ posts.push([-W/2+i*W/4,-D/2],[-W/2+i*W/4,D/2]); }
   for(let j=1;j<3;j++){ posts.push([-W/2,-D/2+j*D/3],[W/2,-D/2+j*D/3]); }
@@ -72,7 +63,7 @@ function sceneAul(){
   for(let j=0;j<3;j++) for(const x of [-W/2,W/2]) for(const y of [.6,1.2]){ const r=new THREE.Mesh(railGeoZ, railM); r.position.set(x,y,-D/2+D/6+j*D/3); pen.add(shadowAll(r)); }
   // ягнята внутри
   const lambs=[];
-  for(let i=0;i<4;i++){ const l=new THREE.Group(); const b=new THREE.Mesh(new THREE.SphereGeometry(.28,8,6),M(0xe8e2d4)); b.scale.set(1.3,1,1); b.position.y=.38; const h=new THREE.Mesh(new THREE.SphereGeometry(.14,8,6),M(0x3a3028)); h.position.set(.34,.5,0); l.add(b,h); l.position.set(rand(-3,3),0,rand(-2,2)); pen.add(shadowAll(l)); lambs.push(l); }
+  for(let i=0;i<4;i++){ const l=makeSheep(0xe8e2d4,.66); l.position.set(rand(-3,3),0,rand(-2,2)); pen.add(l); lambs.push(l); }
 
   // штабель жердей у дома
   const pile=[];
@@ -648,7 +639,7 @@ function sceneAul(){
       else if(!S.kulashGo && kulash.userData.legL.rotation.x<0){ const k=kulash.userData; k.legL.rotation.x=k.legR.rotation.x=Math.min(0,k.legL.rotation.x+dt*2); k.armR.rotation.x*=.9; k.armL.rotation.x*=.9; }
       // ягнята бродят
       if(S.seq){ lambs[0].position.set(.6,0,2.6); lambs[1].position.set(2.6,0,2.7); }
-      lambs.forEach((l,i)=>{ if(S.seq && i<2){ l.rotation.y=-Math.PI/2+i*.5; l.children[1].position.y=.5+Math.sin(t*2+i)*.06; return; } l.position.x=clamp(l.position.x+Math.sin(t*.4+i*2)*dt*.3,-3.4,3.4); l.position.z=clamp(l.position.z+Math.cos(t*.3+i)*dt*.3,-2.4,2.4); l.rotation.y=Math.sin(t*.4+i*2)>0?0:Math.PI; });
+      lambs.forEach((l,i)=>{ if(S.seq && i<2){ l.rotation.y=-Math.PI/2+i*.5; l.userData.neck.rotation.z=-.25+Math.sin(t*2+i)*.2; return; } l.position.x=clamp(l.position.x+Math.sin(t*.4+i*2)*dt*.3,-3.4,3.4); l.position.z=clamp(l.position.z+Math.cos(t*.3+i)*dt*.3,-2.4,2.4); l.rotation.y=Math.sin(t*.4+i*2)>0?0:Math.PI; });
       // пустые места мигают, пока их не закрыли
       slots.forEach((s,i)=>{ if(i>=S.placed && s.material.transparent) s.material.opacity = .18+.18*Math.sin(t*3); });
       // ветер гонит крупу слева направо, как в степи в марте

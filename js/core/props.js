@@ -90,7 +90,7 @@ function makeCow(col=0x5a4636){
 // стенки-кереге, купол из уықов, шаңырақ, дверь с резной рамой, тканые ленты
 function makeYurt(r=2.4, opt={}){
   const g=new THREE.Group(), felt=MAT.felt(opt.felt||0xd2c6ac,2), band=MAT.cloth(0x8e2a20), wd=MAT.wood(0x7a5232);
-  const H=r*.62;
+  const H=opt.h||r*.62;
   g.add(P_.mesh(P_.cyl(r,r*1.01,H,24),felt,0,H/2,0));
   // купол — профиль чуть выпуклый
   const prof=[]; for(let i=0;i<=8;i++){ const k=i/8; prof.push(new THREE.Vector2(r*(1-k)*(1+.08*Math.sin(k*Math.PI))+.001+r*.16*k, H+r*.55*Math.pow(k,.85))); }
@@ -99,7 +99,7 @@ function makeYurt(r=2.4, opt={}){
   for(let i=0;i<4;i++){ const b=P_.mesh(P_.box(r*.34,.04,.04),wd,0,H+r*.62,0); b.rotation.y=i*Math.PI/4; g.add(b); }
   for(const y of [H*.55, H*.95]) g.add(P_.mesh(P_.cyl(r*1.012,r*1.012,.12,24,true),band,0,y,0));
   // обвязка купола верёвками
-  for(let i=0;i<8;i++){ const a=i*Math.PI/4; g.add(P_.beam(new THREE.Vector3(Math.cos(a)*r*1.02,H+.02,Math.sin(a)*r*1.02), new THREE.Vector3(Math.cos(a)*r*.2,H+r*.55,Math.sin(a)*r*.2), .015, MAT.cloth(0x5a4a34))); }
+  if(opt.ropes!==false) for(let i=0;i<8;i++){ const a=i*Math.PI/4; g.add(P_.beam(new THREE.Vector3(Math.cos(a)*r*1.02,H+.02,Math.sin(a)*r*1.02), new THREE.Vector3(Math.cos(a)*r*.2,H+r*.55,Math.sin(a)*r*.2), .015, MAT.cloth(0x5a4a34))); }
   // дверь (на +z)
   const dg=new THREE.Group(); dg.position.set(0,0,r*1.0); g.add(dg);
   dg.add(P_.mesh(P_.box(.92,1.5,.08),wd,0,.75,.02));
@@ -121,10 +121,10 @@ function makeAdobeHouse(w=6, d=4.4, opt={}){
   const door=P_.mesh(P_.box(.9,1.75,.1),wd,w*.17,.88,d/2+.02); g.add(door);
   g.add(P_.mesh(P_.box(1.08,.12,.14),wd,w*.17,1.8,d/2+.03));
   const win=new THREE.Group(); win.position.set(-w*.27,1.45,d/2+.02); g.add(win);
-  win.add(P_.mesh(P_.box(.82,.66,.08),wd)); win.add(P_.mesh(P_.box(.66,.5,.09),M(0x24262a)));
+  win.add(P_.mesh(P_.box(.82,.66,.08),wd)); const glass=P_.mesh(P_.box(.66,.5,.09),M(0x24262a)); win.add(glass);
   win.add(P_.mesh(P_.box(.04,.5,.1),wd)); win.add(P_.mesh(P_.box(.66,.04,.1),wd));
   const ch=P_.mesh(P_.box(.5,.8,.5),MAT.adobe(0x7e6a50),-w*.3,H+.6,-d*.2); g.add(ch);
-  g.userData={door,win,chimney:ch};
+  g.userData={door,win,glass,chimney:ch};
   return shadowAll(g);
 }
 // дом австрийского хутора: белёный низ, дощатый верх, крутая двускатная крыша с напуском, окна со ставнями
