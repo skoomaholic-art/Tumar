@@ -80,9 +80,9 @@ test('вариант с if показывается только при усло
   assert.deepStrictEqual(seen[1].opts,['один','два','[Молчать]']); assert.strictEqual(seen[1].silent,2); assert.strictEqual(m.memory.flags.p,'a');
 });
 
-test('глава 8: Гриша живой — свидетель за; Дубровин пойман — свидетель против; письмо Жумабая зависит от воды', async ()=>{
+test('глава 8: Гриша живой — свидетель за; Дубровину не открыли — свидетель против; письмо Жумабая зависит от воды', async ()=>{
   const ch8=JSON.parse(fs.readFileSync(__dirname+'/../data/ch08.json','utf8'));
-  const a=mockApi([]); a.memory.flags={grishaAlive:true, dubrovinCaught:true, water:'kept'};
+  const a=mockApi([]); a.memory.flags={grishaAlive:true, dubrovinShut:true, water:'kept'};
   a.api.hooks=new Proxy({}, {get:(_,n)=>(...x)=>a.calls.push(n+':'+x.join(','))});
   const run=createRunner(a.api); await run(ch8.scripts.interrogation3); await run(ch8.scripts.zhumabai);
   assert.ok(a.calls.includes('witness:1')); assert.ok(a.calls.includes('witness:-1'));

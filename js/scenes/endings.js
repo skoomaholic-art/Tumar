@@ -10,6 +10,7 @@ function endingKind(){
 }
 async function playEnding(kind){
   const E=DATA.endings[kind], fl=memory.flags;
+  fl.specSettle = fl.legion==='signed' && !fl.legionConfessed; // скрыл анкету легиона — 6 лет спецпоселения
   fl.lislTogether = !!(fl.lislNear && !fl.lislFar); // «вместе» — если брал Лизль за руку и не отдалился
   const pick=x=> x.if ? (evalCond(x.if, fl) ? x.text : x.else) : x.text;
   setObj('',''); $('fade').style.transitionDuration='0ms'; $('fade').style.opacity=1;

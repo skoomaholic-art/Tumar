@@ -233,6 +233,12 @@ function sceneFarm(){
     await run(DAT.scripts.execution); closeDlg();
     S.wind=false; steinerV.visible=false;
   }
+  // ---------- 5б. Январь: открытка о Франце ----------
+  async function postcardPart(){
+    await fadeTo(1,1100); setLook('kitchen'); klamp.intensity=2.2; setShot('kitchen'); cine(true); await fadeTo(0,1100);
+    await run(DAT.scripts.postcard); closeDlg();
+    photo.visible=false; klamp.intensity=0;
+  }
   // ---------- 6. Февральская ночь: стелс + облава ----------
   async function februaryPart(){
     await fadeTo(1,1100); setLook('winter'); asan.position.set(BARN_DOOR.x-.8,0,BARN_DOOR.z+.6); asan.rotation.y=0; tad.visible=false; await fadeTo(0,1400);
@@ -360,6 +366,7 @@ function sceneFarm(){
       await tablePart();
       await lislPart();
       await executionPart();
+      await postcardPart();
       await februaryPart();
       await americansPart();
       await revengePart();

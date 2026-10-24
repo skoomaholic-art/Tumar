@@ -61,3 +61,20 @@ test('глава 8: свидетели по флагам', async ()=>{
 test('концовки: у каждой есть страницы и финал', ()=>{
   for(const k of ['A','B','C']){ assert.ok(END[k].panels.length>=3, k); assert.ok(END[k].final.length>=1, k); }
 });
+
+test('глава 7: закрыл дверь — Дубровин выжил у других (флаг для гл.8); открытка о Франце помнит прошлый ответ', async ()=>{
+  const m = mock([0], {dubrovin:'shut'}); await createRunner(m.api)(ch7.scripts.search);
+  assert.strictEqual(m.memory.flags.dubrovinShut, true);
+  const p = mock([1], {marta:'truth'}); await createRunner(p.api)(ch7.scripts.postcard);
+  assert.ok(p.said.some(s=>/не упал/.test(s))); assert.strictEqual(p.memory.flags.franzAns,'truth'); assert.ok(p.memory.flags.franzAlive);
+});
+
+test('концовки: строка о Жумабае по ответу, спецпоселение — если анкету скрыл', ()=>{
+  const { evalCond } = require('../js/core/script.js');
+  const pick=(x,f)=> x.if ? (evalCond(x.if,f) ? x.text : x.else) : x.text;
+  for(const k of ['A','B']) for(const z of ['truth','cover','unknown'])
+    assert.strictEqual(END[k].final.map(x=>pick(x,{zhumAns:z})).filter(t=>t&&/Жумаба/.test(t)).length, 1, k+z);
+  assert.ok(END.C.final.some(x=>/Жумаба/.test(x.text)));
+  const spec = END.B.panels.map(p=>pick(p,{specSettle:true})).join(' ');
+  assert.ok(/спецпоселения/.test(spec)); assert.ok(!/спецпоселен/.test(END.B.panels.map(p=>pick(p,{})).join(' ')));
+});
