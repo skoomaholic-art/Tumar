@@ -419,3 +419,4 @@ body.dlg:not(.cine) #dlg{background:rgba(6,5,4,.93);padding:8px 22px 10px;border
 body.closeup #caption,body.closeup #hud{opacity:0}
 #dlg:has(#choices .row) .who{display:none}
 #dlg:has(#choices .row) .txt:empty{display:none}
+#closeup img[data-k=kulash]{height:min(70vh,calc(100vh - var(--lbt,0px)))}

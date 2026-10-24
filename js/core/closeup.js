@@ -26,6 +26,7 @@ function showCloseup(who, emo){
   if(!src){ if(closeupSide) el.querySelectorAll('img').forEach(i=>i.classList.remove('talk')); return false; }
   const side = who==='Асан' ? 'right' : 'left';
   const img = el.querySelector('img.'+side), other = el.querySelector('img.'+(side==='left'?'right':'left'));
+  img.dataset.k = CAST_KEY[who]||''; // дети ниже ростом: Күләш стоит ниже в кадре
   if(img.getAttribute('src')!==src){ img.classList.remove('on'); img.src=src; void img.offsetWidth; }
   img.classList.add('on','talk'); other.classList.remove('talk'); // молчащий собеседник остаётся в кадре, но в тени
   el.classList.add('on'); closeupSide=side; document.body.classList.add('closeup');
