@@ -18,7 +18,7 @@ function sceneField(){
   for(let i=0;i<pos.count;i++){ const x=pos.getX(i), z=pos.getZ(i); c.setHex(0x5a4a30); c.offsetHSL(0,0,rand(-.05,.04)); col.push(c.r,c.g,c.b);
     const dc=Math.hypot(x-0,z+9); if(dc<2.6) pos.setY(i,-(2.6-dc)*.45); }
   gGeo.setAttribute('color',new THREE.Float32BufferAttribute(col,3)); gGeo.computeVertexNormals();
-  const ground=new THREE.Mesh(gGeo,new THREE.MeshLambertMaterial({vertexColors:true})); scene.add(ground);
+  const ground=new THREE.Mesh(gGeo,new THREE.MeshLambertMaterial({vertexColors:true, map:TEX('field.jpg',40)})); scene.add(ground);
   // лужа на дне воронки
   const puddle=new THREE.Mesh(new THREE.CircleGeometry(.9,16), new THREE.MeshPhongMaterial({color:0x5c4a32,shininess:80})); puddle.rotation.x=-Math.PI/2; puddle.position.set(0,-1.1,-9); scene.add(puddle);
   // вал выброшенной земли — виден поверх травы, даже когда лежишь
@@ -62,10 +62,8 @@ function sceneField(){
 
   // убитый рядом (тёмный силуэт в шинели), разбитый пулемёт, каска
   const body=new THREE.Group();
-  const torso=new THREE.Mesh(new THREE.BoxGeometry(.5,.25,1.2),M(0x4c4a34)); torso.position.y=.13;
-  const legs=new THREE.Mesh(new THREE.BoxGeometry(.45,.2,.9),M(0x3a3828)); legs.position.set(.05,.1,.95);
-  const helmet=new THREE.Mesh(new THREE.SphereGeometry(.2,10,6,0,Math.PI*2,0,Math.PI/2),M(0x4a5236)); helmet.position.set(-.1,.15,-.75);
-  body.add(torso,legs,helmet); body.position.set(2.2,0,-1.6); body.rotation.y=.6; scene.add(body);
+  { const dead=makePerson({coat:0x4c4a34, hat:'ssh'}); dead.rotation.x=Math.PI/2; dead.position.set(0,.16,-.75); dead.userData.armL.rotation.z=.6; dead.userData.armR.rotation.x=-.4; dead.userData.legL.rotation.z=.15; body.add(dead); }
+  body.position.set(2.2,0,-1.6); body.rotation.y=.6; scene.add(body);
   const dp=new THREE.Group(); const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,1.2,6),M(0x222222)); barrel.rotation.z=Math.PI/2; const disk=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.06,14),M(0x2a2a26)); disk.position.set(-.2,.06,0); dp.add(barrel,disk); dp.position.set(-1.2,.08,-2.4); dp.rotation.y=.9; scene.add(dp);
 
   // столбы дыма на горизонте
@@ -299,7 +297,7 @@ function sceneField(){
     async looksAtWound(){ closeDlg(); const c=camera.position; const yawU=Math.atan2(-(unter.position.x-c.x),-(unter.position.z-c.z));
       const legYaw = yawU + .65; myLegs.visible=true; myLegs.position.set(c.x,0,c.z); myLegs.rotation.y = legYaw + Math.PI; myLegs.translateZ(.42);
       F.yawTo=legYaw; F.pitchTo=-.52; unter.lookAt(myLegs.position.x,0,myLegs.position.z); await gwait(3.0);
-      F.yawTo=yawU; F.pitchTo=.22; await gwait(1.2); unter.children.forEach(ch=>{ if(ch.geometry && ch.geometry.type==='SphereGeometry' && ch.position.y>1.7) ch.rotation.x=.35; }); await gwait(2.6); },
+      F.yawTo=yawU; F.pitchTo=.22; await gwait(1.2); unter.userData.head.rotation.x=.35; await gwait(2.6); },
     // молча откручивает флягу и поит; игрок глотает, пока не захлебнётся
     async flaskDrink(){ closeDlg(); unter.userData.armR.rotation.x=-1.3; flask.visible=true; F.flaskAt={x:.18,y:-.22,z:-.55,tilt:0};
       await gwait(.9); flask.userData.cap.visible=false; noiseBurst({dur:.08,freq:1800,q:2,gain:.2}); await gwait(.6);

@@ -21,7 +21,7 @@ function sceneDon(){
     const n=Math.sin(x*.09)*Math.cos(z*.07)+Math.sin(x*.31+z*.23)*.4;
     c.setHex(n>.7?0xb59f6e:(n<-.6?0x7d6a46:0x9d8858)); c.offsetHSL(0,0,rand(-.03,.03)); col.push(c.r,c.g,c.b); }
   gGeo.setAttribute('color',new THREE.Float32BufferAttribute(col,3)); gGeo.computeVertexNormals();
-  const ground = new THREE.Mesh(gGeo, new THREE.MeshLambertMaterial({vertexColors:true})); ground.receiveShadow=true; scene.add(ground);
+  const ground = new THREE.Mesh(gGeo, new THREE.MeshLambertMaterial({vertexColors:true, map:TEX('steppe.jpg',250)})); ground.receiveShadow=true; scene.add(ground);
   const tufts = new THREE.InstancedMesh(new THREE.ConeGeometry(.12,.45,4), M(0xa89058), 900); const dm=new THREE.Object3D();
   for(let i=0;i<900;i++){ dm.position.set(rand(-120,120),.18,rand(-140,220)); dm.rotation.set(rand(-.3,.3),rand(0,6),rand(-.3,.3)); dm.scale.setScalar(rand(.6,1.5)); dm.updateMatrix(); tufts.setMatrixAt(i,dm.matrix); }
   scene.add(tufts);
@@ -68,17 +68,14 @@ function sceneDon(){
   // ---------- место 1: разъезд и эшелон (далеко за рекой, z≈230) ----------
   const TRAIN_Z = 230;
   const train = new THREE.Group(); scene.add(train);
-  const loco=new THREE.Group();
-  const boiler=new THREE.Mesh(new THREE.CylinderGeometry(.85,.85,4.2,14),M(0x262422)); boiler.rotation.z=Math.PI/2; boiler.position.set(1.2,1.9,0);
-  const cab=new THREE.Mesh(new THREE.BoxGeometry(2,2.4,2.4),M(0x2c2a26)); cab.position.set(-1.6,2.1,0);
-  loco.add(boiler,cab); loco.position.x=20; train.add(shadowAll(loco));
-  for(let i=0;i<5;i++){ const w=new THREE.Mesh(new THREE.BoxGeometry(5.2,2.4,2.6),M(0x5a3426)); w.position.set(14-i*5.8,2,0); train.add(shadowAll(w)); }
+  const loco=makeLoco(); loco.rotation.y=Math.PI; loco.position.x=22; train.add(loco);
+  for(let i=0;i<5;i++){ const w=makeBoxcar(5.2); w.position.set(14-i*5.8,0,0); train.add(w); }
   train.position.set(0,0,TRAIN_Z);
   const rails=new THREE.Mesh(new THREE.BoxGeometry(300,.35,3),M(0x6e5e46)); rails.position.set(0,.17,TRAIN_Z); scene.add(rails);
   const SAFE = new THREE.Vector3(2.6,0,TRAIN_Z); // под вагоном
   const singer = makePerson({coat:KHAKI, hat:'pilotka'}); singer.position.set(-6,0,TRAIN_Z+3.5); scene.add(singer);
   const planes=[];
-  function makePlane(){ const g=new THREE.Group(); const b=new THREE.Mesh(new THREE.BoxGeometry(.9,.7,7),M(0x3a3c36)); const w=new THREE.Mesh(new THREE.BoxGeometry(11,.15,1.6),M(0x3a3c36)); w.position.z=.6; const t=new THREE.Mesh(new THREE.BoxGeometry(3.4,.12,.9),M(0x3a3c36)); t.position.z=-3; g.add(b,w,t); scene.add(g); return g; }
+  function makePlane(){ const g=makeDiveBomber(); scene.add(g); return g; }
 
   // ---------- место 2: окоп в степи (z≈0), бой идёт на север (−z) ----------
   const trench = new THREE.Mesh(new THREE.BoxGeometry(60,.06,1.6), M(0x3b2e1e)); trench.position.set(0,.03,0); scene.add(trench);
@@ -98,18 +95,14 @@ function sceneDon(){
   }
   let tank=null;
   function spawnTank(){
-    const g=new THREE.Group(); const hull=new THREE.Mesh(new THREE.BoxGeometry(3.2,1.2,5.6),M(0x55584e)); hull.position.y=.9;
-    const tur=new THREE.Mesh(new THREE.BoxGeometry(2,.8,2.2),M(0x4c4f46)); tur.position.set(0,1.85,-.3);
-    const gun=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,2.8,8),M(0x2a2a28)); gun.rotation.x=Math.PI/2; gun.position.set(0,1.9,2.2);
-    const tr1=new THREE.Mesh(new THREE.BoxGeometry(.6,.9,5.8),M(0x2e2e2a)); tr1.position.set(-1.6,.45,0); const tr2=tr1.clone(); tr2.position.x=1.6;
-    g.add(hull,tur,gun,tr1,tr2); g.position.set(rand(-8,8),0,-95); scene.add(shadowAll(g));
+    const g=makeTank('pz'); g.position.set(rand(-8,8),0,-95); scene.add(g);
     tank={g, alive:true, fireT:1, smokeT:0};
   }
 
   // ---------- место 3: переправа ночью (z≈120..160) ----------
   const river = new THREE.Mesh(new THREE.PlaneGeometry(400,40), new THREE.MeshPhongMaterial({color:0x2e3a40, shininess:60})); river.rotation.x=-Math.PI/2; river.position.set(0,.05,140); scene.add(river);
   const sand = new THREE.Mesh(new THREE.PlaneGeometry(400,10), M(0x8d7a58)); sand.rotation.x=-Math.PI/2; sand.position.set(0,.04,116); scene.add(sand);
-  const raft = new THREE.Group(); for(let i=0;i<5;i++){ const l=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,3.4,8),M(0x6a5236)); l.rotation.z=Math.PI/2; l.position.set(0,.18,i*.38-.76); raft.add(l); }
+  const raft = new THREE.Group(); for(let i=0;i<5;i++){ const l=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,3.4,8),MAT.logs(0x6a5236)); l.rotation.z=Math.PI/2; l.position.set(0,.18,i*.38-.76); raft.add(l); }
   raft.position.set(0,0,119.5); scene.add(shadowAll(raft));
   const lieutenant = makePerson({coat:0x6a6444, hat:'pilotka'}); lieutenant.rotation.set(-Math.PI/2,0,.3); lieutenant.position.set(-2.2,.25,115); scene.add(lieutenant);
   const dpGround = dp.clone(); dpGround.position.set(2.2,.1,115); dpGround.rotation.y=.6; scene.add(dpGround);
@@ -118,10 +111,7 @@ function sceneDon(){
 
   // ---------- кухня (для панелей), за окопом ----------
   const kitchen = new THREE.Group();
-  const cart=new THREE.Mesh(new THREE.BoxGeometry(1.6,1,2.4),M(0x4a3a2a)); cart.position.y=.9;
-  const pot=new THREE.Mesh(new THREE.CylinderGeometry(.6,.55,.8,14),M(0x2a2a28)); pot.position.y=1.7;
-  for(const s of [-1,1]){ const w=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.12,12),M(0x2e2418)); w.rotation.z=Math.PI/2; w.position.set(s*.85,.45,.4); kitchen.add(w); }
-  kitchen.add(cart,pot);
+  kitchen.add(makeFieldKitchen());
   for(let i=0;i<9;i++){ const b=new THREE.Mesh(new THREE.CylinderGeometry(.12,.1,.14,10),M(0x5a5a50)); b.position.set(-2+i*.5,.07,2.2); kitchen.add(b); }
   kitchen.position.set(-4,0,14); scene.add(shadowAll(kitchen));
 
@@ -511,7 +501,7 @@ function sceneDon(){
     // танк: ползёт, бьёт из пулемёта; у рубежа его поджигает ПТО
     if(tank && tank.alive){ tank.g.position.z+=1.5*dt; tank.fireT-=dt;
       if(tank.fireT<=0){ tank.fireT=rand(.15,.3); tracer(tmp.copy(tank.g.position).setY(1.9), tmp2.set(rand(-8,8),.6,rand(-2,1)), enemyTracerM); if(Math.random()<.04) playerHit(5); }
-      if(tank.g.position.z>-30){ tank.alive=false; explode(tank.g.position.x, tank.g.position.z, 1.6); tank.g.children.forEach(m=>m.material=M(0x1e1c1a)); bark('Колесников','Горит! Сорокапятка его взяла!','ru'); } }
+      if(tank.g.position.z>-30){ tank.alive=false; explode(tank.g.position.x, tank.g.position.z, 1.6); const burnt=M(0x1e1c1a); tank.g.traverse(m=>{ if(m.isMesh) m.material=burnt; }); bark('Колесников','Горит! Сорокапятка его взяла!','ru'); } }
     if(tank && !tank.alive){ tank.smokeT-=dt; if(tank.smokeT<=0){ tank.smokeT=.25; puff(tmp.copy(tank.g.position).setY(2.2), smokeTex, 2.5, 3, 2, 2.5); } }
     // артиллерия
     S.artT-=dt; if(S.artT<=0){ S.artT=rand(1.8,3.6); let x,z; do{ x=rand(-26,26); z=rand(-22,10); }while(Math.hypot(x,z)<3.5);

@@ -47,8 +47,8 @@ function sceneCity(){
   const KHAKI = 0x857a52, FELD = 0x5a5e4a;
   function lying(coat, hat, faceUp=false){
     const w=new THREE.Group(), p=makePerson({coat, hat});
-    if(faceUp){ p.rotation.x=-Math.PI/2; p.position.set(0,.3,0); }      // ноги у начала обёртки, голова назад (−z)
-    else { p.rotation.x=Math.PI/2; p.position.set(0,.3,-.9); }          // ничком, голова вперёд (+z)
+    if(faceUp){ p.rotation.x=-Math.PI/2; p.position.set(0,.16,0); }      // ноги у начала обёртки, голова назад (−z)
+    else { p.rotation.x=Math.PI/2; p.position.set(0,.16,-.9); }          // ничком, голова вперёд (+z)
     w.add(p); w.userData.p=p; scene.add(w); return w;
   }
   function crawlAnim(w, moving, t){ const u=w.userData.p.userData, s = moving ? Math.sin(t*7) : 0;
@@ -61,8 +61,8 @@ function sceneCity(){
     for(let i=0;i<pos.count;i++){ const x=pos.getX(i), z=pos.getZ(i); const n=Math.sin(x*.23)*Math.cos(z*.19)+Math.sin(x*.07-z*.13)*.7;
       c.setHex(n>1.05?0x8c8e92:(n>.4?0x3c3732:(n<-.7?0x221f1c:0x2e2a26))); c.offsetHSL(0,0,rand(-.02,.02)); col.push(c.r,c.g,c.b); pos.setY(i, Math.sin(x*.4)*Math.cos(z*.3)*.12); }
     gGeo.setAttribute('color', new THREE.Float32BufferAttribute(col,3)); gGeo.computeVertexNormals(); }
-  const ground = new THREE.Mesh(gGeo, new THREE.MeshLambertMaterial({vertexColors:true})); ground.receiveShadow=true; scene.add(ground);
-  const brickM = M(0x5e4c40), plasterM = M(0x77706a), rubbleM = M(0x4a443e), sootM = M(0x24201c);
+  const ground = new THREE.Mesh(gGeo, new THREE.MeshLambertMaterial({vertexColors:true, map:TEX('mud.jpg',50)})); ground.receiveShadow=true; scene.add(ground);
+  const brickM = MAT.brick(0x6e5a4c,2), plasterM = MAT.plaster(0x77706a,2), rubbleM = MAT.brick(0x4a443e), sootM = MAT.brick(0x24201c,2);
   const walls=[], rubble=[], chimneys=[];
   // разрушенный дом: стены разбиты на куски с рваным верхом, часть кусков выбита
   function ruin(x,z,w,d){
@@ -80,8 +80,7 @@ function sceneCity(){
   [[0,28,1.6],[-2,18,1.4],[3,8,1.8],[-1,-4,1.5],[4,-13,1.6],[-2,-24,1.4],[5.5,-31,1.2],[-4,-31.5,1.3],[1.5,16,1.1],[-4,-8,1.2],[2,-20,1]].forEach(([x,z,r])=>{
     const b=new THREE.Mesh(new THREE.DodecahedronGeometry(r,0), rubbleM); b.scale.set(1.2,.5,1); b.position.set(x,.1,z); b.rotation.y=rand(0,3); scene.add(shadowAll(b)); rubble.push({x,z,r:r*1.2}); });
   // сгоревший танк
-  { const tk=new THREE.Group(); const hull=new THREE.Mesh(new THREE.BoxGeometry(3.2,1.1,5.6),sootM); hull.position.y=.75; const tur=new THREE.Mesh(new THREE.CylinderGeometry(1,1.1,.7,8),sootM); tur.position.set(0,1.6,-.3);
-    const gun=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,3,6),sootM); gun.rotation.x=Math.PI/2-.25; gun.position.set(0,1.75,1.6); tk.add(hull,tur,gun); tk.position.set(-6,0,-5); tk.rotation.y=.6; scene.add(shadowAll(tk)); walls.push({x:-6,z:-5,hw:2.2,hd:2.2}); }
+  { const tk=makeTank('t34'); tk.traverse(m=>{ if(m.isMesh) m.material=sootM; }); tk.userData.turret.rotation.y=.5; tk.userData.turret.rotation.x=-.05; tk.position.set(-6,0,-5); tk.rotation.y=.6; scene.add(tk); walls.push({x:-6,z:-5,hw:2.2,hd:2.2}); }
   // свой окоп (юг) и немецкий пост (север)
   const trench=new THREE.Mesh(new THREE.BoxGeometry(60,.06,2.2),M(0x14110e)); trench.position.set(0,.04,36); scene.add(trench);
   for(let i=0;i<30;i++){ const sb=new THREE.Mesh(new THREE.BoxGeometry(.9,.35,.5),M(0x4e463a)); sb.position.set(-28+i*1.95,.18,34.6); scene.add(shadowAll(sb)); }
@@ -103,14 +102,13 @@ function sceneCity(){
   // ================= МЕСТО 2: блиндаж (x = −200) =================
   const DG = new THREE.Vector3(-200,0,0);
   const dugout = new THREE.Group(); dugout.position.copy(DG); scene.add(dugout);
-  { const logM=M(0x4a3626), earthM=M(0x2a2018);
+  { const logM=MAT.logs(0x4a3626), earthM=MT(0x2a2018,'mud.jpg',3);
     const floor=new THREE.Mesh(new THREE.PlaneGeometry(6,6),earthM); floor.rotation.x=-Math.PI/2; dugout.add(floor);
     for(let i=0;i<7;i++){ const lg=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,6,7),logM); lg.rotation.z=Math.PI/2; lg.position.set(0,.15+i*.29,-2.4); dugout.add(lg); }
     for(let i=0;i<7;i++) for(const sx of [-2.6,2.6]){ const lg=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,5,7),logM); lg.rotation.x=Math.PI/2; lg.position.set(sx,.15+i*.29,0); dugout.add(lg); }
     for(let i=0;i<14;i++){ const lg=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,5.4,7),logM); lg.rotation.x=Math.PI/2; lg.position.set(-2.6+i*.4,2.15,0); dugout.add(lg); }
-    const table=new THREE.Mesh(new THREE.BoxGeometry(1.5,.08,.75),M(0x5a4430)); table.position.set(0,.78,-1.35); dugout.add(table);
-    for(const [lx,lz] of [[-.65,-1.65],[.65,-1.65],[-.65,-1.05],[.65,-1.05]]){ const lgg=new THREE.Mesh(new THREE.BoxGeometry(.06,.78,.06),M(0x3a2c1e)); lgg.position.set(lx,.39,lz); dugout.add(lgg); }
-    const bench=new THREE.Mesh(new THREE.BoxGeometry(1.4,.08,.35),M(0x4a3826)); bench.position.set(0,.45,-.55); dugout.add(bench);
+    const table=makeTable(1.5,.75,.82); table.position.set(0,0,-1.35); dugout.add(table);
+    const bench=makeBench(1.4,.45); bench.position.set(0,0,-.55); dugout.add(bench);
     const bunk=new THREE.Mesh(new THREE.BoxGeometry(1,.12,2.2),M(0x4a3826)); bunk.position.set(2,.5,.2); dugout.add(bunk);
     const coat=new THREE.Mesh(new THREE.BoxGeometry(.5,1.1,.12),M(0x5a5238)); coat.position.set(-1.6,1.4,-2.25); dugout.add(coat);
     for(let i=0;i<2;i++){ const rf=new THREE.Mesh(new THREE.BoxGeometry(.06,1.3,.08),M(0x3a2a1a)); rf.position.set(-2.35+i*.18,.65,-1.8); rf.rotation.z=.18; dugout.add(rf); }
@@ -129,9 +127,9 @@ function sceneCity(){
 
   // ================= МЕСТО 3: аул зимой (x = −400), для панелей =================
   const HM = new THREE.Vector3(-400,0,0);
-  { const sn=new THREE.Mesh(new THREE.PlaneGeometry(80,80),M(0xd8d6d0)); sn.rotation.x=-Math.PI/2; sn.position.copy(HM); scene.add(sn);
-    const hw=new THREE.Mesh(new THREE.BoxGeometry(7,2.8,5),M(0xb39a74)); hw.position.set(HM.x,1.4,HM.z-3); const hr=new THREE.Mesh(new THREE.BoxGeometry(7.6,.4,5.6),M(0xe2e0da)); hr.position.set(HM.x,3,HM.z-3);
-    const dr=new THREE.Mesh(new THREE.BoxGeometry(1,1.9,.1),M(0x3a2c1e)); dr.position.set(HM.x+1.2,.95,HM.z-.47); scene.add(shadowAll(hw),hr,dr); }
+  { const sn=new THREE.Mesh(new THREE.PlaneGeometry(80,80),MT(0xd8d6d0,'snow.jpg',30)); sn.rotation.x=-Math.PI/2; sn.position.copy(HM); scene.add(sn);
+    const hw=makeAdobeHouse(7,5,{h:2.8,wall:0xb39a74}); hw.position.set(HM.x,0,HM.z-3); scene.add(hw);
+    const hr=new THREE.Mesh(new THREE.BoxGeometry(7.7,.32,5.8),MT(0xe2e0da,'snow.jpg',2)); hr.position.set(HM.x,3.12,HM.z-3); scene.add(hr); }
   const mother = makePerson({coat:0x3a3028, hat:'scarf', scarf:0x8a3a2a, scale:.92}); mother.position.set(HM.x+.4,0,HM.z+.3); scene.add(mother);
   const kulashH = makePerson({coat:0x7a6a50, hat:'scarf', scale:.7}); kulashH.position.set(HM.x+1.3,0,HM.z+.5); kulashH.rotation.y=-.6; scene.add(kulashH);
   // письмо в руках матери: лист с серыми строчками и чёрными полосами цензуры
@@ -145,7 +143,7 @@ function sceneCity(){
 
   // ================= МЕСТО 4: пленные на снегу (x = +300) =================
   const PR = new THREE.Vector3(300,0,0);
-  { const sn=new THREE.Mesh(new THREE.PlaneGeometry(160,120,40,30),M(0xdfe0e2)); sn.rotation.x=-Math.PI/2; sn.position.copy(PR); scene.add(sn); sn.receiveShadow=true;
+  { const sn=new THREE.Mesh(new THREE.PlaneGeometry(160,120,40,30),MT(0xdfe0e2,'snow.jpg',60)); sn.rotation.x=-Math.PI/2; sn.position.copy(PR); scene.add(sn); sn.receiveShadow=true;
     // развалины вдали, в морозной дымке
     for(let i=0;i<14;i++){ const h=rand(3,10); const r=new THREE.Mesh(new THREE.BoxGeometry(rand(2,6),h,rand(1,3)),M(0x8a8c8e)); r.position.set(PR.x-40+i*6.5+rand(-2,2),h/2,PR.z-26-rand(0,10)); scene.add(r); }
     for(let i=0;i<5;i++){ const h=rand(4,6); const c=new THREE.Mesh(new THREE.BoxGeometry(.6,h,.6),M(0x6e7072)); c.position.set(PR.x-18+i*9,h/2,PR.z-14-rand(0,4)); scene.add(c); } }

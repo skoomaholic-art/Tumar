@@ -13,23 +13,19 @@ function sceneCamp(){
   scene.add(sun, sun.target);
 
   // ---------- сборный пункт у разбитой МТС ----------
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(400,400), M(0x8a7b5c)); ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
-  const dirt = new THREE.Mesh(new THREE.CircleGeometry(14,24), M(0x7a6a4c)); dirt.rotation.x=-Math.PI/2; dirt.position.y=.01; scene.add(dirt);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(400,400), MT(0x8a7b5c,'steppe.jpg',150)); ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
+  const dirt = new THREE.Mesh(new THREE.CircleGeometry(14,24), MT(0x7a6a4c,'mud.jpg',8)); dirt.rotation.x=-Math.PI/2; dirt.position.y=.01; scene.add(dirt);
   // кирпичные стены мастерской МТС — без крыши, с проломами
-  const brick = M(0x8e5a42), brickD = M(0x6e4434);
+  const brick = MAT.brick(0x8e5a42,2), brickD = MAT.brick(0x6e4434,2);
   [[-9,-7,10,3.4,.5],[-14,-2,.5,2.8,10],[-4.5,-7,1.2,1.6,.5],[3,-7.5,6,2.2,.5]].forEach(([x,z,w,h,d],i)=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), i%2?brickD:brick); b.position.set(x,h/2,z); scene.add(shadowAll(b)); });
   // сгоревший трактор
-  const tractor = new THREE.Group(); const tb=new THREE.Mesh(new THREE.BoxGeometry(2.4,1.2,1.4),M(0x2a2622)); tb.position.y=1.1;
-  const tw1=new THREE.Mesh(new THREE.CylinderGeometry(.9,.9,.3,10),M(0x1c1a18)); tw1.rotation.x=Math.PI/2; tw1.position.set(-.8,.9,.8); const tw2=tw1.clone(); tw2.position.z=-.8;
-  tractor.add(tb,tw1,tw2); tractor.position.set(-10,0,-3.5); tractor.rotation.y=.4; scene.add(shadowAll(tractor));
+  const tractor = makeTractor(); tractor.traverse(m=>{ if(m.isMesh) m.material=M(0x2a2622); }); tractor.position.set(-10,0,-3.5); tractor.rotation.y=.4; scene.add(tractor);
   // вышка
-  const tower = new THREE.Group(); for(const [x,z] of [[-.8,-.8],[.8,-.8],[-.8,.8],[.8,.8]]){ const l=new THREE.Mesh(new THREE.BoxGeometry(.15,5,.15),M(0x4a3a2a)); l.position.set(x,2.5,z); tower.add(l); }
-  const tp=new THREE.Mesh(new THREE.BoxGeometry(2.2,.2,2.2),M(0x4a3a2a)); tp.position.y=5; const tr=new THREE.Mesh(new THREE.ConeGeometry(1.8,1,4),M(0x3a2e22)); tr.position.y=6.1; tr.rotation.y=Math.PI/4;
-  tower.add(tp,tr); tower.position.set(-11,0,8); scene.add(shadowAll(tower));
+  const tower = makeWatchTower(5); tower.position.set(-11,0,8); scene.add(tower);
   // колючая проволока: столбы и нити — между камерой и строем
   const wireM = new THREE.LineBasicMaterial({color:0x2a2420});
   function fence(x0,z0,x1,z1){ const n=Math.max(2,Math.round(Math.hypot(x1-x0,z1-z0)/2.6));
-    for(let i=0;i<=n;i++){ const p=new THREE.Mesh(new THREE.BoxGeometry(.1,1.9,.1),M(0x3e3226)); p.position.set(lerp(x0,x1,i/n),.95,lerp(z0,z1,i/n)); p.rotation.z=rand(-.05,.05); scene.add(shadowAll(p)); }
+    for(let i=0;i<=n;i++){ const p=new THREE.Mesh(new THREE.BoxGeometry(.1,1.9,.1),MAT.wood(0x3e3226)); p.position.set(lerp(x0,x1,i/n),.95,lerp(z0,z1,i/n)); p.rotation.z=rand(-.05,.05); scene.add(shadowAll(p)); }
     for(const y of [.4,.8,1.2,1.6]){ const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x0,y,z0), new THREE.Vector3(x1,y+rand(-.05,.05),z1)]); scene.add(new THREE.Line(g,wireM)); } }
   fence(-16,6,16,6); fence(-16,-9,-16,6); fence(16,-9,16,6);
 
@@ -48,18 +44,18 @@ function sceneCamp(){
   // ---------- палатка умирающих (в стороне, x≈100) ----------
   const TX=100;
   const tent = new THREE.Group(); scene.add(tent);
-  const canvasM = new THREE.MeshLambertMaterial({color:0x9e9478, side:THREE.BackSide});
+  const canvasM = MT(0x9e9478,'cloth.jpg',6,{side:THREE.BackSide});
   const tentBox = new THREE.Mesh(new THREE.BoxGeometry(16,3,7.4), canvasM); tentBox.position.set(TX,1.5,0); tent.add(tentBox);
-  const straw = new THREE.Mesh(new THREE.PlaneGeometry(15.8,7.2), M(0x8c7a4a)); straw.rotation.x=-Math.PI/2; straw.position.set(TX,.02,0); tent.add(straw);
+  const straw = new THREE.Mesh(new THREE.PlaneGeometry(15.8,7.2), MAT.hay(0x8c7a4a,6)); straw.rotation.x=-Math.PI/2; straw.position.set(TX,.02,0); tent.add(straw);
   // конёк и растяжки: передний план для съёмки сверху
   const ridge = new THREE.Mesh(new THREE.BoxGeometry(16,.14,.14), M(0x4a3a2a)); ridge.position.set(TX,3.6,0); tent.add(ridge);
   for(const x of [-6,-2,2,6]){ const pole=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,3.6,6),M(0x4a3a2a)); pole.position.set(TX+x,1.8,0); tent.add(pole); }
   const lying=[];
   for(let i=0;i<8;i++) for(const side of [-1,1]){ const x=TX-7+i*1.9+rand(-.2,.2); if(side<0 && i===3) continue;
     const p=makePerson({coat:coats[(i+side+2)%coats.length], hat:'none'}); p.rotation.x=-Math.PI/2; if(side>0) p.rotation.y=Math.PI;
-    p.position.set(x, .2, side*-.7); p.userData.armL.rotation.z=rand(-.4,.2); tent.add(p); lying.push(p); }
+    p.position.set(x, .14, side*-.7); p.userData.armL.rotation.z=rand(-.4,.2); tent.add(p); lying.push(p); }
   // Асан — в ряду у стены
-  const asanT = makePerson({coat:0x5c5a3a, hat:'none'}); asanT.rotation.x=-Math.PI/2; asanT.position.set(TX-7+3*1.9,.2,.7); tent.add(asanT);
+  const asanT = makePerson({coat:0x5c5a3a, hat:'none'}); asanT.rotation.x=-Math.PI/2; asanT.position.set(TX-7+3*1.9,.14,.7); tent.add(asanT);
   const tumar = new THREE.Mesh(new THREE.ConeGeometry(.08,.14,3), new THREE.MeshLambertMaterial({color:0x8e1f1a, emissive:0x3a0806})); tumar.rotation.x=Math.PI/2; tumar.position.set(0,1.45,.26); asanT.add(tumar);
   const bandage = new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.22,8), M(0xd8d0bc)); bandage.position.set(-.12,.45,0); asanT.add(bandage);
   // сосед сидит рядом: капает воду с тряпки

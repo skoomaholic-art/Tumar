@@ -16,27 +16,22 @@ function sceneStalag(){
   const sitDown = p => { p.position.y=-.45; p.userData.legL.rotation.x=p.userData.legR.rotation.x=-1.45; return p; };
 
   // ---------- лагерь (в начале координат) ----------
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(300,300), M(0x5a5446)); ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
-  const plac = new THREE.Mesh(new THREE.PlaneGeometry(34,10), M(0x6a6252)); plac.rotation.x=-Math.PI/2; plac.position.set(0,.01,0); scene.add(plac);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(300,300), MT(0x5a5446,'mud.jpg',100)); ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
+  const plac = new THREE.Mesh(new THREE.PlaneGeometry(34,10), MT(0x6a6252,'mud.jpg',[17,5][0])); plac.rotation.x=-Math.PI/2; plac.position.set(0,.01,0); scene.add(plac);
   // лужи — светлые пятна неба в грязи
   for(let i=0;i<14;i++){ const pd=new THREE.Mesh(new THREE.CircleGeometry(rand(.4,1.3),10), M(0x9a968a)); pd.rotation.x=-Math.PI/2; pd.position.set(rand(-22,22),.015,rand(-14,16)); pd.scale.y=rand(.4,.8); scene.add(pd); }
   const barrM=M(0x4a4236), roofM=M(0x2e2a24);
   for(const z of [-10,10]) for(const x of [-14,0,14]){
-    const b=new THREE.Mesh(new THREE.BoxGeometry(11,2.6,4.6), barrM); b.position.set(x,1.3,z);
-    const r=new THREE.Mesh(new THREE.CylinderGeometry(.01,3.4,1.3,4,1), roofM); r.rotation.y=Math.PI/4; r.scale.set(1.62,1,.68); r.position.set(x,3.25,z);
-    const dr=new THREE.Mesh(new THREE.BoxGeometry(1,1.8,.06), M(0x221e18)); dr.position.set(x+3.5,.9,z+(z<0?2.32:-2.32));
-    scene.add(shadowAll(b), shadowAll(r), dr);
+    const b=makeBarrack(11,4.6,{wall:0x4a4236}); b.position.set(x,0,z); b.rotation.y = z<0 ? 0 : Math.PI; scene.add(b);
+    const dr=new THREE.Mesh(new THREE.BoxGeometry(1,1.8,.06), MAT.wood(0x221e18)); dr.position.set(x+3.5,.9,z+(z<0?2.33:-2.33)); scene.add(dr);
   }
   const wireM = new THREE.LineBasicMaterial({color:0x221e1a});
   function fence(x0,z0,x1,z1){ const n=Math.max(2,Math.round(Math.hypot(x1-x0,z1-z0)/3));
-    for(let i=0;i<=n;i++){ const p=new THREE.Mesh(new THREE.BoxGeometry(.12,2.4,.12),M(0x3a3028)); p.position.set(lerp(x0,x1,i/n),1.2,lerp(z0,z1,i/n)); p.rotation.z=rand(-.04,.04); scene.add(shadowAll(p)); }
+    for(let i=0;i<=n;i++){ const p=new THREE.Mesh(new THREE.BoxGeometry(.12,2.4,.12),MAT.wood(0x3a3028)); p.position.set(lerp(x0,x1,i/n),1.2,lerp(z0,z1,i/n)); p.rotation.z=rand(-.04,.04); scene.add(shadowAll(p)); }
     for(const y of [.35,.8,1.25,1.7,2.15]){ const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x0,y,z0), new THREE.Vector3(x1,y+rand(-.06,.06),z1)]); scene.add(new THREE.Line(g,wireM)); } }
   fence(-25,-17,25,-17); fence(-25,18,25,18); fence(-25,-17,-25,18); fence(25,-17,25,18);
   fence(-26.5,-18.5,26.5,-18.5); fence(-26.5,19.5,26.5,19.5);
-  function tower(x,z){ const t=new THREE.Group();
-    for(const [a,b] of [[-.8,-.8],[.8,-.8],[-.8,.8],[.8,.8]]){ const l=new THREE.Mesh(new THREE.BoxGeometry(.16,6,.16),M(0x3a2e24)); l.position.set(a,3,b); t.add(l); }
-    const pl=new THREE.Mesh(new THREE.BoxGeometry(2.4,1,2.4),M(0x3a2e24)); pl.position.y=6.4; const rf=new THREE.Mesh(new THREE.ConeGeometry(2,1,4),M(0x2a221c)); rf.position.y=7.4; rf.rotation.y=Math.PI/4;
-    t.add(pl,rf); t.position.set(x,0,z); scene.add(shadowAll(t)); }
+  function tower(x,z){ const t=makeWatchTower(6); t.position.set(x,0,z); scene.add(t); }
   tower(-25,-17); tower(25,-17); tower(-25,18); tower(25,18);
   // ворота
   const gate1=new THREE.Mesh(new THREE.BoxGeometry(.3,3.4,.3),M(0x3a2e24)); gate1.position.set(-2,1.7,18); const gate2=gate1.clone(); gate2.position.x=2; scene.add(gate1,gate2); const gate3=gate1.clone(); gate3.position.set(-2,1.7,-17); const gate4=gate1.clone(); gate4.position.set(2,1.7,-17); scene.add(gate3,gate4);
@@ -52,7 +47,7 @@ function sceneStalag(){
   const asan = makePerson({coat:0x5c5a3a, hat:'none'}); asan.position.set(-3,0,6.6); scene.add(asan);
   const tumar = new THREE.Mesh(new THREE.ConeGeometry(.08,.14,3), new THREE.MeshLambertMaterial({color:0x8e1f1a, emissive:0x3a0806})); tumar.rotation.x=Math.PI/2; tumar.position.set(0,1.45,.26); asan.add(tumar); tumar.visible=!memory.flags.tumarTaken;
   // во дворе лежит умерший ночью; мимо ходят, не глядя. Сапог на нём уже нет
-  const yardDead = makePerson({coat:0x55523e, hat:'none'}); yardDead.rotation.set(-Math.PI/2,0,.25); yardDead.position.set(4.5,.22,3.2); yardDead.userData.legL.material=yardDead.userData.legR.material=M(0x9a8a76); scene.add(yardDead);
+  const yardDead = makePerson({coat:0x55523e, hat:'none'}); yardDead.rotation.set(-Math.PI/2,0,.25); yardDead.position.set(4.5,.14,3.2); yardDead.userData.legL.material=yardDead.userData.legR.material=M(0x9a8a76); scene.add(yardDead);
   const rings=new THREE.Group(); for(let i=0;i<3;i++){ const r=new THREE.Mesh(new THREE.TorusGeometry(.035,.012,6,10),new THREE.MeshLambertMaterial({color:0xa0703a, emissive:0x000000})); r.position.set(i*.09-.09,0,0); r.rotation.x=Math.PI/2; rings.add(r); }
   rings.position.set(0,-.4,.12); asan.userData.armR.add(rings); rings.visible=false;
   const gab = makePerson({coat:0x3a3228, hat:'borik', beard:true}); gab.position.set(-4.1,0,6.9); scene.add(gab);
@@ -86,10 +81,10 @@ function sceneStalag(){
   // ---------- барак изнутри (x=-200) ----------
   const BX=-200;
   const bar=new THREE.Group(); scene.add(bar);
-  const bFloor=new THREE.Mesh(new THREE.PlaneGeometry(16,6), M(0x3a3024)); bFloor.rotation.x=-Math.PI/2; bFloor.position.set(BX,.01,0); bar.add(bFloor);
-  for(const z of [-3,3]){ const w=new THREE.Mesh(new THREE.BoxGeometry(16,2.6,.2),M(0x4a4030)); w.position.set(BX,1.3,z); bar.add(w); }
-  for(const x of [-8,8]){ const w=new THREE.Mesh(new THREE.BoxGeometry(.2,2.6,6),M(0x4a4030)); w.position.set(BX+x,1.3,0); bar.add(w); }
-  const bunkM=M(0x5a4a36), strawM=M(0x7a6a44);
+  const bFloor=new THREE.Mesh(new THREE.PlaneGeometry(16,6), MAT.wood(0x3a3024,4)); bFloor.rotation.x=-Math.PI/2; bFloor.position.set(BX,.01,0); bar.add(bFloor);
+  for(const z of [-3,3]){ const w=new THREE.Mesh(new THREE.BoxGeometry(16,2.6,.2),MAT.wood(0x4a4030,4)); w.position.set(BX,1.3,z); bar.add(w); }
+  for(const x of [-8,8]){ const w=new THREE.Mesh(new THREE.BoxGeometry(.2,2.6,6),MAT.wood(0x4a4030,2)); w.position.set(BX+x,1.3,0); bar.add(w); }
+  const bunkM=MAT.wood(0x5a4a36), strawM=MAT.hay(0x7a6a44);
   for(const side of [-1,1]) for(let i=0;i<6;i++){ const x=BX-6.6+i*2.3; if(Math.abs(i-2.5)<.6) continue;
     for(let lv=0;lv<3;lv++){ const s=new THREE.Mesh(new THREE.BoxGeometry(2.1,.08,1.7),bunkM); s.position.set(x,.35+lv*.75,side*2.05); const st=new THREE.Mesh(new THREE.BoxGeometry(2,.06,1.6),strawM); st.position.set(x,.42+lv*.75,side*2.05); bar.add(s,st); }
     for(const dx of [-1.02,1.02]){ const post=new THREE.Mesh(new THREE.BoxGeometry(.1,2.2,.1),bunkM); post.position.set(x+dx,1.1,side*1.24); bar.add(post); } }
@@ -115,9 +110,9 @@ function sceneStalag(){
   // ---------- канцелярия (x=300) ----------
   const OX=300;
   const office=new THREE.Group(); scene.add(office);
-  const oRoom=new THREE.Mesh(new THREE.BoxGeometry(7,3,6),new THREE.MeshLambertMaterial({color:0x4a4234, side:THREE.BackSide})); oRoom.position.set(OX,1.5,0); office.add(oRoom);
-  const table=new THREE.Mesh(new THREE.BoxGeometry(1.8,.08,1),M(0x3a2a1c)); table.position.set(OX,.8,0); office.add(table);
-  for(const [a,b] of [[-.8,-.42],[.8,-.42],[-.8,.42],[.8,.42]]){ const l=new THREE.Mesh(new THREE.BoxGeometry(.07,.8,.07),M(0x3a2a1c)); l.position.set(OX+a,.4,b); office.add(l); }
+  const oRoom=new THREE.Mesh(new THREE.BoxGeometry(7,3,6),MT(0x4a4234,'plaster.jpg',2,{side:THREE.BackSide})); oRoom.position.set(OX,1.5,0); office.add(oRoom);
+  const table=makeTable(1.8,1,.84,{col:0x3a2a1c}); table.position.set(OX,0,0); office.add(table);
+  for(const z of [-.85,.85]){ const ch=makeChair(); ch.position.set(OX,0,z); ch.rotation.y = z<0 ? Math.PI : 0; office.add(ch); }
   const lamp=new THREE.Mesh(new THREE.ConeGeometry(.22,.2,10,1,true),M(0x2a2a24,{side:THREE.DoubleSide})); lamp.position.set(OX,2.1,0); office.add(lamp);
   const cord=new THREE.Mesh(new THREE.BoxGeometry(.02,.9,.02),M(0x111111)); cord.position.set(OX,2.6,0); office.add(cord);
   const bulb=new THREE.PointLight(0xffd8a0,1.5,6,1.6); bulb.position.set(OX,1.9,0); office.add(bulb);

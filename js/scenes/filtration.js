@@ -25,16 +25,15 @@ function sceneFiltration(){
   memory.flags.ruFluent = true; // речь понимает; читать по-русски так и не научился
 
   // ---------- мост через Энс (вдоль оси x, река по z) ----------
-  const ground=new THREE.Mesh(new THREE.PlaneGeometry(400,400),M(0x8a8858)); ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(400,400),MT(0x8a8858,'steppe.jpg',150)); ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
   const river=new THREE.Mesh(new THREE.PlaneGeometry(26,400),M(0x5e6e74)); river.rotation.x=-Math.PI/2; river.position.set(0,.03,0); scene.add(river);
-  const deck=box(40,.4,4,0x6a6256,0,1.6,0);
-  for(const z of [-2.1,2.1]){ box(40,.5,.15,0x4a443c,0,2.1,z); for(let i=0;i<9;i++) box(.18,1.6,.18,0x4a443c,-16+i*4,.8,z); }
+  const deck=makeBridge(40,5,1.8,{kind:'stone',col:0x8a867c}); scene.add(deck);
   const bar1=box(.15,1.2,.15,0x3a3630,0,2.4,-1.9), barArm=box(.12,.12,3.6,0xc8382e,0,2.9,0);
   for(let i=0;i<5;i++) box(.13,.13,.6,0xf0ece0,0,2.9,-1.5+i*.75);
-  const truck=new THREE.Group(); { const c=new THREE.Mesh(new THREE.BoxGeometry(2.4,2,2.4),M(0x4e5638)); c.position.set(1.2,1.4,0); const bed=new THREE.Mesh(new THREE.BoxGeometry(4,1.2,2.4),M(0x5a6240)); bed.position.set(-2,1,0); truck.add(c,bed);
+  const truck=new THREE.Group(); { const tk=makeTruck({col:0x4e5638}); tk.rotation.y=Math.PI/2; truck.add(tk);
     const flag=new THREE.Mesh(new THREE.PlaneGeometry(1.1,.7),new THREE.MeshLambertMaterial({color:0xb02a22,side:THREE.DoubleSide})); flag.position.set(1.2,3.2,.6); truck.add(flag); truck.userData.flag=flag;
     const pole=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1.4,4),M(0x2a2018)); pole.position.set(.7,2.9,.6); truck.add(pole); }
-  truck.position.set(26,0,4); scene.add(shadowAll(truck));
+  truck.position.set(26,0,4); scene.add(truck);
   const asan=makePerson({coat:0x5c5a3a, hat:'none'}); asan.position.set(-18,1.8,.4); asan.rotation.y=Math.PI/2; scene.add(shadowAll(asan));
   const column=[]; for(let i=0;i<14;i++){ const p=makePerson({coat:[0x5c5a3a,0x4e4c34,0x6a6244,0x55503a][i%4], hat:i%3?'none':'pilotka'}); p.position.set(-22+ (i/2|0)*-1.6, 1.8, i%2?-.8:.9); p.rotation.y=Math.PI/2; scene.add(shadowAll(p)); column.push(p); }
   const usGuard=makePerson({coat:0x6a6a48, hat:'helmet'}); usGuard.position.set(-1.2,1.8,-1.5); usGuard.rotation.y=Math.PI/2; scene.add(usGuard);
@@ -43,10 +42,10 @@ function sceneFiltration(){
 
   // ---------- лагерь проверки: справа от моста ----------
   const CX=80;
-  const yard=new THREE.Mesh(new THREE.PlaneGeometry(40,26),M(0x6e6a58)); yard.rotation.x=-Math.PI/2; yard.position.set(CX,.02,0); scene.add(yard);
+  const yard=new THREE.Mesh(new THREE.PlaneGeometry(40,26),MT(0x6e6a58,'mud.jpg',10)); yard.rotation.x=-Math.PI/2; yard.position.set(CX,.02,0); scene.add(yard);
   for(const z of [-12,12]){ for(let i=0;i<11;i++) box(.12,2.6,.12,0x3a3028,CX-20+i*4,1.3,z); for(const y of [.6,1.2,1.8,2.4]) box(40,.03,.03,0x2a2622,CX,y,z); }
-  for(const x of [-18,18]){ const t=new THREE.Group(); for(const [a,b] of [[-.7,-.7],[.7,-.7],[-.7,.7],[.7,.7]]){ const l=new THREE.Mesh(new THREE.BoxGeometry(.14,5.4,.14),M(0x3a2e24)); l.position.set(a,2.7,b); t.add(l); } const pl=new THREE.Mesh(new THREE.BoxGeometry(2.2,.9,2.2),M(0x3a2e24)); pl.position.y=5.8; t.add(pl); t.position.set(CX+x,0,-13); scene.add(shadowAll(t)); }
-  for(const [x,z] of [[-8,-5],[8,-5],[-8,6],[8,6]]) box(10,2.6,4.2,0x5e564a,CX+x,1.3,z);
+  for(const x of [-18,18]){ const t=makeWatchTower(5.4); t.position.set(CX+x,0,-13); scene.add(t); }
+  for(const [x,z] of [[-8,-5],[8,-5],[-8,6],[8,6]]){ const b=makeBarrack(10,4.2,{wall:0x5e564a}); b.position.set(CX+x,0,z); scene.add(b); }
   const redFlag=new THREE.Mesh(new THREE.PlaneGeometry(1.6,1),new THREE.MeshLambertMaterial({color:0xb02a22,side:THREE.DoubleSide})); redFlag.position.set(CX,6,-12.5); scene.add(redFlag); box(.08,6,.08,0x2a2018,CX-.85,3,-12.5);
   const camp=[]; for(let i=0;i<20;i++){ const p=makePerson({coat:[0x5c5a3a,0x4e4c34,0x6a6244,0x55503a,0x4a4e52][i%5], hat:i%4?'none':'pilotka'}); p.position.set(CX+rand(-14,14),0,rand(-2,3)); p.rotation.y=rand(0,6); scene.add(p); camp.push(p); if(i%3===0){ p.position.y=-.45; p.userData.legL.rotation.x=p.userData.legR.rotation.x=-1.45; } }
   const sparkL=new THREE.PointLight(0xbfe0ff,0,6,2); sparkL.position.set(CX-20,2.4,12); scene.add(sparkL);
@@ -54,12 +53,13 @@ function sceneFiltration(){
 
   // ---------- комната допросов: слева ----------
   const RX=-80;
-  box(7,.1,6,0x5a4a3a,RX,.05,0); box(7,3,.15,0xb8b0a0,RX,1.5,-3); box(.15,3,6,0xb8b0a0,RX-3.5,1.5,0);
-  const desk=box(2,.08,1.1,0x4a3628,RX,.82,0); for(const [x,z] of [[-.9,-.45],[.9,-.45],[-.9,.45],[.9,.45]]) box(.07,.8,.07,0x3a2a1e,RX+x,.4,z);
+  box(7,.1,6,0x5a4a3a,RX,.05,0).material=MAT.wood(0x5a4a3a,3); box(7,3,.15,0xb8b0a0,RX,1.5,-3).material=MAT.plaster(0xb8b0a0,3); box(.15,3,6,0xb8b0a0,RX-3.5,1.5,0).material=MAT.plaster(0xb8b0a0,2);
+  const desk=makeTable(2,1.1,.86,{col:0x4a3628}); desk.position.set(RX,0,0); scene.add(desk);
+  for(const z of [-.95,.95]){ const ch=makeChair(); ch.position.set(RX,0,z); ch.rotation.y= z<0 ? 0 : Math.PI; scene.add(ch); }
   const lamp=new THREE.PointLight(0xffe2b0,0,7,1.5); lamp.position.set(RX+.4,1.5,-.2); scene.add(lamp);
   const lampHead=box(.26,.14,.26,0x2a2a26,RX+.4,1.25,-.25);
   const rak=makePerson({coat:0x6a6448, hat:'none'}); rak.position.set(RX,-.4,-.95); rak.userData.legL.rotation.x=rak.userData.legR.rotation.x=-1.45; scene.add(shadowAll(rak));
-  const capR=new THREE.Mesh(new THREE.CylinderGeometry(.22,.2,.12,10),M(0x3c4a34)); capR.position.set(0,2.02,0); const band=new THREE.Mesh(new THREE.CylinderGeometry(.205,.205,.05,10),M(0x2a4a7a)); band.position.y=1.96; rak.add(capR,band);
+  const capR=new THREE.Mesh(new THREE.CylinderGeometry(.135,.118,.07,12),MT(0x3c4a34,'cloth.jpg')); capR.position.set(0,1.8,0); const band=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.035,12),MT(0x2a4a7a,'cloth.jpg')); band.position.y=1.765; const visor=new THREE.Mesh(new THREE.BoxGeometry(.16,.012,.07),M(0x14120e)); visor.position.set(0,1.755,.11); rak.userData.head.add(capR,band,visor); [capR,band,visor].forEach(o=>o.position.y-=rak.userData.head.position.y);
   const asanR=makePerson({coat:0x5c5a3a, hat:'none'}); asanR.position.set(RX,-.4,.95); asanR.rotation.y=Math.PI; asanR.userData.legL.rotation.x=asanR.userData.legR.rotation.x=-1.45; scene.add(shadowAll(asanR));
   const folders=[]; for(let i=0;i<2;i++) folders.push(box(.36,.04,.5,0x8a7a5e,RX-.4+i*.45,.88,-.15));
   const sheets=[]; for(let i=0;i<5;i++){ const sh=box(.3,.005,.42,0xc8bea8,RX-.6+i*.3,.87,.2); sh.visible=false; sheets.push(sh); }

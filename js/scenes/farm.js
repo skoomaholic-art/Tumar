@@ -25,32 +25,22 @@ function sceneFarm(){
   const box=(w,h,d,c,x,y,z)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c)); m.position.set(x,y,z); scene.add(shadowAll(m)); return m; };
 
   // ---------- хутор (в начале координат) ----------
-  const groundM=M(0x8a8a5a);
+  const groundM=MT(0x8a8a5a,'steppe.jpg',150);
   const ground=new THREE.Mesh(new THREE.PlaneGeometry(400,400),groundM); ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
   // холмы вокруг
   for(let i=0;i<22;i++){ const h=new THREE.Mesh(new THREE.SphereGeometry(rand(14,26),12,8,0,Math.PI*2,0,Math.PI/2),M(i%2?0x7e8052:0x8c8a5c)); const a=i/22*Math.PI*2; h.position.set(Math.cos(a)*rand(70,95),-4,Math.sin(a)*rand(70,95)); h.scale.y=rand(.35,.6); scene.add(h); }
-  const yard=new THREE.Mesh(new THREE.PlaneGeometry(26,16),M(0x7e7256)); yard.rotation.x=-Math.PI/2; yard.position.set(1,.01,-2); scene.add(yard);
+  const yard=new THREE.Mesh(new THREE.PlaneGeometry(26,16),MT(0x7e7256,'mud.jpg',8)); yard.rotation.x=-Math.PI/2; yard.position.set(1,.01,-2); scene.add(yard);
   // дом Хуберов: белёные стены, крутая крыша
-  const house=new THREE.Group(); scene.add(house);
-  const hw=new THREE.Mesh(new THREE.BoxGeometry(8,3.4,5),M(0xe2dccb)); hw.position.y=1.7; house.add(hw);
-  const roof=new THREE.Mesh(new THREE.CylinderGeometry(.01,4.6,2.6,4,1),M(0x6a3e2a)); roof.rotation.y=Math.PI/4; roof.scale.set(1.3,1,.86); roof.position.y=4.7; house.add(roof);
-  const door=new THREE.Mesh(new THREE.BoxGeometry(1,2,.08),M(0x4a3020)); door.position.set(1.4,1,2.52); house.add(door);
-  for(const x of [-2.4,-.6,3]){ const w=new THREE.Mesh(new THREE.BoxGeometry(.9,.9,.06),M(0x3a4048)); w.position.set(x,2.1,2.52); house.add(w); }
-  house.position.set(-3,0,-8); shadowAll(house);
+  const house=makeFarmHouse(8,5,{doorX:1.4}); house.position.set(-3,0,-8); scene.add(house);
   const HOUSE_DOOR=new THREE.Vector3(-1.6,0,-5.2);
   // амбар-сеновал
-  const barn=new THREE.Group(); scene.add(barn);
-  const bw=new THREE.Mesh(new THREE.BoxGeometry(7,4,6),M(0x7a5e40)); bw.position.y=2; barn.add(bw);
-  const broof=new THREE.Mesh(new THREE.CylinderGeometry(.01,5,2.4,4,1),M(0x4e3a2a)); broof.rotation.y=Math.PI/4; broof.scale.set(1.1,1,.95); broof.position.y=5.2; barn.add(broof);
-  const bdoor=new THREE.Mesh(new THREE.BoxGeometry(2.4,3,.1),M(0x2e2218)); bdoor.position.set(0,1.5,3.02); barn.add(bdoor);
-  barn.position.set(10,0,-6); shadowAll(barn);
+  const barn=makeBarn(7,6,{h:4,wall:0x7a5e40}); barn.position.set(10,0,-6); scene.add(barn);
   const BARN_DOOR=new THREE.Vector3(10,0,-2.4);
   // стог у сеновала
-  const hay=new THREE.Mesh(new THREE.SphereGeometry(1.6,12,8,0,Math.PI*2,0,Math.PI/2),M(0xc8a85a)); hay.scale.set(1.2,.9,1); hay.position.set(14.4,0,-1.6); scene.add(shadowAll(hay));
+  const hay=makeHaystack(1.5); hay.position.set(14.4,0,-1.6); scene.add(hay);
   // телега с мешками
   const cart=new THREE.Group(); scene.add(cart);
-  const bed=new THREE.Mesh(new THREE.BoxGeometry(2.6,.25,1.5),M(0x5a4430)); bed.position.y=.8; cart.add(bed);
-  for(const [x,z] of [[-1,.82],[1,.82],[-1,-.82],[1,-.82]]){ const wh=new THREE.Mesh(new THREE.TorusGeometry(.42,.07,6,12),M(0x3a2a1c)); wh.position.set(x,.45,z); cart.add(wh); }
+  { const c=makeCart(); c.rotation.y=Math.PI/2; cart.add(c); }
   const sackM=M(0xd8cfb4); const cartSacks=[];
   for(let i=0;i<3;i++){ const s=new THREE.Mesh(new THREE.SphereGeometry(.34,8,6),sackM); s.scale.set(1.3,.75,.9); s.position.set(-.8+i*.8,1.15,0); cart.add(s); cartSacks.push(s); }
   cart.position.set(-8,0,3); shadowAll(cart);
@@ -61,14 +51,9 @@ function sceneFarm(){
   const stream=new THREE.Mesh(new THREE.PlaneGeometry(4,90),M(0x6a7a7e)); stream.rotation.x=-Math.PI/2; stream.position.set(-20,.02,0); scene.add(stream);
   const mill=box(4,4.5,4,0xd2c8b0,-24,2.25,-6); const wheel=new THREE.Mesh(new THREE.TorusGeometry(1.8,.18,6,16),M(0x4a3a28)); wheel.position.set(-21.6,1.9,-6); wheel.rotation.y=Math.PI/2; scene.add(wheel);
   // хутор Штайнера на соседнем холме
-  const st=new THREE.Group(); scene.add(st);
-  const sw=new THREE.Mesh(new THREE.BoxGeometry(7,3.2,5),M(0xd8d2c0)); sw.position.y=1.6; st.add(sw);
-  const sr=new THREE.Mesh(new THREE.CylinderGeometry(.01,4.2,2.4,4,1),M(0x5a3426)); sr.rotation.y=Math.PI/4; sr.scale.set(1.3,1,.86); sr.position.y=4.4; st.add(sr);
-  const stWin=new THREE.Mesh(new THREE.BoxGeometry(.9,.9,.06),M(0x3a4048)); stWin.position.set(-1.5,2.1,2.52); st.add(stWin);
-  st.position.set(26,0,-26); st.rotation.y=-.5; shadowAll(st);
+  const st=makeFarmHouse(7,5,{wall:0xd8d2c0}); st.position.set(26,0,-26); st.rotation.y=-.5; scene.add(st);
   // забор вдоль поля
-  for(let i=0;i<16;i++){ box(.12,1.1,.12,0x5a4a36,-12+i*2,.55,7); }
-  box(30,.08,.08,0x5a4a36,3,.85,7); box(30,.08,.08,0x5a4a36,3,.45,7);
+  scene.add(makeFence(Array.from({length:16},(_,i)=>[-12+i*2,7]),{h:1.1,rails:[.45,.85]}));
 
   // ---------- люди ----------
   const asan=makePerson({coat:0x5c5a3a, hat:'none'}); asan.position.set(-6,0,5.5); scene.add(asan);
@@ -82,8 +67,9 @@ function sceneFarm(){
 
   // ---------- кухня (кино): отдельный набор справа ----------
   const KX=70;
-  const kfloor=box(8,.1,6,0x5a4430,KX,.05,0); box(8,3.2,.15,0x9a907c,KX,1.6,-3); box(.15,3.2,6,0x9a907c,KX-4,1.6,0);
-  const ktable=box(2.2,.1,1.2,0x7a5a3c,KX,.82,-.6); for(const [x,z] of [[-.95,-.5],[.95,-.5],[-.95,.5],[.95,.5]]) box(.08,.8,.08,0x5a4030,KX+x,.4,-.6+z);
+  const kfloor=box(8,.1,6,0x5a4430,KX,.05,0); kfloor.material=MAT.wood(0x5a4430,3); box(8,3.2,.15,0x9a907c,KX,1.6,-3).material=MAT.plaster(0x9a907c,3); box(.15,3.2,6,0x9a907c,KX-4,1.6,0).material=MAT.plaster(0x9a907c,2);
+  const ktable=makeTable(2.2,1.2,.87,{col:0x7a5a3c}); ktable.position.set(KX,0,-.6); scene.add(ktable);
+  for(const [x,z,ry] of [[-1.3,0,Math.PI/2],[1.3,0,-Math.PI/2],[0,-1.1,0]]){ const ch=makeChair(); ch.position.set(KX+x,0,-.6+z); ch.rotation.y=ry+Math.PI; scene.add(ch); }
   const klamp=new THREE.PointLight(0xffd7a0,0,9,1.6); klamp.position.set(KX,2.4,-.6); scene.add(klamp);
   const kwin=box(1,1,.06,0x8a9aa4,KX+1.8,1.8,-2.92);
   const martaK=makePerson({coat:0x3e3a36, hat:'scarf'}), lislK=makePerson({coat:0x6e5a48, hat:'scarf', scale:.92}), asanK=makePerson({coat:0x5c5a3a, hat:'none'});
@@ -92,9 +78,9 @@ function sceneFarm(){
 
   // ---------- соседняя деревня: площадь ----------
   const VX=-70;
-  const vsq=new THREE.Mesh(new THREE.PlaneGeometry(26,18),M(0x8e8670)); vsq.rotation.x=-Math.PI/2; vsq.position.set(VX,.02,0); scene.add(vsq);
-  for(const [x,z,r] of [[-9,-8,0],[0,-10,0],[9,-8,0],[-12,2,Math.PI/2],[12,2,-Math.PI/2]]){ const h=box(6,3.2,4,0xd6cfbe,VX+x,1.6,z); h.rotation.y=r; }
-  const church=box(3,9,3,0xe0dacb,VX,4.5,-12); const spire=new THREE.Mesh(new THREE.ConeGeometry(1.4,4,4),M(0x4a3020)); spire.position.set(VX,11,-12); spire.rotation.y=Math.PI/4; scene.add(spire);
+  const vsq=new THREE.Mesh(new THREE.PlaneGeometry(26,18),MT(0x8e8670,'cobble.jpg',14)); vsq.rotation.x=-Math.PI/2; vsq.position.set(VX,.02,0); scene.add(vsq);
+  for(const [x,z,r] of [[-9,-8,0],[0,-10,0],[9,-8,0],[-12,2,Math.PI/2],[12,2,-Math.PI/2]]){ const h=makeFarmHouse(6,4,{wall:0xd6cfbe}); h.position.set(VX+x,0,z); h.rotation.y=r; scene.add(h); }
+  const church=box(3,9,3,0xe0dacb,VX,4.5,-12); church.material=MAT.plaster(0xe0dacb,2); const spire=new THREE.Mesh(new THREE.ConeGeometry(1.4,4,4),M(0x4a3020)); spire.position.set(VX,11,-12); spire.rotation.y=Math.PI/4; scene.add(spire);
   const gallows=new THREE.Group(); { const p1=new THREE.Mesh(new THREE.BoxGeometry(.2,4,.2),M(0x2a2018)); p1.position.set(-1,2,0); const p2=p1.clone(); p2.position.x=1; const bm=new THREE.Mesh(new THREE.BoxGeometry(2.4,.2,.2),M(0x2a2018)); bm.position.y=4; gallows.add(p1,p2,bm);
     const hang=makePerson({coat:0x4a4436, hat:'none'}); hang.position.set(0,.9,0); hang.userData.legL.rotation.x=.05; gallows.add(hang); gallows.userData.hang=hang;
     const rope=new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,.35,4),M(0x2a2018)); rope.position.set(0,3.8,0); gallows.add(rope); }

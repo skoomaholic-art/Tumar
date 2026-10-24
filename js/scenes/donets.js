@@ -30,7 +30,7 @@ function sceneDonets(){
     const n=Math.sin(x*.08)*Math.cos(z*.06)+Math.sin(x*.27+z*.21)*.4;
     c.setHex(n>.7?0x8a8250:(n<-.6?0x4e4a2c:0x6a6a3c)); c.offsetHSL(0,0,rand(-.03,.03)); col.push(c.r,c.g,c.b); }
   gGeo.setAttribute('color',new THREE.Float32BufferAttribute(col,3)); gGeo.computeVertexNormals();
-  const ground = new THREE.Mesh(gGeo, new THREE.MeshLambertMaterial({vertexColors:true})); ground.receiveShadow=true; scene.add(ground);
+  const ground = new THREE.Mesh(gGeo, new THREE.MeshLambertMaterial({vertexColors:true, map:TEX('steppe.jpg',250)})); ground.receiveShadow=true; scene.add(ground);
 
   // ---------- река: Северский Донец течёт с запада на восток, немцы на том (северном) берегу ----------
   const RIVER_Z = -50;
@@ -38,11 +38,11 @@ function sceneDonets(){
   for(const z of [RIVER_Z+13.5, RIVER_Z-13.5]){ const b=new THREE.Mesh(new THREE.PlaneGeometry(700,4),M(0x7e6e50)); b.rotation.x=-Math.PI/2; b.position.set(0,.045,z); scene.add(b); }
   // вербы на том берегу
   const willowM = M(0x3a4630);
-  for(let i=0;i<46;i++){ const w=new THREE.Mesh(new THREE.SphereGeometry(rand(1.6,3),7,5),willowM); w.scale.y=rand(.8,1.3); w.position.set(rand(-120,120),rand(1.8,2.8),RIVER_Z-rand(16,30)); scene.add(shadowAll(w)); }
+  for(let i=0;i<46;i++){ const w=makeTree('willow',rand(6,9)); w.position.set(rand(-120,120),0,RIVER_Z-rand(16,30)); w.rotation.y=rand(0,6); w.traverse(m=>{ if(m.isMesh) m.castShadow=false; }); scene.add(w); }
 
   // ---------- окоп над рекой, ДП на бруствере, ход сообщения к селу ----------
   const trench = new THREE.Mesh(new THREE.BoxGeometry(90,.06,1.5), M(0x2e2416)); trench.position.set(0,.03,0); scene.add(trench);
-  const parapet = new THREE.Mesh(new THREE.BoxGeometry(90,.5,1), M(0x5e4c30)); parapet.position.set(0,.25,-1.2); scene.add(shadowAll(parapet));
+  const parapet = new THREE.Mesh(new THREE.BoxGeometry(90,.5,1), MT(0x5e4c30,'mud.jpg',8)); parapet.position.set(0,.25,-1.2); scene.add(shadowAll(parapet));
   const commTrench = new THREE.Mesh(new THREE.BoxGeometry(1.2,.06,22), M(0x2e2416)); commTrench.position.set(-3,.035,11); scene.add(commTrench);
   const dp=new THREE.Group(); const dpB=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,1.25,6),M(0x1e1e1e)); dpB.rotation.x=Math.PI/2; dpB.position.z=-.55;
   const dpD=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.06,14),M(0x2a2a26)); dpD.position.set(0,.12,-.05); dp.add(dpB,dpD); dp.position.set(0,.6,-1.25); scene.add(dp);
@@ -51,11 +51,8 @@ function sceneDonets(){
   // ---------- село: белёные хаты под соломой, вишни ----------
   const huts=[];
   for(const [x,z] of [[-26,26],[-17,30],[-8,25],[-30,38],[-12,40],[2,34]]){
-    const h=new THREE.Group(); const wl=new THREE.Mesh(new THREE.BoxGeometry(5,2.2,4),M(0xd8d0bc)); wl.position.y=1.1;
-    const rf=new THREE.Mesh(new THREE.ConeGeometry(4.2,2,4),M(0x8e7a4c)); rf.rotation.y=Math.PI/4; rf.position.y=3.2; rf.scale.set(1.25,1,1);
-    const dr=new THREE.Mesh(new THREE.BoxGeometry(.9,1.6,.08),M(0x4a3a28)); dr.position.set(.8,.8,2.02);
-    h.add(wl,rf,dr); h.position.set(x,0,z); scene.add(shadowAll(h)); huts.push(h);
-    for(let k=0;k<3;k++){ const t=new THREE.Mesh(new THREE.SphereGeometry(1.1,7,5),M(0x3e4a2c)); t.position.set(x+rand(-5,5),1.8,z+rand(3,6)); scene.add(shadowAll(t)); }
+    const h=makeHata(5,4); h.position.set(x,0,z); scene.add(h); huts.push(h);
+    for(let k=0;k<3;k++){ const t=makeTree('cherry',rand(3.2,4.2)); t.position.set(x+rand(-5,5),0,z+rand(3,6)); scene.add(t); }
   }
 
   // ---------- поле подсолнухов: от окопа к балке на юго-восток. Это же поле — в главе 5 ----------
@@ -187,11 +184,7 @@ function sceneDonets(){
     const x=rand(-26,26); g.position.set(x,0,RIVER_Z-12); scene.add(shadowAll(g)); const b={g, alive:true, men:[]};
     for(let i=0;i<3;i++){ const e=spawnEnemy(x,RIVER_Z-12,{boat:b}); e.off=(i-1)*1.1; b.men.push(e); }
     boats.push(b); }
-  function spawnTank(x, iron=false){ const g=new THREE.Group(); const hull=new THREE.Mesh(new THREE.BoxGeometry(3.6,1.3,6.2),M(0x5a5c52)); hull.position.y=.95;
-    const tur=new THREE.Mesh(new THREE.BoxGeometry(2.4,.9,2.6),M(0x50524a)); tur.position.set(0,2,-.2);
-    const gun=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,3.4,8),M(0x2a2a28)); gun.rotation.x=Math.PI/2; gun.position.set(0,2.05,2.6);
-    const t1=new THREE.Mesh(new THREE.BoxGeometry(.7,1,6.4),M(0x2e2e2a)); t1.position.set(-1.8,.5,0); const t2=t1.clone(); t2.position.x=1.8;
-    g.add(hull,tur,gun,t1,t2); g.position.set(x,0,RIVER_Z+14); scene.add(shadowAll(g));
+  function spawnTank(x, iron=false){ const g=makeTank('pz'); g.scale.setScalar(1.1); g.position.set(x,0,RIVER_Z+14); scene.add(g);
     const tk={g, alive:true, fireT:1, smokeT:0, iron}; tanks.push(tk); return tk; }
   function shoot(){
     if(S.ammo<=0 || S.reload>0) return;
@@ -322,7 +315,7 @@ function sceneDonets(){
     grisha.visible=false; S.grishaRun=false;
     if(order==='none'){ grishaCap.visible=true; grishaCap.position.set(1.9,.06,-.3); grishaCap.rotation.y=.7; }
     enemies.forEach(e=>scene.remove(e.p)); enemies.length=0; boats.forEach(b=>scene.remove(b.g)); boats.length=0;
-    tanks.forEach(t=>{ t.alive=false; t.g.position.z=Math.max(t.g.position.z,6); t.g.children.forEach(m=>m.material=M(0x1e1c1a)); });
+    tanks.forEach(t=>{ t.alive=false; t.g.position.z=Math.max(t.g.position.z,6); t.g.traverse(m=>{ if(m.isMesh) m.material=M(0x1e1c1a); }); });
     await gwait(2.2); phaseDig();
   }
   // ---------- фаза 3: воронка — темнота, откапываться рывками, от первого лица ----------
@@ -366,7 +359,7 @@ function sceneDonets(){
     officer.position.set(LIE.x-1.6,0,LIE.z+1.5); officer.rotation.y=Math.PI;
     comrades.forEach(cm=>cm.p.visible=false); grishaCap.visible=false; grisha.visible=false; grishaHand.visible=false;
     // горит село за спиной
-    huts[2].children.forEach(m=>m.material=M(0x2a2420)); huts[4].children.forEach(m=>m.material=M(0x2a2420));
+    { const burnt=M(0x2a2420); [huts[2],huts[4]].forEach(h=>h.traverse(m=>{ if(m.isMesh) m.material=burnt; })); }
     for(let i=0;i<7;i++){ const r=makePerson({coat:KHAKI, hat:"pilotka"}); r.position.set(LIE.x-3+rand(-2,2),0,LIE.z+rand(-1,2)); scene.add(r); runners.push({p:r, go:false, out:false, to:new THREE.Vector3(rand(14,26),0,rand(66,76))}); }
     cut(shotEnc);
   }
@@ -476,7 +469,7 @@ function sceneDonets(){
     for(const tk of tanks){ if(!tk.alive){ tk.smokeT-=dt; if(tk.smokeT<=0){ tk.smokeT=.25; puff(tmp.copy(tk.g.position).setY(2.2),smokeTex,2.5,3,2,2.5); } continue; }
       if(!(tk.ironing && S.tankHold)) tk.g.position.z+=(tk.ironing?2.1:1.6)*dt; tk.fireT-=dt;
       if(tk.fireT<=0){ tk.fireT=rand(.15,.3); tracer(tmp.copy(tk.g.position).setY(2),tmp2.set(rand(-8,8),.6,rand(-2,1)),enemyTracerM); if(Math.random()<.035) playerHit(5); }
-      if(!tk.iron && tk.g.position.z>-20){ tk.alive=false; explode(tk.g.position.x,tk.g.position.z,1.6); tk.g.children.forEach(m=>m.material=M(0x1e1c1a)); bark('Сосед',pick(DAT.barks.tank1dead)); }
+      if(!tk.iron && tk.g.position.z>-20){ tk.alive=false; explode(tk.g.position.x,tk.g.position.z,1.6); tk.g.traverse(m=>{ if(m.isMesh) m.material=M(0x1e1c1a); }); bark('Сосед',pick(DAT.barks.tank1dead)); }
       if(tk.iron && tk.g.position.z>-15 && !S.ironDone && S.phase==='battle'){ S.ironDone=true; ironing(tk); } }
     // пехота: перебежками к окопу
     for(const e of enemies){ if(!e.alive || e.boat) continue; const p=e.p;

@@ -121,6 +121,10 @@ function makePerson({coat=0x6b5440, hat='borik', scale=1, scarf=null, beard=fals
     const hm=MT(0x4a4e44,'metal.jpg');
     const d=mesh(new THREE.SphereGeometry(.14,14,8,0,Math.PI*2,0,Math.PI/2),hm,0,HY+.02,0); d.scale.set(1,.92,1.1); headG.add(d);
     const sk=mesh(new THREE.CylinderGeometry(.142,.165,.07,14,1,true),hm,0,HY-.01,-.005); sk.material=MT(0x4a4e44,'metal.jpg',1,{side:THREE.DoubleSide}); sk.scale.z=1.08; headG.add(sk);
+  } else if(hat==='ssh'){ // советская каска СШ-40: круглый купол, короткий поля по кругу
+    const hm=MT(0x4a5236,'metal.jpg');
+    const d=mesh(new THREE.SphereGeometry(.135,14,8,0,Math.PI*2,0,Math.PI/2),hm,0,HY+.025,0); d.scale.set(1,.95,1.05); headG.add(d);
+    headG.add(mesh(new THREE.CylinderGeometry(.14,.152,.035,14,1,true),MT(0x4a5236,'metal.jpg',1,{side:THREE.DoubleSide}),0,HY+.01,0));
   } else if(hat==='pilotka'){ // пилотка набок
     const pm=MT(0x6a6640,'cloth.jpg');
     const p=mesh(new THREE.BoxGeometry(.2,.06,.12),pm,.012,TOP-.035,0); p.rotation.z=.14; headG.add(p);

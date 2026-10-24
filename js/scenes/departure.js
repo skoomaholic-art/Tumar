@@ -633,7 +633,7 @@ function sceneDeparture(){
     cine(true); await fadeTo(1,900); scene.background.setHex(0x8a8070); scene.fog.color.setHex(0x8a8070);
     world.halted=true; const a=world.asan.position; world.starshina.position.set(a.x+1.15,0,a.z-.55); world.starshina.visible=true; world.starshina.lookAt(a.x,0,a.z);
     world.asan.rotation.y = Math.atan2(world.starshina.position.x-a.x, world.starshina.position.z-a.z);
-    world.asan.userData.armR.rotation.x=0; world.asan.children.forEach(c=>{ if(c.geometry && c.geometry.parameters && c.geometry.parameters.depth===1.0) c.visible=false; });
+    world.asan.userData.armR.rotation.x=0; world.asan.traverse(c=>{ if(c.geometry && c.geometry.parameters && c.geometry.parameters.depth===1.0) c.visible=false; });
     setShot('halt'); await fadeTo(0,900);
     await run(DAT.scripts.march_end);
   }

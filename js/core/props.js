@@ -140,12 +140,12 @@ function makeFarmHouse(w=9, d=6.5, opt={}){
   for(const s of [-1,1]){ const gm=P_.mesh(new THREE.ShapeGeometry(gable),MAT.logs(0x6a5038),s*(w/2+.05),H1+H2,0); gm.rotation.y=s*Math.PI/2; gm.material=MAT.logs(0x6a5038); gm.material.side=THREE.DoubleSide; g.add(gm); }
   // окна со ставнями по длинной стороне (+z)
   const wins=[]; const n=Math.max(2,Math.round(w/2.6));
-  for(let i=0;i<n;i++){ const x=-w/2+w*(i+.5)/n; for(const y of [1.5, H1+1.0]){ const wg=new THREE.Group(); wg.position.set(x,y,d/2+.03); g.add(wg);
+  for(let i=0;i<n;i++){ const x=-w/2+w*(i+.5)/n; for(const y of [1.5, H1+1.0]){ if(y<2 && Math.abs(x-(opt.doorX!=null?opt.doorX:w*.18+.6))<1.1) continue; const wg=new THREE.Group(); wg.position.set(x,y,d/2+.03); g.add(wg);
     wg.add(P_.mesh(P_.box(.9,1.0,.06),MAT.wood(0x3e3024))); const gl=P_.mesh(P_.box(.74,.84,.07),M(0x2a2e30)); wg.add(gl);
     wg.add(P_.mesh(P_.box(.04,.84,.08),MAT.wood(0x3e3024))); wg.add(P_.mesh(P_.box(.74,.04,.08),MAT.wood(0x3e3024)));
     for(const s of [-1,1]) wg.add(P_.mesh(P_.box(.4,1.0,.05),MAT.wood(0x4a5a3a),s*.66,0,.01)); wins.push(gl); } }
-  const door=P_.mesh(P_.box(1.1,2.1,.1),MAT.wood(0x4a3424),w*.18+.6,1.05,d/2+.04); g.add(door);
-  g.add(P_.mesh(P_.box(1.6,.12,.8),roofM,w*.18+.6,2.35,d/2+.35)); // козырёк
+  const dx=opt.doorX!=null?opt.doorX:w*.18+.6; const door=P_.mesh(P_.box(1.1,2.1,.1),MAT.wood(0x4a3424),dx,1.05,d/2+.04); g.add(door);
+  g.add(P_.mesh(P_.box(1.6,.12,.8),roofM,dx,2.35,d/2+.35)); // козырёк
   g.userData={door,wins};
   return shadowAll(g);
 }
@@ -230,6 +230,16 @@ function makeFence(pts, opt={}){
 }
 // деревянный мост: настил поперёк, прогоны, сваи, перила. Длина вдоль x.
 function makeBridge(len=20, w=4, h=1.6, opt={}){
+  if(opt.kind==='stone'){ // каменный мост: мощёный настил, бетонные парапеты, быки в воде
+    const g=new THREE.Group(), st=MAT.plaster(opt.col||0x8a867c,3), cob=MT(0x7a766c,'cobble.jpg',1);
+    if(cob.map){ cob.map=cob.map.clone(); cob.map.needsUpdate=true; cob.map.repeat.set(len/1.5,w/1.5); }
+    g.add(P_.mesh(P_.box(len,.45,w),st,0,h-.22,0));
+    g.add(P_.mesh(P_.box(len,.02,w-.5),cob,0,h+.01,0));
+    for(const s of [-1,1]){ g.add(P_.mesh(P_.box(len,.9,.3),st,0,h+.45,s*(w/2-.15))); g.add(P_.mesh(P_.box(len+.1,.08,.38),st,0,h+.92,s*(w/2-.15))); }
+    for(let x=-len/2+len/6; x<len/2; x+=len/3){ g.add(P_.mesh(P_.box(1.4,h+2,w+.6),st,x,(h-2)/2,0)); const nose=P_.mesh(P_.cyl(.7,.7,h+2,8),st,x,(h-2)/2,0); nose.scale.z=(w+.6)/1.4; g.add(nose); }
+    for(let x=-len/2+2; x<len/2; x+=6) for(const s of [-1,1]){ g.add(P_.mesh(P_.cyl(.05,.06,3.2,6),M(0x2a2a28),x,h+1.6,s*(w/2-.15))); g.add(P_.mesh(P_.box(.4,.15,.25),M(0x2a2a28),x,h+3.2,s*(w/2-.4))); }
+    return shadowAll(g);
+  }
   const g=new THREE.Group(), deck=MAT.wood(opt.col||0x5a4a38,2), pile=MAT.wood(0x3e3226);
   const n=Math.round(len/.45);
   for(let i=0;i<n;i++){ const p=P_.mesh(P_.box(.4,.08,w),deck,-len/2+.225+i*len/n,h,0); p.rotation.y=Math.sin(i*2.7)*.015; g.add(p); }
@@ -302,12 +312,13 @@ function makeTank(kind='t34', opt={}){
 // tree kind: 'birch' | 'poplar' | 'oak' | 'pine' | 'dead'
 function makeTree(kind='oak', h=6){
   const g=new THREE.Group();
-  const barkC={birch:0xd8d4c8, poplar:0x6a6250, oak:0x4a3c2e, pine:0x5a4030, dead:0x4a4038}[kind], leafC={birch:0x8a9a52, poplar:0x6a7a44, oak:0x5a6a3a, pine:0x3a4a30}[kind];
+  const barkC={birch:0xd8d4c8, poplar:0x6a6250, oak:0x4a3c2e, pine:0x5a4030, dead:0x4a4038, willow:0x4a4436, cherry:0x4a3430}[kind], leafC={birch:0x8a9a52, poplar:0x6a7a44, oak:0x5a6a3a, pine:0x3a4a30, willow:0x4a5a3a, cherry:0x4a5a32}[kind];
   const trunk=P_.mesh(P_.cyl(h*.025,h*.045,h*.62,7),MAT.wood(barkC),0,h*.31,0); g.add(trunk);
   if(kind==='birch') for(let i=0;i<5;i++) g.add(P_.mesh(P_.cyl(h*.031,h*.036,.06,7),M(0x2a2622),0,h*(.1+i*.11),0));
   if(kind==='dead'){ for(let i=0;i<4;i++){ const a=i*1.7; g.add(P_.beam(new THREE.Vector3(0,h*(.4+i*.08),0),new THREE.Vector3(Math.cos(a)*h*.22,h*(.62+i*.07),Math.sin(a)*h*.22),h*.012,MAT.wood(barkC))); } return shadowAll(g); }
   const lm=MT(leafC,'leaves.jpg');
   if(kind==='pine'){ for(let i=0;i<4;i++) g.add(P_.mesh(new THREE.ConeGeometry(h*(.26-i*.05),h*.32,8),lm,0,h*(.42+i*.15),0)); }
+  else if(kind==='willow'){ for(const [x,z,r] of [[0,0,.3],[.2,.1,.22],[-.22,-.08,.24],[.05,-.22,.2],[-.1,.22,.2]]){ const c=P_.mesh(P_.sph(h*r,9,7),lm,h*x,h*.55,h*z); c.scale.y=1.1; g.add(c); const dr=P_.mesh(P_.cyl(h*r*.9,h*r*1.05,h*.35,9,true),lm,h*x,h*.38,h*z); dr.material=MT(leafC,'leaves.jpg',1,{side:THREE.DoubleSide}); g.add(dr); } }
   else if(kind==='poplar'){ const c=P_.mesh(P_.sph(h*.16,10,8),lm,0,h*.66,0); c.scale.set(1,2.2,1); g.add(c); }
   else { for(const [x,y,z,r] of [[0,.72,0,.26],[.14,.64,.08,.2],[-.13,.66,-.06,.21],[.04,.84,-.1,.18],[-.06,.6,.15,.17]]){ const c=P_.mesh(P_.sph(h*r,9,7),lm,h*x,h*y,h*z); c.scale.y=.85; g.add(c); } }
   return shadowAll(g);
@@ -358,5 +369,73 @@ function makeLoco(opt={}){
   const tender=new THREE.Group(); tender.position.set(5.3,0,0); g.add(tender);
   tender.add(P_.mesh(P_.box(3.4,2.0,2.6),blk,0,1.9,0)); tender.add(P_.mesh(P_.box(3.2,.4,2.4),M(0x121110),0,3.0,0));
   tender.add(makeBogie(0));
+  return shadowAll(g);
+}
+
+// ---------- авиация ----------
+// пикировщик с крылом «чайкой» и неубирающимися шасси (силуэт узнаваем снизу). Нос — к +z.
+function makeDiveBomber(opt={}){
+  const g=new THREE.Group(), m=MAT.metal(opt.col||0x3e4238), dark=M(0x1a1a18), glass=M(0x55606a);
+  const fus=P_.mesh(P_.cyl(.5,.32,7,12),m,0,0,0); fus.rotation.x=Math.PI/2; g.add(fus);
+  const nose=P_.mesh(P_.cyl(.55,.5,.8,12),m,0,0,3.8); nose.rotation.x=Math.PI/2; g.add(nose);
+  const prop=P_.mesh(P_.box(2.6,.14,.04),dark,0,0,4.25); g.add(prop); g.userData.prop=prop;
+  const canopy=P_.mesh(P_.sph(.42,10,6),glass,0,.42,1.0); canopy.scale.set(.8,.7,2.4); g.add(canopy);
+  for(const s of [-1,1]){ const inner=P_.mesh(P_.box(2.0,.14,1.9),m,s*1.3,-.35,.8); inner.rotation.z=s*-.3; g.add(inner);
+    const outer=P_.mesh(P_.box(3.6,.12,1.6),m,s*4.0,-.25,.75); outer.rotation.z=s*.12; g.add(outer);
+    const gear=P_.mesh(P_.box(.3,1.0,.6),m,s*1.9,-1.0,1.0); g.add(gear); g.add(P_.mesh(P_.sph(.25,8,6),dark,s*1.9,-1.5,1.0)); }
+  g.add(P_.mesh(P_.box(3.6,.1,1.1),m,0,.05,-3.1));
+  g.add(P_.mesh(P_.box(.1,1.2,1.1),m,0,.6,-3.2));
+  return shadowAll(g);
+}
+// полевая кухня на колёсах: котёл с трубой
+function makeFieldKitchen(){
+  const g=new THREE.Group(), m=MAT.metal(0x3e4030), wd=MAT.wood(0x5a4430);
+  g.add(P_.mesh(P_.box(1.4,.12,2.4),wd,0,.95,0));
+  g.add(P_.mesh(P_.cyl(.6,.6,.9,14),m,0,1.5,.3)); g.add(P_.mesh(P_.cyl(.64,.64,.08,14),m,0,1.98,.3));
+  g.add(P_.mesh(P_.cyl(.08,.08,1.0,8),M(0x1e1e1c),0,2.3,-.6));
+  g.add(P_.mesh(P_.box(.9,.6,.7),m,0,1.3,-.7));
+  for(const s of [-1,1]){ const w=makeWheel(.48); w.position.set(s*.85,.48,.2); g.add(w); }
+  g.add(P_.beam(new THREE.Vector3(0,.9,1.2),new THREE.Vector3(0,.5,2.6),.05,wd));
+  return shadowAll(g);
+}
+
+// украинская хата: белёные стены, высокая соломенная четырёхскатная крыша, призба, окна с наличниками
+function makeHata(w=5, d=4, opt={}){
+  const g=new THREE.Group(), pl=MAT.plaster(opt.wall||0xd8d0bc,2), thatch=MAT.hay(opt.roof||0x8e7a4c,3);
+  g.add(P_.mesh(P_.box(w,2.2,d),pl,0,1.1,0));
+  g.add(P_.mesh(P_.box(w+.2,.35,d+.2),MAT.adobe(0x6e5e4a),0,.17,0)); // призба
+  const rf=P_.mesh(new THREE.ConeGeometry(1,1,4,1),thatch,0,2.2+1.1,0); rf.rotation.y=Math.PI/4; rf.scale.set((w+1.2)*.72,2.3,(d+1.2)*.72); g.add(rf);
+  const door=P_.mesh(P_.box(.9,1.6,.08),MAT.wood(0x4a3a28),w*.16,.8,d/2+.02); g.add(door);
+  for(const x of [-w*.28, w*.4]){ if(x>w/2-.5) continue; const wg=new THREE.Group(); wg.position.set(x,1.35,d/2+.03); g.add(wg);
+    wg.add(P_.mesh(P_.box(.8,.75,.05),MAT.wood(0x5a6a7a))); wg.add(P_.mesh(P_.box(.6,.55,.06),M(0x22262a))); wg.add(P_.mesh(P_.box(.04,.55,.07),MAT.wood(0x5a6a7a))); }
+  g.userData={door};
+  return shadowAll(g);
+}
+
+// лагерная вышка: четыре опоры с раскосами, площадка с перилами, будка под крышей, лестница
+function makeWatchTower(h=5, opt={}){
+  const g=new THREE.Group(), wd=MAT.wood(opt.col||0x4a3a2a,2);
+  const top=new THREE.Vector3();
+  for(const [x,z] of [[-1,-1],[1,-1],[-1,1],[1,1]]){ g.add(P_.beam(new THREE.Vector3(x*1.1,0,z*1.1),new THREE.Vector3(x*.8,h,z*.8),.08,wd)); }
+  for(const y of [h*.35,h*.7]) for(const [a,b] of [[[-1,-1],[1,-1]],[[1,-1],[1,1]],[[1,1],[-1,1]],[[-1,1],[-1,-1]]]){
+    const k=1.1-(y/h)*.3; g.add(P_.beam(new THREE.Vector3(a[0]*k,y,a[1]*k),new THREE.Vector3(b[0]*k,y+h*.3,b[1]*k),.04,wd)); }
+  g.add(P_.mesh(P_.box(2.2,.15,2.2),wd,0,h,0));
+  for(const [x,z,w,d] of [[0,1.05,2.2,.06],[0,-1.05,2.2,.06],[1.05,0,.06,2.2],[-1.05,0,.06,2.2]]) g.add(P_.mesh(P_.box(w,.9,d),wd,x,h+.5,z));
+  for(const [x,z] of [[-1,-1],[1,-1],[-1,1],[1,1]]) g.add(P_.mesh(P_.box(.08,1.9,.08),wd,x*1.0,h+1.0,z*1.0));
+  const rf=P_.mesh(new THREE.ConeGeometry(1.8,.8,4),MAT.wood(0x3a2e22),0,h+2.3,0); rf.rotation.y=Math.PI/4; g.add(rf);
+  for(let i=0;i<Math.floor(h/.4);i++) g.add(P_.mesh(P_.box(.06,.04,.5),wd,1.05,.3+i*.4,0));
+  g.add(P_.beam(new THREE.Vector3(1.05,0,-.25),new THREE.Vector3(1.05,h,-.25),.03,wd)); g.add(P_.beam(new THREE.Vector3(1.05,0,.25),new THREE.Vector3(1.05,h,.25),.03,wd));
+  const lamp=P_.mesh(P_.cyl(.12,.2,.2,8),M(0x2a2a26),.9,h+1.6,.9); g.add(lamp); g.userData.lamp=lamp;
+  return shadowAll(g);
+}
+// трактор СТЗ-НАТИ: гусеничный, капот, радиатор, открытое сиденье
+function makeTractor(opt={}){
+  const g=new THREE.Group(), m=MAT.metal(opt.col||0x5a5a40), dark=M(0x1c1a18);
+  for(const s of [-1,1]){ g.add(P_.mesh(P_.box(.4,.7,2.8),dark,s*.75,.35,0)); for(let i=0;i<4;i++){ const w=P_.mesh(P_.cyl(.25,.25,.42,10),M(0x2a2826),s*.75,.3,-1+i*.66); w.rotation.z=Math.PI/2; g.add(w); } }
+  g.add(P_.mesh(P_.box(1.0,.8,1.8),m,0,1.0,.3));
+  g.add(P_.mesh(P_.box(1.0,.9,.12),M(0x2a2a26),0,1.05,1.25));
+  g.add(P_.mesh(P_.cyl(.06,.06,.8,6),dark,.3,1.8,.9));
+  g.add(P_.mesh(P_.box(.6,.12,.5),dark,0,1.1,-.9)); g.add(P_.mesh(P_.box(.6,.5,.08),dark,0,1.35,-1.15));
+  g.add(P_.mesh(P_.cyl(.25,.25,.06,10),dark,0,1.5,-.45));
   return shadowAll(g);
 }
