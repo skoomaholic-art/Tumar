@@ -16,7 +16,7 @@ function portraitFile(who, emo){
   const k=CAST_KEY[who]; if(!k) return null;
   const c = COSTUME[k] ? (COSTUME[k][CAST_SET] || Object.values(COSTUME[k])[0]) : null;
   const base = c ? `${k}_${c}` : k;
-  for(const e of [emo||'neutral','neutral']){ const n=`${base}_${e}`; if(PORTRAIT_ART.has(n)) return `img/por/${n}.webp`; }
+  for(const e of [emo||'neutral','neutral','sad','think','smile','angry']){ /* нет нужной эмоции — ближайшая из нарисованных */ const n=`${base}_${e}`; if(PORTRAIT_ART.has(n)) return `img/por/${n}.webp`; }
   return null;
 }
 function showCloseup(who, emo){
