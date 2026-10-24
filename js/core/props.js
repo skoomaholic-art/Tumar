@@ -322,3 +322,41 @@ function makeSunflower(h=1.9, dry=false){
   head.add(P_.mesh(P_.cyl(.2,.2,.02,12),M(dry?0x8a6a2a:0xd8a828),0,-.02,0));
   return g;
 }
+
+// ---------- железная дорога ----------
+// колёсная пара/тележка под вагоном (вдоль x), y — низ рамы
+function makeBogie(x=0){ const g=new THREE.Group(), dark=M(0x1c1a18);
+  for(const dx of [-.7,.7]) for(const s of [-1,1]){ const w=P_.mesh(P_.cyl(.45,.45,.1,14),dark,x+dx,.45,s*.72); w.rotation.x=Math.PI/2; g.add(w); }
+  g.add(P_.mesh(P_.box(2.0,.2,1.5),dark,x,.62,0)); return g; }
+// теплушка: дощатый товарный вагон с покатой крышей, рамой, колёсами и сдвижной дверью (+z). Длина вдоль x, низ пола на y=.8
+function makeBoxcar(len=6.8, opt={}){
+  const g=new THREE.Group(), wd=MAT.wood(opt.col||0x5a3426,2), dark=M(0x1c1a18);
+  g.add(P_.mesh(P_.box(len,2.6,2.8),wd,0,2.1,0));
+  const roof=P_.mesh(new THREE.CylinderGeometry(2.4,2.4,len+.2,18,1,true,.92,Math.PI-1.84),MAT.metal(0x2e2a26),0,1.49,0); roof.rotation.z=Math.PI/2; roof.scale.set(1,1,1); roof.material.side=THREE.DoubleSide; g.add(roof);
+  g.add(P_.mesh(P_.box(len+.1,.25,2.9),dark,0,.75,0));
+  for(const s of [-1,1]) g.add(P_.mesh(P_.box(len,.08,2.84),MAT.wood(shade(opt.col||0x5a3426,.7)),0,2.1+s*.9,0));
+  g.add(P_.mesh(P_.box(1.6,1.9,.06),MAT.wood(0x3a2218),0,1.9,1.44));
+  g.add(P_.mesh(P_.box(1.9,.06,.1),dark,0,2.88,1.46));
+  g.add(P_.mesh(P_.box(.5,.3,.05),M(0x1a1612),-len*.3,2.8,1.43)); // окошко
+  g.add(makeBogie(-len/2+1.3)); g.add(makeBogie(len/2-1.3));
+  for(const s of [-1,1]) g.add(P_.rot(P_.mesh(P_.cyl(.14,.14,.25,8),dark,s*(len/2+.15),1.1,0),0,0,Math.PI/2)); // буфера
+  return shadowAll(g);
+}
+// паровоз: котёл, дымовая труба, будка машиниста, тендер, колёса с дышлами. Нос — к −x.
+function makeLoco(opt={}){
+  const g=new THREE.Group(), blk=MAT.metal(0x22201e), red=M(0x5a1e18);
+  const boiler=P_.mesh(P_.cyl(.9,.9,5.2,16),blk,-1,2.1,0); boiler.rotation.z=Math.PI/2; g.add(boiler);
+  const smoke=P_.mesh(P_.cyl(.95,.95,.3,16),blk,-3.55,2.1,0); smoke.rotation.z=Math.PI/2; g.add(smoke);
+  g.add(P_.mesh(P_.cyl(.28,.36,1.2,10),blk,-2.9,3.4,0));
+  g.add(P_.mesh(P_.cyl(.35,.4,.5,10),blk,-.4,3.1,0)); // сухопарник
+  g.add(P_.mesh(P_.sph(.12,6,4),M(0xd8d0b0),-3.72,2.6,0)); // фонарь
+  g.add(P_.mesh(P_.box(2.3,2.7,2.7),blk,2.5,2.35,0)); g.add(P_.mesh(P_.box(2.6,.12,3.0),blk,2.5,3.75,0));
+  for(const s of [-1,1]) g.add(P_.mesh(P_.box(.7,.6,.05),M(0x1a1a18),2.5,2.9,s*1.36));
+  g.add(P_.mesh(P_.box(7.6,.3,2.5),red,0,.95,0)); // рама — красная
+  for(let i=0;i<4;i++) for(const s of [-1,1]){ const w=P_.mesh(P_.cyl(.62,.62,.12,16),blk,-2.6+i*1.45,.65,s*1.0); w.rotation.x=Math.PI/2; g.add(w); }
+  for(const s of [-1,1]) g.add(P_.mesh(P_.box(4.6,.1,.06),M(0x6a6a64),-.4,.75,s*1.08));
+  const tender=new THREE.Group(); tender.position.set(5.3,0,0); g.add(tender);
+  tender.add(P_.mesh(P_.box(3.4,2.0,2.6),blk,0,1.9,0)); tender.add(P_.mesh(P_.box(3.2,.4,2.4),M(0x121110),0,3.0,0));
+  tender.add(makeBogie(0));
+  return shadowAll(g);
+}

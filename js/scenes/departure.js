@@ -28,7 +28,7 @@ function sceneDeparture(){
       pos.setY(i, Math.sin(x*.04)*Math.cos(z*.035)*.3);
       c.setHex(n>.9?cols[0]:n>.3?cols[1]:n<-.8?cols[3]:cols[2]); c.offsetHSL(0,0,rand(-.025,.025)); col.push(c.r,c.g,c.b); }
     g.setAttribute('color', new THREE.Float32BufferAttribute(col,3)); g.computeVertexNormals();
-    const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({vertexColors:true})); m.receiveShadow=true; sc.add(m); return m;
+    const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({vertexColors:true, map:TEX('steppe.jpg',size/3)})); m.receiveShadow=true; sc.add(m); return m;
   }
   // ковыль: тонкие стебли, ветер качает их волнами
   function grassField(sc, n, x0,x1,z0,z1, color, h0, h1, avoid){
@@ -71,15 +71,9 @@ function sceneDeparture(){
     sc.background = new THREE.Color(0xb7ab96); sc.fog = new THREE.Fog(0xb7ab96, 60, 420);
     lights(sc, 0xd8cfbe, 0x4a3c2c, .55, 0xffc890, .85, new THREE.Vector3(40,12,30)); // низкое солнце на рассвете
     makeGround(sc, 900, [0xc9c2ae,0x9c906e,0x83704e,0x5e4c34]);
-    const house=new THREE.Group();
-    const walls=new THREE.Mesh(new THREE.BoxGeometry(7,2.8,5),M(0xb39a74)); walls.position.y=1.4;
-    const roof=new THREE.Mesh(new THREE.BoxGeometry(7.6,.35,5.6),M(0x6a5a44)); roof.position.y=2.95;
-    const door=new THREE.Mesh(new THREE.BoxGeometry(1,1.9,.1),M(0x3a2c1e)); door.position.set(1.2,.95,2.52);
-    const win=new THREE.Mesh(new THREE.BoxGeometry(.9,.7,.1),M(0x2a2a28)); win.position.set(-1.6,1.6,2.52);
-    const chim=new THREE.Mesh(new THREE.BoxGeometry(.6,1,.6),M(0x8e7a5c)); chim.position.set(-2.4,3.4,-1);
-    house.add(walls,roof,door,win,chim); house.position.set(0,0,-2.5); sc.add(shadowAll(house));
-    const yurt=new THREE.Group(); const yw=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.4,1.7,16),M(0xd8cfba)); yw.position.y=.85; const yr=new THREE.Mesh(new THREE.ConeGeometry(2.6,1.3,16),M(0xcfc4ac)); yr.position.y=2.35;
-    yurt.add(yw,yr); yurt.position.set(-9,0,-1); sc.add(shadowAll(yurt));
+    const house=makeAdobeHouse(7,5,{h:2.8,wall:0xb39a74}); house.position.set(0,0,-2.5); sc.add(house);
+    const houseFront=house.children.filter(o=>o.position.z>2.4); // дверь, окно, косяк — камера семейного плана стоит в доме
+    const yurt=makeYurt(2.4,{h:1.7,felt:0xd8cfba}); yurt.position.set(-9,0,-1); yurt.rotation.y=.4; sc.add(yurt);
     const smoke = smokeColumn(sc, new THREE.Vector3(-2.4,3.9,-3.5));
     // тот же аул, что в главе 1: соседи, кошара, контора с флагом — но не на дороге и не перед объективами
     const segD=(x,z,ax,az,bx,bz)=>{ const vx=bx-ax, vz=bz-az, k=Math.max(0,Math.min(1,((x-ax)*vx+(z-az)*vz)/(vx*vx+vz*vz))); return Math.hypot(x-ax-vx*k, z-az-vz*k); };
@@ -105,7 +99,7 @@ function sceneDeparture(){
     const W = { asan, zhum, father, mother, kulash, bundle, RD, R0, walkD:0,
       update(dt,t){
         grass.update(t); fgGrass.update(t,1.3); smoke.update(dt);
-        door.visible = win.visible = S.shot!=='family'; // камера этого плана стоит в доме — дверь изнутри не нужна
+        houseFront.forEach(o=>o.visible = S.shot!=='family'); // камера этого плана стоит в доме — дверь изнутри не нужна
         if(S.walk){
           // идёт игрок: вперёд по дороге — джойстик/WASD/удержание кнопки; чуть влево-вправо можно, назад — нет (не оборачивается)
           const PR=new THREE.Vector3(RD.z,0,-RD.x), inp=S.walkIn||[0,0];
@@ -141,8 +135,7 @@ function sceneDeparture(){
     sc.background = new THREE.Color(0x9a9a92); sc.fog = new THREE.Fog(0x9a9a92, 40, 220);
     lights(sc, 0xc8c8c0, 0x4a4438, .7, 0xe8e2d4, .55, new THREE.Vector3(-14,22,10));
     makeGround(sc, 400, [0x9e9682,0x837a62,0x6e6450,0x56503e], 50);
-    const bar = new THREE.Mesh(new THREE.BoxGeometry(26,3.2,6),M(0x7a6a52)); bar.position.set(0,1.6,-10); sc.add(shadowAll(bar));
-    const barRoof = new THREE.Mesh(new THREE.BoxGeometry(27,.4,7),M(0x4e4438)); barRoof.position.set(0,3.4,-10); sc.add(shadowAll(barRoof));
+    const bar = makeBarrack(26,6,{wall:0x7a6a52}); bar.position.set(0,0,-10); sc.add(bar);
     for(let i=0;i<6;i++){ const w=new THREE.Mesh(new THREE.BoxGeometry(1.2,1,.1),M(0x2a2824)); w.position.set(-10+i*4,1.9,-6.95); sc.add(w); }
     const tower = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.6,7,10),M(0x6e6658)); tower.position.set(16,3.5,-14); sc.add(shadowAll(tower));
     const flagPole = new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,7,6),M(0x3a3028)); flagPole.position.set(-8,3.5,2); sc.add(flagPole);
@@ -237,16 +230,14 @@ function sceneDeparture(){
     const tuftGeo=new THREE.ConeGeometry(.12,.6,4); const tufts=new THREE.InstancedMesh(tuftGeo, M(0xa38c5c), 600); const tf=[]; const dm=new THREE.Object3D();
     for(let i=0;i<600;i++){ let z; do{ z=rand(-90,120); }while(Math.abs(z)<3.5); tf.push({x:rand(-200,200), z, s:rand(.6,1.6)}); } sc.add(tufts);
     const poles=[]; for(let i=0;i<14;i++){ const p=new THREE.Mesh(new THREE.CylinderGeometry(.08,.1,6,6),M(0x4a3a2a)); p.position.set(-200+i*30,3,-9); const bar=new THREE.Mesh(new THREE.BoxGeometry(.08,.08,1.2),M(0x4a3a2a)); bar.position.y=2.7; p.add(bar); sc.add(shadowAll(p)); poles.push(p); }
-    const hut = new THREE.Group(); const hw=new THREE.Mesh(new THREE.BoxGeometry(4,2.6,3),M(0xa8946e)); hw.position.y=1.3; const hr=new THREE.Mesh(new THREE.BoxGeometry(4.4,.3,3.4),M(0x5a4a38)); hr.position.y=2.75; hut.add(hw,hr); hut.position.set(-70,0,-9); sc.add(shadowAll(hut));
+    const hut = makeAdobeHouse(4,3,{h:2.6,wall:0xa8946e}); hut.position.set(-70,0,-9); sc.add(hut);
     // эшелон: паровоз и теплушки; у вагона Асана дверь открыта, внутри — люди
     const train = new THREE.Group(); sc.add(train);
-    const loco=new THREE.Group(); const boiler=new THREE.Mesh(new THREE.CylinderGeometry(.9,.9,5,14),M(0x262422)); boiler.rotation.z=Math.PI/2; boiler.position.set(-1,2.1,0);
-    const cab=new THREE.Mesh(new THREE.BoxGeometry(2.2,2.6,2.6),M(0x2c2a26)); cab.position.set(2.4,2.3,0); const stack=new THREE.Mesh(new THREE.CylinderGeometry(.3,.35,1.2,10),M(0x1e1c1a)); stack.position.set(-2.8,3.4,0);
-    loco.add(boiler,cab,stack); loco.position.x=-30; train.add(shadowAll(loco));
+    const loco=makeLoco(); loco.position.x=-30; train.add(loco);
     const locoSmoke = smokeColumn(sc, new THREE.Vector3(-32.8,4.2,0), 18, new THREE.Vector3(26,3,-2));
     const WX = -6.4; // вагон Асана
-    const wallM = M(0x5a3426), inM = new THREE.MeshLambertMaterial({color:0x2a1c14, side:THREE.DoubleSide});
-    for(let i=0;i<7;i++){ const x=-21+i*7.3; if(Math.abs(x-WX)<.1) continue; const w=new THREE.Mesh(new THREE.BoxGeometry(6.8,2.6,2.8),wallM); w.position.set(x,2.1,0); train.add(shadowAll(w)); const dd=new THREE.Mesh(new THREE.BoxGeometry(1.6,1.9,.05),M(0x3a2218)); dd.position.set(x,1.9,1.43); train.add(dd); }
+    const wallM = MAT.wood(0x5a3426,2), inM = new THREE.MeshLambertMaterial({color:0x2a1c14, side:THREE.DoubleSide});
+    for(let i=0;i<7;i++){ const x=-21+i*7.3; if(Math.abs(x-WX)<.1) continue; const w=makeBoxcar(6.8); w.position.set(x,0,0); train.add(w); }
     { // вагон Асана: стены с дверным проёмом, потолок, пол
       const g=new THREE.Group(); g.position.set(WX,0,0);
       const fl=new THREE.Mesh(new THREE.BoxGeometry(6.8,.1,2.8),inM); fl.position.y=.8; const rf=new THREE.Mesh(new THREE.BoxGeometry(6.8,.1,2.8),wallM); rf.position.y=3.4;
@@ -257,7 +248,7 @@ function sceneDeparture(){
       const outer=new THREE.Mesh(new THREE.BoxGeometry(6.84,2.64,.04),wallM); // наружная обшивка, кроме проёма — проём режут два куска
       const o1=new THREE.Mesh(new THREE.BoxGeometry(2.5,2.6,.04),wallM); o1.position.set(-2.15,2.1,1.45); const o2=o1.clone(); o2.position.x=2.15; const o3=new THREE.Mesh(new THREE.BoxGeometry(1.8,.5,.04),wallM); o3.position.set(0,3.15,1.45);
       const ob=new THREE.Mesh(new THREE.BoxGeometry(6.8,2.6,.04),wallM); ob.position.set(0,2.1,-1.45);
-      g.add(fl,rf,back,e1,e2,f1,f2,lint,o1,o2,o3,ob); train.add(g);
+      g.add(fl,rf,back,e1,e2,f1,f2,lint,o1,o2,o3,ob); g.add(makeBogie(-2.1), makeBogie(2.1)); train.add(g);
       const lamp=new THREE.PointLight(0xffd8a0,.5,7,2); lamp.position.set(0,2.6,0); g.add(lamp);
     }
     const sitters=[]; for(let i=0;i<5;i++){ const p=makePerson(i===3 ? {coat:0x9c8c6a, hat:'borik'} : {coat:[0x5e5a3e,0x6a5844,0x4e4436,0x5c5040,0x706048][i], hat:i%2?'pilotka':'borik'}); sitPose(p); p.position.set(WX-2.6+i*1.1,.85-.38,-1.0); p.rotation.y=0; train.add(p); sitters.push(p); }
@@ -446,11 +437,10 @@ function sceneDeparture(){
     makeGround(sc, 500, [0x9e9682,0x837a62,0x6e6450,0x56503e], 51);
     const khaki=0x5e5a3e, straw=M(0xb89c5c), sack=M(0xa89a78), wood=M(0x5e4834), earth=M(0x5a4a36);
     // казарма и столовая под навесом — у дороги
-    const bar = new THREE.Mesh(new THREE.BoxGeometry(26,3.2,6),M(0x7a6a52)); bar.position.set(0,1.6,-12); sc.add(shadowAll(bar));
-    const barRoof = new THREE.Mesh(new THREE.BoxGeometry(27,.4,7),M(0x4e4438)); barRoof.position.set(0,3.4,-12); sc.add(shadowAll(barRoof));
+    const bar = makeBarrack(26,6,{wall:0x7a6a52}); bar.position.set(0,0,-12); sc.add(bar);
     const wins=[]; for(let i=0;i<6;i++){ const w=new THREE.Mesh(new THREE.BoxGeometry(1.2,1,.1),new THREE.MeshBasicMaterial({color:0x2a2824})); w.position.set(-10+i*4,1.9,-8.95); sc.add(w); wins.push(w); }
-    const table = new THREE.Mesh(new THREE.BoxGeometry(8,.12,1.1),wood); table.position.set(0,.85,-3); sc.add(shadowAll(table));
-    for(const z of [-3.9,-2.1]){ const bench=new THREE.Mesh(new THREE.BoxGeometry(8,.08,.35),wood); bench.position.set(0,.48,z); sc.add(shadowAll(bench)); }
+    const table = makeTable(8,1.1,.9); table.position.set(0,0,-3); sc.add(table);
+    for(const z of [-3.9,-2.1]){ const bench=makeBench(8,.48); bench.position.set(0,0,z); sc.add(bench); }
     const bowls=[]; for(let i=0;i<8;i++){ const b=new THREE.Mesh(new THREE.CylinderGeometry(.13,.09,.08,10),M(0x6a6a62)); b.position.set(-3.5+i,.95,-3+(i%2?.3:-.3)); sc.add(b); bowls.push(b); }
     const kettle = new THREE.Mesh(new THREE.CylinderGeometry(.6,.5,.8,12),M(0x3a3a34)); kettle.position.set(5,.4,-3.2); sc.add(shadowAll(kettle));
     // стрельбище: вал и пять чучел — мешок на крестовине, набитый соломой
