@@ -231,8 +231,7 @@ function makeFence(pts, opt={}){
 // деревянный мост: настил поперёк, прогоны, сваи, перила. Длина вдоль x.
 function makeBridge(len=20, w=4, h=1.6, opt={}){
   if(opt.kind==='stone'){ // каменный мост: мощёный настил, бетонные парапеты, быки в воде
-    const g=new THREE.Group(), st=MAT.plaster(opt.col||0x8a867c,3), cob=MT(0x7a766c,'cobble.jpg',1);
-    if(cob.map){ cob.map=cob.map.clone(); cob.map.needsUpdate=true; cob.map.repeat.set(len/1.5,w/1.5); }
+    const g=new THREE.Group(), st=MAT.plaster(opt.col||0x8a867c,3), cob=MT(0x7a766c,'cobble.jpg',[Math.round(len/1.5),Math.round(w/1.5)]);
     g.add(P_.mesh(P_.box(len,.45,w),st,0,h-.22,0));
     g.add(P_.mesh(P_.box(len,.02,w-.5),cob,0,h+.01,0));
     for(const s of [-1,1]){ g.add(P_.mesh(P_.box(len,.9,.3),st,0,h+.45,s*(w/2-.15))); g.add(P_.mesh(P_.box(len+.1,.08,.38),st,0,h+.92,s*(w/2-.15))); }

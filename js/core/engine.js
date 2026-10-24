@@ -19,9 +19,20 @@ const TEX_LIST = new Set(), TEX_CACHE = {};
 function TEX(name, rep=1){
   if(!name || !TEX_LIST.has(name)) return null;
   const key=name+'@'+rep; if(TEX_CACHE[key]) return TEX_CACHE[key];
-  const t=new THREE.TextureLoader().load('tex/'+name); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rep,rep); t.encoding=THREE.sRGBEncoding; t.anisotropy=4;
+  const [rx,ry]=Array.isArray(rep)?rep:[rep,rep];
+  // фактура: картинку переводим в серую и выравниваем яркость (среднее ≈ .82), чтобы цвет задавал материал,
+  // а фактура давала только рисунок — тогда и цветные, и серые картинки ложатся одинаково и не темнят сцену
+  const t=new THREE.Texture(TEX_WHITE); t.needsUpdate=true; t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rx,ry); t.anisotropy=4;
+  const base=TEX_IMG[name] || (TEX_IMG[name]=new Promise(res=>{ const im=new Image(); im.onload=()=>{
+      const s=Math.min(1024,im.width), cv=document.createElement('canvas'); cv.width=cv.height=s; const x=cv.getContext('2d'); x.drawImage(im,0,0,s,s);
+      const d=x.getImageData(0,0,s,s), a=d.data; let sum=0; for(let i=0;i<a.length;i+=4){ const l=.3*a[i]+.59*a[i+1]+.11*a[i+2]; a[i]=l; sum+=l; }
+      const mean=sum/(a.length/4)||1, k=209/mean; for(let i=0;i<a.length;i+=4){ const l=Math.min(255,a[i]*k); a[i]=a[i+1]=a[i+2]=l; }
+      x.putImageData(d,0,0); res(cv); }; im.onerror=()=>res(null); im.src='tex/'+name; }));
+  base.then(cv=>{ if(cv){ t.image=cv; t.needsUpdate=true; } });
   return TEX_CACHE[key]=t;
 }
+const TEX_IMG={};
+const TEX_WHITE=(()=>{ const c=document.createElement('canvas'); c.width=c.height=2; const x=c.getContext('2d'); x.fillStyle='#d1d1d1'; x.fillRect(0,0,2,2); return c; })();
 // материал с текстурой-фактурой (серой), которая умножается на цвет: одна ткань — разные цвета
 const MT = (color, tex, rep=1, o={}) => { const map=TEX(tex,rep); return new THREE.MeshLambertMaterial(Object.assign({color}, map?{map}:{}, o)); };
 const shade = (hex, k) => { const c=new THREE.Color(hex); c.multiplyScalar(k); return c.getHex(); };
