@@ -128,7 +128,7 @@ function sceneDeparture(){
         father(k){ camera.fov=30; camera.position.set(2.0,1.2,4.9); return new THREE.Vector3(-.75,1.45,1.5); },
         // вторая половина пути: камера впереди на дороге, низко, смотрит назад — двое идут на нас, за ними аул и родители
         ahead(k){ camera.fov=34; const p=R0.clone().addScaledVector(RD, W.walkD+9); camera.position.set(p.x+1.4, .9, p.z); return R0.clone().addScaledVector(RD, W.walkD-6).setY(1.3); },
-        family(k){ camera.fov=40; camera.position.set(-.95,1.6,-1.2); /* дорога уходит точно между отцом и матерью */ return new THREE.Vector3(R0.x+RD.x*40, .9, R0.z+RD.z*40); }
+        family(k){ camera.fov=36; /* камера за спинами родителей, на одной линии с дорогой: сыновья уходят точно между отцом и матерью */ camera.position.set(-1.3,1.55,-1.06); return new THREE.Vector3(14.6, .9, 38.5); }
       } };
     return W;
   }
